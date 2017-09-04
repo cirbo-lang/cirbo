@@ -261,8 +261,8 @@ func (p *parser) parseImport() (ast.Node, source.Diags) {
 			return nil, diags
 		}
 
-		name = p.PeekIdent()
-		p.Read()
+		nameTok := p.Read()
+		name = p.decodeIdentifierBytes(nameTok.Bytes)
 	}
 
 	if p.Peek().Type != TokenSemicolon {
@@ -290,6 +290,20 @@ func (p *parser) parseImport() (ast.Node, source.Diags) {
 			Range: source.RangeBetween(kw.Range, semicolon.Range),
 		},
 	}, diags
+}
+
+func (p *parser) decodeIdentifierBytes(src []byte) string {
+	if len(src) == 0 {
+		// should never happen, but we'll catch it to avoid a panic below
+		return ""
+	}
+
+	if src[0] == '`' {
+		// Trim off the leading and trailing ` characters that quote the sequence
+		src = src[1 : len(src)-1]
+	}
+
+	return string(src)
 }
 
 func (p *parser) decodeStringLiteral(tok Token) (string, source.Diags) {
