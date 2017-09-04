@@ -46,7 +46,8 @@ func scanTokens(data []byte, filename string, start source.Pos, mode scanMode) [
         LogicalAnd = "&&";
         LogicalOr = "||";
 
-        Connect = "--";
+        DashDash = "--";
+        DotDot = "..";
 
         Newline = '\r' ? '\n';
         EndOfLine = Newline;
@@ -73,7 +74,8 @@ func scanTokens(data []byte, filename string, start source.Pos, mode scanMode) [
             LessThanEqual    => { token(TokenLessThanEq); };
             LogicalAnd       => { token(TokenAnd); };
             LogicalOr        => { token(TokenOr); };
-            Connect          => { token(TokenDashDash); };
+            DashDash         => { token(TokenDashDash); };
+            DotDot           => { token(TokenDotDot); };
             SelfToken        => { selfToken() };
 
             BrokenUTF8       => { token(TokenBadUTF8) };

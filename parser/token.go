@@ -48,7 +48,9 @@ const (
 	TokenLessThanEq    TokenType = '≤'
 	TokenGreaterThan   TokenType = '>'
 	TokenGreaterThanEq TokenType = '≥'
-	TokenDashDash      TokenType = '—'
+
+	TokenDashDash TokenType = '—'
+	TokenDotDot   TokenType = '…'
 
 	TokenAnd  TokenType = '∧'
 	TokenOr   TokenType = '∨'
