@@ -430,7 +430,7 @@ func TestScanTokens(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.input, func(t *testing.T) {
-			got := scanTokens([]byte(test.input), "", source.Pos{Byte: 0, Line: 1, Column: 1}, scanTemplate)
+			got := scanTokens([]byte(test.input), "", source.Pos{Byte: 0, Line: 1, Column: 1}, scanNormal)
 
 			if !reflect.DeepEqual(got, test.want) {
 				diff := prettyConfig.Compare(test.want, got)

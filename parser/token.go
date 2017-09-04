@@ -97,7 +97,6 @@ type scanMode int
 
 const (
 	scanNormal scanMode = iota
-	scanTemplate
 )
 
 type tokenAccum struct {
