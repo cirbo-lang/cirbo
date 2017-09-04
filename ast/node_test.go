@@ -9,11 +9,13 @@ func TestNodeImpls(t *testing.T) {
 	// Everything here actually gets checked at compile time, so this
 	// test function is just here for visibility in verbose test output.
 	var tests []Node = []Node{
+		&Arguments{},
 		&ArithmeticBinary{},
 		&ArithmeticUnary{},
 		&Assign{},
 		&Attr{},
 		&BooleanLit{},
+		&Call{},
 		&Circuit{},
 		&Connection{},
 		&Designator{},
@@ -25,6 +27,7 @@ func TestNodeImpls(t *testing.T) {
 		&Import{},
 		&Land{},
 		&List{},
+		&NamedArgument{},
 		&NetCons{},
 		&NumberLit{},
 		&Object{},
