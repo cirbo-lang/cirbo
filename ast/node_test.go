@@ -19,6 +19,7 @@ func TestNodeImpls(t *testing.T) {
 		&Designator{},
 		&Device{},
 		&Export{},
+		&File{},
 		&GetAttr{},
 		&GetIndex{},
 		&Import{},
