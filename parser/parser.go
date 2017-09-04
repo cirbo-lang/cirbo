@@ -193,7 +193,7 @@ Statements:
 		var node ast.Node
 		var nodeDiags source.Diags
 
-		nextKw := p.PeekIdent()
+		nextKw := p.PeekKeyword()
 		switch nextKw {
 
 		case "import":
@@ -246,7 +246,7 @@ func (p *parser) parseImport() (ast.Node, source.Diags) {
 
 	var name string
 
-	if p.PeekIdent() == "as" {
+	if p.PeekKeyword() == "as" {
 		p.Read() // eat the "as" keyword
 		if p.Peek().Type != TokenIdent {
 			if !p.recovering {
