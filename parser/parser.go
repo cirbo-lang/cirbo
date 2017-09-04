@@ -98,10 +98,31 @@ func (p *Parser) ParseFile(fpath string) (*ast.File, source.Diags) {
 	}
 	defer f.Close()
 
+	src, err := ioutil.ReadAll(f)
+	if err != nil {
+		return ret, source.Diags{
+			{
+				Level:   source.Error,
+				Summary: "Failed to read file",
+				Detail:  fmt.Sprintf("The file %q could not be read: %s.", fpath, err),
+			},
+		}
+	}
+
+	ret.Source = src
+
 	p.files[fpath] = ret
 
-	var diags source.Diags
+	tokens := scanTokens(src, "", source.StartPos, scanNormal)
+	it := newTokenIterator(tokens)
+	ip := &parser{
+		tokenPeeker: tokenPeeker{
+			Iter: it,
+		},
+	}
 
+	topLevel, diags := ip.ParseTopLevel()
+	ret.TopLevel = topLevel
 	p.diags = append(p.diags, diags...)
 
 	return ret, diags
@@ -123,10 +144,34 @@ func (p *Parser) ScanFile(fpath string) (Tokens, error) {
 		return nil, err
 	}
 
-	tokens := scanTokens(src, fpath, source.Pos{Line: 1, Column: 1}, scanNormal)
+	tokens := scanTokens(src, fpath, source.StartPos, scanNormal)
 	return tokens, nil
 }
 
 func (p *Parser) Diagnostics() source.Diags {
 	return p.diags
+}
+
+// ParseExpr parses a standalone expression.
+func ParseExpr(src []byte) (*ast.Node, source.Diags) {
+	tokens := scanTokens(src, "", source.StartPos, scanNormal)
+	it := newTokenIterator(tokens)
+	ip := &parser{
+		tokenPeeker: tokenPeeker{
+			Iter: it,
+		},
+	}
+	return ip.ParseExpr()
+}
+
+type parser struct {
+	tokenPeeker
+}
+
+func (p *parser) ParseTopLevel() ([]ast.Node, source.Diags) {
+	panic("ParseTopLevel not yet implemented")
+}
+
+func (p *parser) ParseExpr() (*ast.Node, source.Diags) {
+	panic("ParseExpr not yet implemented")
 }

@@ -2,6 +2,7 @@ package ast
 
 type File struct {
 	WithRange
+	Source   []byte
 	TopLevel []Node
 }
 
