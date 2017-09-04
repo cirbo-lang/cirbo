@@ -1,6 +1,8 @@
 package parser
 
 import (
+	"fmt"
+
 	"github.com/apparentlymart/go-textseg/textseg"
 	"github.com/cirbo-lang/cirbo/source"
 )
@@ -85,9 +87,9 @@ const (
 	TokenNil TokenType = '\x00'
 )
 
-/*func (t TokenType) GoString() string {
+func (t TokenType) GoString() string {
 	return fmt.Sprintf("parser.%s", t.String())
-}*/
+}
 
 type scanMode int
 
