@@ -39,6 +39,9 @@ func scanTokens(data []byte, filename string, start source.Pos, mode scanMode) [
         # Symbols that just represent themselves are handled as a single rule.
         SelfToken = "{" | "}" | "[" | "]" | "(" | ")" | "." | "," | "*" | "/" | "+" | "-" | '%' | "=" | "<" | ">" | "!" | "?" | ":" | "&" | "|" | "^" | ";";
 
+        OPointyPointy = "<<";
+        CPointyPointy = ">>";
+
         Equal = "==";
         NotEqual = "!=";
         GreaterThanEqual = ">=";
@@ -76,6 +79,8 @@ func scanTokens(data []byte, filename string, start source.Pos, mode scanMode) [
             LogicalOr        => { token(TokenOr); };
             DashDash         => { token(TokenDashDash); };
             DotDot           => { token(TokenDotDot); };
+            OPointyPointy    => { token(TokenOPoint); };
+            CPointyPointy    => { token(TokenCPoint); };
             SelfToken        => { selfToken() };
 
             BrokenUTF8       => { token(TokenBadUTF8) };

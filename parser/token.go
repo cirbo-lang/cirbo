@@ -33,6 +33,8 @@ const (
 	TokenCBrack TokenType = ']'
 	TokenOParen TokenType = '('
 	TokenCParen TokenType = ')'
+	TokenOPoint TokenType = '«'
+	TokenCPoint TokenType = '»'
 
 	TokenStar    TokenType = '*'
 	TokenSlash   TokenType = '/'

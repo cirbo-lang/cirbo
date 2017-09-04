@@ -4,7 +4,7 @@ package parser
 
 import "fmt"
 
-const _TokenType_name = "TokenNilTokenWhitespaceTokenBangTokenPercentTokenBitwiseAndTokenOParenTokenCParenTokenStarTokenPlusTokenCommaTokenMinusTokenDotTokenSlashTokenColonTokenSemicolonTokenLessThanTokenAssignTokenGreaterThanTokenQuestionTokenCommentTokenIdentTokenNumberLitTokenStringLitTokenOBrackTokenCBrackTokenCaretTokenOBraceTokenBitwiseOrTokenCBraceTokenBitwiseNotTokenDashDashTokenDotDotTokenAndTokenOrTokenEqualTokenNotEqualTokenLessThanEqTokenGreaterThanEqTokenEOFTokenInvalidTokenBadUTF8"
+const _TokenType_name = "TokenNilTokenWhitespaceTokenBangTokenPercentTokenBitwiseAndTokenOParenTokenCParenTokenStarTokenPlusTokenCommaTokenMinusTokenDotTokenSlashTokenColonTokenSemicolonTokenLessThanTokenAssignTokenGreaterThanTokenQuestionTokenCommentTokenIdentTokenNumberLitTokenStringLitTokenOBrackTokenCBrackTokenCaretTokenOBraceTokenBitwiseOrTokenCBraceTokenBitwiseNotTokenOPointTokenCPointTokenDashDashTokenDotDotTokenAndTokenOrTokenEqualTokenNotEqualTokenLessThanEqTokenGreaterThanEqTokenEOFTokenInvalidTokenBadUTF8"
 
 var _TokenType_map = map[TokenType]string{
 	0:      _TokenType_name[0:8],
@@ -37,17 +37,19 @@ var _TokenType_map = map[TokenType]string{
 	124:    _TokenType_name[307:321],
 	125:    _TokenType_name[321:332],
 	126:    _TokenType_name[332:347],
-	8212:   _TokenType_name[347:360],
-	8230:   _TokenType_name[360:371],
-	8743:   _TokenType_name[371:379],
-	8744:   _TokenType_name[379:386],
-	8788:   _TokenType_name[386:396],
-	8800:   _TokenType_name[396:409],
-	8804:   _TokenType_name[409:424],
-	8805:   _TokenType_name[424:442],
-	9220:   _TokenType_name[442:450],
-	65533:  _TokenType_name[450:462],
-	128169: _TokenType_name[462:474],
+	171:    _TokenType_name[347:358],
+	187:    _TokenType_name[358:369],
+	8212:   _TokenType_name[369:382],
+	8230:   _TokenType_name[382:393],
+	8743:   _TokenType_name[393:401],
+	8744:   _TokenType_name[401:408],
+	8788:   _TokenType_name[408:418],
+	8800:   _TokenType_name[418:431],
+	8804:   _TokenType_name[431:446],
+	8805:   _TokenType_name[446:464],
+	9220:   _TokenType_name[464:472],
+	65533:  _TokenType_name[472:484],
+	128169: _TokenType_name[484:496],
 }
 
 func (i TokenType) String() string {
