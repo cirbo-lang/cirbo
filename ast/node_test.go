@@ -27,6 +27,8 @@ func TestNodeImpls(t *testing.T) {
 		&List{},
 		&NetCons{},
 		&NumberLit{},
+		&Object{},
+		&ObjectElem{},
 		&Pinout{},
 		&QuantityLit{},
 		&Slice{},
