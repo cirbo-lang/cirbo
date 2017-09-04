@@ -6,7 +6,7 @@ type tokenPeeker struct {
 }
 
 func (p *tokenPeeker) Peek() Token {
-	if p.Peeked.Type == TokenNil {
+	for p.Peeked.Type == TokenNil || p.Peeked.Type == TokenWhitespace || p.Peeked.Type == TokenComment {
 		p.Peeked = p.Iter.Next()
 	}
 	return p.Peeked
@@ -33,6 +33,8 @@ func newTokenIterator(tokens Tokens) *tokenIterator {
 func (i *tokenIterator) Next() Token {
 	ret := i.Tokens[i.Pos]
 	if i.Pos < (len(i.Tokens) - 1) {
+		// When we reach the end we will just keep returning the final token
+		// forever, since we assume it will be a TokenEOF.
 		i.Pos++
 	}
 	return ret
