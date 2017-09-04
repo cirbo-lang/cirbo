@@ -1,5 +1,7 @@
 package parser
 
+import "github.com/cirbo-lang/cirbo/source"
+
 type tokenPeeker struct {
 	Iter   *tokenIterator
 	Peeked Token
@@ -16,6 +18,32 @@ func (p *tokenPeeker) Read() Token {
 	ret := p.Peek()
 	p.Peeked.Type = TokenNil
 	return ret
+}
+
+// PeekIdent checks if the next token is an identifier, and if so it returns
+// the identifier's name as a string. If the next token is not an identifier,
+// it returns an empty string.
+func (p *tokenPeeker) PeekIdent() string {
+	next := p.Peek()
+	if next.Type != TokenIdent {
+		return ""
+	}
+	got := string(next.Bytes)
+	if got[0] == '`' {
+		// this is a `quoted` ident, so we'll trim the backtick quotes.
+		// The scanner doesn't accept `` (two backticks) as a valid
+		// identifier, so this will always produce at least one character.
+		got = got[1 : len(got)-1]
+	}
+	return got
+}
+
+func (p *tokenPeeker) PeekRange() source.Range {
+	return p.Peek().Range
+}
+
+func (p *tokenPeeker) EOF() bool {
+	return p.Peek().Type == TokenEOF
 }
 
 type tokenIterator struct {
