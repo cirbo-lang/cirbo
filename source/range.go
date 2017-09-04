@@ -31,6 +31,8 @@ type Pos struct {
 	Byte int
 }
 
+var StartPos = Pos{Line: 1, Column: 1}
+
 // Range represents a span of characters between two positions in a source
 // file.
 //
@@ -64,14 +66,6 @@ func RangeBetween(start, end Range) Range {
 // the receiving Range.
 func (r Range) ContainsOffset(offset int) bool {
 	return offset >= r.Start.Byte && offset < r.End.Byte
-}
-
-// Ptr returns a pointer to a copy of the receiver. This is a convenience when
-// ranges in places where pointers are required, such as in Diagnostic, but
-// the range in question is returned from a method. Go would otherwise not
-// allow one to take the address of a function call.
-func (r Range) Ptr() *Range {
-	return &r
 }
 
 // String returns a compact string representation of the receiver.
