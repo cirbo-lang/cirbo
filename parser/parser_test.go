@@ -227,6 +227,85 @@ func TestParseExpression(t *testing.T) {
 		},
 
 		{
+			`true`,
+			&ast.BooleanLit{
+				Value: true,
+				WithRange: ast.WithRange{
+					Range: source.Range{
+						Start: source.Pos{Line: 1, Column: 1, Byte: 0},
+						End:   source.Pos{Line: 1, Column: 5, Byte: 4},
+					},
+				},
+			},
+			0,
+		},
+		{
+			`false`,
+			&ast.BooleanLit{
+				Value: false,
+				WithRange: ast.WithRange{
+					Range: source.Range{
+						Start: source.Pos{Line: 1, Column: 1, Byte: 0},
+						End:   source.Pos{Line: 1, Column: 6, Byte: 5},
+					},
+				},
+			},
+			0,
+		},
+		{
+			`foo`,
+			&ast.Variable{
+				Name: "foo",
+				WithRange: ast.WithRange{
+					Range: source.Range{
+						Start: source.Pos{Line: 1, Column: 1, Byte: 0},
+						End:   source.Pos{Line: 1, Column: 4, Byte: 3},
+					},
+				},
+			},
+			0,
+		},
+		{
+			"`foo`",
+			&ast.Variable{
+				Name: "foo",
+				WithRange: ast.WithRange{
+					Range: source.Range{
+						Start: source.Pos{Line: 1, Column: 1, Byte: 0},
+						End:   source.Pos{Line: 1, Column: 6, Byte: 5},
+					},
+				},
+			},
+			0,
+		},
+		{
+			"`true`",
+			&ast.Variable{
+				Name: "true",
+				WithRange: ast.WithRange{
+					Range: source.Range{
+						Start: source.Pos{Line: 1, Column: 1, Byte: 0},
+						End:   source.Pos{Line: 1, Column: 7, Byte: 6},
+					},
+				},
+			},
+			0,
+		},
+		{
+			"`false`",
+			&ast.Variable{
+				Name: "false",
+				WithRange: ast.WithRange{
+					Range: source.Range{
+						Start: source.Pos{Line: 1, Column: 1, Byte: 0},
+						End:   source.Pos{Line: 1, Column: 8, Byte: 7},
+					},
+				},
+			},
+			0,
+		},
+
+		{
 			`("hello")`,
 			&ast.ParenExpr{
 				WithRange: ast.WithRange{

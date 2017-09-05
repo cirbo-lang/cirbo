@@ -436,6 +436,34 @@ func (p *parser) parseExpressionTerm() (ast.Node, source.Diags) {
 			Content: expr,
 		}, diags
 
+	case TokenIdent:
+		kw := p.PeekKeyword()
+		tok := p.Read()
+
+		switch kw {
+		case "true":
+			return &ast.BooleanLit{
+				Value: true,
+				WithRange: ast.WithRange{
+					Range: tok.Range,
+				},
+			}, nil
+		case "false":
+			return &ast.BooleanLit{
+				Value: false,
+				WithRange: ast.WithRange{
+					Range: tok.Range,
+				},
+			}, nil
+		default:
+			return &ast.Variable{
+				Name: p.decodeIdentifierBytes(tok.Bytes),
+				WithRange: ast.WithRange{
+					Range: tok.Range,
+				},
+			}, nil
+		}
+
 	case TokenStringLit:
 		tok := p.Read()
 		val, diags := p.decodeStringLiteral(tok)
