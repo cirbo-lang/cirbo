@@ -1,6 +1,7 @@
 package parser
 
 import (
+	"math/big"
 	"reflect"
 	"testing"
 
@@ -225,6 +226,19 @@ func TestParseExpression(t *testing.T) {
 			},
 			1, // invalid escape sequence
 		},
+		{
+			`"hello" true`,
+			&ast.StringLit{
+				Value: "hello",
+				WithRange: ast.WithRange{
+					Range: source.Range{
+						Start: source.Pos{Line: 1, Column: 1, Byte: 0},
+						End:   source.Pos{Line: 1, Column: 8, Byte: 7},
+					},
+				},
+			},
+			1, // extra junk after expression
+		},
 
 		{
 			`true`,
@@ -299,6 +313,46 @@ func TestParseExpression(t *testing.T) {
 					Range: source.Range{
 						Start: source.Pos{Line: 1, Column: 1, Byte: 0},
 						End:   source.Pos{Line: 1, Column: 8, Byte: 7},
+					},
+				},
+			},
+			0,
+		},
+
+		{
+			`1`,
+			&ast.NumberLit{
+				Value: mustParseBigFloat("1"),
+				WithRange: ast.WithRange{
+					Range: source.Range{
+						Start: source.Pos{Line: 1, Column: 1, Byte: 0},
+						End:   source.Pos{Line: 1, Column: 2, Byte: 1},
+					},
+				},
+			},
+			0,
+		},
+		{
+			`1.2`,
+			&ast.NumberLit{
+				Value: mustParseBigFloat("1.2"),
+				WithRange: ast.WithRange{
+					Range: source.Range{
+						Start: source.Pos{Line: 1, Column: 1, Byte: 0},
+						End:   source.Pos{Line: 1, Column: 4, Byte: 3},
+					},
+				},
+			},
+			0,
+		},
+		{
+			`1.0`,
+			&ast.NumberLit{
+				Value: mustParseBigFloat("1.0"),
+				WithRange: ast.WithRange{
+					Range: source.Range{
+						Start: source.Pos{Line: 1, Column: 1, Byte: 0},
+						End:   source.Pos{Line: 1, Column: 4, Byte: 3},
 					},
 				},
 			},
@@ -383,4 +437,12 @@ func TestParseExpression(t *testing.T) {
 			}
 		})
 	}
+}
+
+func mustParseBigFloat(str string) *big.Float {
+	f, _, err := (&big.Float{}).Parse(str, 10)
+	if err != nil {
+		panic(err)
+	}
+	return f
 }

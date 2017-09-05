@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"fmt"
 	"io/ioutil"
+	"math/big"
 	"path"
 	"strings"
 
@@ -475,6 +476,20 @@ func (p *parser) parseExpressionTerm() (ast.Node, source.Diags) {
 			Value: val,
 		}, diags
 
+	case TokenNumberLit:
+		tok := p.Read()
+		val, diags := p.decodeNumberLiteral(tok)
+
+		// TODO: sniff for a percent sign or an identifier immediately after
+		// and parse as either a percentage or a quantity.
+
+		return &ast.NumberLit{
+			WithRange: ast.WithRange{
+				Range: tok.Range,
+			},
+			Value: val,
+		}, diags
+
 	default:
 		var diags source.Diags
 		if !p.recovering {
@@ -507,6 +522,27 @@ func (p *parser) decodeIdentifierBytes(src []byte) string {
 	}
 
 	return string(src)
+}
+
+func (p *parser) decodeNumberLiteral(tok Token) (*big.Float, source.Diags) {
+	if tok.Type != TokenNumberLit {
+		panic("decodeNumberLiteral can only be used with TokenNumberLit tokens")
+	}
+
+	var diags source.Diags
+	str := string(tok.Bytes)
+	f := &big.Float{}
+	_, _, err := f.Parse(str, 10)
+	if err != nil {
+		diags = append(diags, source.Diag{
+			Level:   source.Error,
+			Summary: "Invalid number literal",
+			Detail:  "The given number is invalid.",
+			Ranges:  tok.Range.List(),
+		})
+	}
+
+	return f, diags
 }
 
 func (p *parser) decodeStringLiteral(tok Token) (string, source.Diags) {
