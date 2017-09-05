@@ -88,3 +88,11 @@ func (r Range) String() string {
 		)
 	}
 }
+
+// List returns the receiver wrapped in a single-element slice.
+//
+// This is provided as a convenience for building Diag structures which
+// can have zero or more ranges, but often only one.
+func (r Range) List() []Range {
+	return []Range{r}
+}
