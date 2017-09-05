@@ -35,6 +35,8 @@ const (
 	And ArithmeticOp = '∧'
 	Or  ArithmeticOp = '∨'
 	Not ArithmeticOp = '¬'
+
+	ArithmeticOpNil ArithmeticOp = 0
 )
 
 func (n *ArithmeticBinary) walkChildNodes(cb internalWalkFunc) {
