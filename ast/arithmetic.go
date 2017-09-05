@@ -29,6 +29,7 @@ const (
 	Divide   ArithmeticOp = '÷'
 	Modulo   ArithmeticOp = 'm' // written as 'mod' because % is used for percentages
 	Exponent ArithmeticOp = '^'
+	Negate   ArithmeticOp = '±'
 
 	Concat ArithmeticOp = '…'
 

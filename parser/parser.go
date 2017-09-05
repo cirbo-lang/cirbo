@@ -516,6 +516,36 @@ func (p *parser) parseExpressionTerm() (ast.Node, source.Diags) {
 			Value: val,
 		}, diags
 
+	case TokenBang:
+		op := p.Read()
+		// Important to use parseExpressionWithTrailers rather than
+		// parseExpression here, or else we can capture a following binary
+		// expression into our negation.
+		operand, diags := p.parseExpressionWithTrailers()
+		return &ast.ArithmeticUnary{
+			Op:      ast.Not,
+			Operand: operand,
+
+			WithRange: ast.WithRange{
+				Range: source.RangeBetween(op.Range, operand.SourceRange()),
+			},
+		}, diags
+
+	case TokenMinus:
+		op := p.Read()
+		// Important to use parseExpressionWithTrailers rather than
+		// parseExpression here, or else we can capture a following binary
+		// expression into our negation.
+		operand, diags := p.parseExpressionWithTrailers()
+		return &ast.ArithmeticUnary{
+			Op:      ast.Negate,
+			Operand: operand,
+
+			WithRange: ast.WithRange{
+				Range: source.RangeBetween(op.Range, operand.SourceRange()),
+			},
+		}, diags
+
 	default:
 		var diags source.Diags
 		if !p.recovering {

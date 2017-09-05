@@ -501,6 +501,95 @@ func TestParseExpression(t *testing.T) {
 		},
 
 		{
+			`-1`,
+			&ast.ArithmeticUnary{
+				Op: ast.Negate,
+				Operand: &ast.NumberLit{
+					Value: mustParseBigFloat("1"),
+					WithRange: ast.WithRange{
+						Range: source.Range{
+							Start: source.Pos{Line: 1, Column: 2, Byte: 1},
+							End:   source.Pos{Line: 1, Column: 3, Byte: 2},
+						},
+					},
+				},
+
+				WithRange: ast.WithRange{
+					Range: source.Range{
+						Start: source.Pos{Line: 1, Column: 1, Byte: 0},
+						End:   source.Pos{Line: 1, Column: 3, Byte: 2},
+					},
+				},
+			},
+			0,
+		},
+		{
+			`-1 + 2`,
+			&ast.ArithmeticBinary{
+				Op: ast.Add,
+				LHS: &ast.ArithmeticUnary{
+					Op: ast.Negate,
+					Operand: &ast.NumberLit{
+						Value: mustParseBigFloat("1"),
+						WithRange: ast.WithRange{
+							Range: source.Range{
+								Start: source.Pos{Line: 1, Column: 2, Byte: 1},
+								End:   source.Pos{Line: 1, Column: 3, Byte: 2},
+							},
+						},
+					},
+
+					WithRange: ast.WithRange{
+						Range: source.Range{
+							Start: source.Pos{Line: 1, Column: 1, Byte: 0},
+							End:   source.Pos{Line: 1, Column: 3, Byte: 2},
+						},
+					},
+				},
+				RHS: &ast.NumberLit{
+					Value: mustParseBigFloat("2"),
+					WithRange: ast.WithRange{
+						Range: source.Range{
+							Start: source.Pos{Line: 1, Column: 6, Byte: 5},
+							End:   source.Pos{Line: 1, Column: 7, Byte: 6},
+						},
+					},
+				},
+				WithRange: ast.WithRange{
+					Range: source.Range{
+						Start: source.Pos{Line: 1, Column: 1, Byte: 0},
+						End:   source.Pos{Line: 1, Column: 7, Byte: 6},
+					},
+				},
+			},
+			0,
+		},
+
+		{
+			`!true`,
+			&ast.ArithmeticUnary{
+				Op: ast.Not,
+				Operand: &ast.BooleanLit{
+					Value: true,
+					WithRange: ast.WithRange{
+						Range: source.Range{
+							Start: source.Pos{Line: 1, Column: 2, Byte: 1},
+							End:   source.Pos{Line: 1, Column: 6, Byte: 5},
+						},
+					},
+				},
+
+				WithRange: ast.WithRange{
+					Range: source.Range{
+						Start: source.Pos{Line: 1, Column: 1, Byte: 0},
+						End:   source.Pos{Line: 1, Column: 6, Byte: 5},
+					},
+				},
+			},
+			0,
+		},
+
+		{
 			`"hello " .. "world"`,
 			&ast.ArithmeticBinary{
 				Op: ast.Concat,
