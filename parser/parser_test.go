@@ -1,7 +1,6 @@
 package parser
 
 import (
-	"math/big"
 	"reflect"
 	"testing"
 
@@ -358,6 +357,126 @@ func TestParseExpression(t *testing.T) {
 			},
 			0,
 		},
+		{
+			`1%`,
+			&ast.NumberLit{
+				Value: mustParseBigFloat("0.01"),
+				WithRange: ast.WithRange{
+					Range: source.Range{
+						Start: source.Pos{Line: 1, Column: 1, Byte: 0},
+						End:   source.Pos{Line: 1, Column: 3, Byte: 2},
+					},
+				},
+			},
+			0,
+		},
+		{
+			`1.5%`,
+			&ast.NumberLit{
+				Value: mustParseBigFloat("0.015"),
+				WithRange: ast.WithRange{
+					Range: source.Range{
+						Start: source.Pos{Line: 1, Column: 1, Byte: 0},
+						End:   source.Pos{Line: 1, Column: 5, Byte: 4},
+					},
+				},
+			},
+			0,
+		},
+		{
+			`50%`,
+			&ast.NumberLit{
+				Value: mustParseBigFloat("0.5"),
+				WithRange: ast.WithRange{
+					Range: source.Range{
+						Start: source.Pos{Line: 1, Column: 1, Byte: 0},
+						End:   source.Pos{Line: 1, Column: 4, Byte: 3},
+					},
+				},
+			},
+			0,
+		},
+		{
+			`100%`,
+			&ast.NumberLit{
+				Value: mustParseBigFloat("1"),
+				WithRange: ast.WithRange{
+					Range: source.Range{
+						Start: source.Pos{Line: 1, Column: 1, Byte: 0},
+						End:   source.Pos{Line: 1, Column: 5, Byte: 4},
+					},
+				},
+			},
+			0,
+		},
+		{
+			`150%`,
+			&ast.NumberLit{
+				Value: mustParseBigFloat("1.5"),
+				WithRange: ast.WithRange{
+					Range: source.Range{
+						Start: source.Pos{Line: 1, Column: 1, Byte: 0},
+						End:   source.Pos{Line: 1, Column: 5, Byte: 4},
+					},
+				},
+			},
+			0,
+		},
+		{
+			`1m`,
+			&ast.QuantityLit{
+				Value: mustParseBigFloat("1"),
+				Unit:  "m",
+				WithRange: ast.WithRange{
+					Range: source.Range{
+						Start: source.Pos{Line: 1, Column: 1, Byte: 0},
+						End:   source.Pos{Line: 1, Column: 3, Byte: 2},
+					},
+				},
+			},
+			0,
+		},
+		{
+			`1kV`,
+			&ast.QuantityLit{
+				Value: mustParseBigFloat("1"),
+				Unit:  "kV",
+				WithRange: ast.WithRange{
+					Range: source.Range{
+						Start: source.Pos{Line: 1, Column: 1, Byte: 0},
+						End:   source.Pos{Line: 1, Column: 4, Byte: 3},
+					},
+				},
+			},
+			0,
+		},
+		{
+			`1 ohm`,
+			&ast.QuantityLit{
+				Value: mustParseBigFloat("1"),
+				Unit:  "ohm",
+				WithRange: ast.WithRange{
+					Range: source.Range{
+						Start: source.Pos{Line: 1, Column: 1, Byte: 0},
+						End:   source.Pos{Line: 1, Column: 6, Byte: 5},
+					},
+				},
+			},
+			0,
+		},
+		{
+			`1nonunit`,
+			&ast.NumberLit{
+				Value: mustParseBigFloat("1"),
+				WithRange: ast.WithRange{
+					Range: source.Range{
+						Start: source.Pos{Line: 1, Column: 1, Byte: 0},
+						End:   source.Pos{Line: 1, Column: 2, Byte: 1},
+					},
+				},
+			},
+			1, // extra characters after expression
+		},
 
 		{
 			`("hello")`,
@@ -437,12 +556,4 @@ func TestParseExpression(t *testing.T) {
 			}
 		})
 	}
-}
-
-func mustParseBigFloat(str string) *big.Float {
-	f, _, err := (&big.Float{}).Parse(str, 10)
-	if err != nil {
-		panic(err)
-	}
-	return f
 }

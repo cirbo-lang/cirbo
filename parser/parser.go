@@ -15,6 +15,8 @@ import (
 	"golang.org/x/tools/godoc/vfs"
 )
 
+var oneHundred = mustParseBigFloat("100")
+
 type Parser struct {
 	fs       vfs.FileSystem
 	files    map[string]*ast.File
@@ -480,8 +482,32 @@ func (p *parser) parseExpressionTerm() (ast.Node, source.Diags) {
 		tok := p.Read()
 		val, diags := p.decodeNumberLiteral(tok)
 
-		// TODO: sniff for a percent sign or an identifier immediately after
-		// and parse as either a percentage or a quantity.
+		next := p.Peek()
+		switch next.Type {
+		case TokenPercent:
+			marker := p.Read()
+			if val != nil {
+				val.Quo(val, oneHundred)
+			}
+			return &ast.NumberLit{
+				WithRange: ast.WithRange{
+					Range: source.RangeBetween(tok.Range, marker.Range),
+				},
+				Value: val,
+			}, diags
+		case TokenIdent:
+			kw := p.PeekKeyword()
+			if ast.IsQuantityUnitKeyword(kw) {
+				marker := p.Read()
+				return &ast.QuantityLit{
+					WithRange: ast.WithRange{
+						Range: source.RangeBetween(tok.Range, marker.Range),
+					},
+					Value: val,
+					Unit:  kw,
+				}, diags
+			}
+		}
 
 		return &ast.NumberLit{
 			WithRange: ast.WithRange{
@@ -841,4 +867,12 @@ func (p *parser) invalidTokenDiags(diags source.Diags) source.Diags {
 		return nil
 	}
 	return diags
+}
+
+func mustParseBigFloat(str string) *big.Float {
+	f, _, err := (&big.Float{}).Parse(str, 10)
+	if err != nil {
+		panic(err)
+	}
+	return f
 }
