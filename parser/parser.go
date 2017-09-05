@@ -157,7 +157,7 @@ func (p *Parser) Diagnostics() source.Diags {
 }
 
 // ParseExpr parses a standalone expression.
-func ParseExpr(src []byte) (*ast.Node, source.Diags) {
+func ParseExpr(src []byte) (ast.Node, source.Diags) {
 	tokens := scanTokens(src, "", source.StartPos, scanNormal)
 	it := newTokenIterator(tokens)
 	ip := &parser{
@@ -177,8 +177,21 @@ func (p *parser) ParseTopLevel() ([]ast.Node, source.Range, source.Diags) {
 	return p.parseTopLevel()
 }
 
-func (p *parser) ParseExpr() (*ast.Node, source.Diags) {
-	panic("ParseExpr not yet implemented")
+func (p *parser) ParseExpr() (ast.Node, source.Diags) {
+	expr, diags := p.parseExpr()
+
+	// We tolerate leftover characters in the presence of errors because
+	// we may have aborted parsing early due to the error.
+	if !p.EOF() && !diags.HasErrors() {
+		diags = append(diags, source.Diag{
+			Level:   source.Error,
+			Summary: "Extra characters after expression",
+			Detail:  "The remaining characters cannot be interpreted as part of this expression.",
+			Ranges:  p.PeekRange().List(),
+		})
+	}
+
+	return expr, diags
 }
 
 func (p *parser) parseTopLevel() ([]ast.Node, source.Range, source.Diags) {
@@ -290,6 +303,168 @@ func (p *parser) parseImport() (ast.Node, source.Diags) {
 			Range: source.RangeBetween(kw.Range, semicolon.Range),
 		},
 	}, diags
+}
+
+func (p *parser) parseExpr() (ast.Node, source.Diags) {
+	return p.parseTernaryConditional()
+}
+
+func (p *parser) parseTernaryConditional() (ast.Node, source.Diags) {
+	// TODO: implement conditional
+	return p.parseBinaryOps(binaryOps)
+}
+
+// parseBinaryOps calls itself recursively to work through all of the
+// operator precedence groups, and then eventually calls parseExpressionWithTrailers
+// for each operand.
+func (p *parser) parseBinaryOps(ops []map[TokenType]ast.ArithmeticOp) (ast.Node, source.Diags) {
+	if len(ops) == 0 {
+		// We've run out of operators, so now we'll just try to parse a term.
+		return p.parseExpressionWithTrailers()
+	}
+
+	thisLevel := ops[0]
+	remaining := ops[1:]
+
+	var lhs, rhs ast.Node
+	var operation ast.ArithmeticOp
+	var diags source.Diags
+
+	// Parse a term that might be the first operand of a binary
+	// operation or it might just be a standalone term.
+	// We won't know until we've parsed it and can look ahead
+	// to see if there's an operator token for this level.
+	lhs, lhsDiags := p.parseBinaryOps(remaining)
+	diags = append(diags, lhsDiags...)
+	if p.recovering && lhsDiags.HasErrors() {
+		return lhs, diags
+	}
+
+	// We'll keep eating up operators until we run out, so that operators
+	// with the same precedence will combine in a left-associative manner:
+	// a+b+c => (a+b)+c, not a+(b+c)
+	//
+	// Should we later want to have right-associative operators, a way
+	// to achieve that would be to call back up to ParseExpression here
+	// instead of iteratively parsing only the remaining operators.
+	for {
+		next := p.Peek()
+		var newOp ast.ArithmeticOp
+		var ok bool
+		if newOp, ok = thisLevel[next.Type]; !ok {
+			break
+		}
+
+		// Are we extending an expression started on the previous iteration?
+		if operation != ast.ArithmeticOpNil {
+			lhs = &ast.ArithmeticBinary{
+				LHS: lhs,
+				Op:  operation,
+				RHS: rhs,
+
+				WithRange: ast.WithRange{
+					Range: source.RangeBetween(lhs.SourceRange(), rhs.SourceRange()),
+				},
+			}
+		}
+
+		operation = newOp
+		p.Read() // eat operator token
+		var rhsDiags source.Diags
+		rhs, rhsDiags = p.parseBinaryOps(remaining)
+		diags = append(diags, rhsDiags...)
+		if p.recovering && rhsDiags.HasErrors() {
+			return lhs, diags
+		}
+	}
+
+	if operation == ast.ArithmeticOpNil {
+		return lhs, diags
+	}
+
+	return &ast.ArithmeticBinary{
+		LHS: lhs,
+		Op:  operation,
+		RHS: rhs,
+
+		WithRange: ast.WithRange{
+			Range: source.RangeBetween(lhs.SourceRange(), rhs.SourceRange()),
+		},
+	}, diags
+}
+
+func (p *parser) parseExpressionWithTrailers() (ast.Node, source.Diags) {
+	term, diags := p.parseExpressionTerm()
+
+	// TODO: actually parse trailers (GetAttr, GetIndex, Call)
+
+	return term, diags
+}
+
+func (p *parser) parseExpressionTerm() (ast.Node, source.Diags) {
+	start := p.Peek()
+
+	switch start.Type {
+	case TokenOParen:
+		open := p.Read()
+
+		expr, diags := p.parseExpr()
+		close := p.Peek()
+		if close.Type != TokenCParen {
+			diags = append(diags, source.Diag{
+				Level:   source.Error,
+				Summary: "Unbalanced parentheses",
+				Detail:  "Expected a closing parenthesis to terminate the expression.",
+				Ranges:  close.Range.List(),
+			})
+		}
+
+		if diags.HasErrors() {
+			// attempt to place the peeker after our closing paren
+			// before we return, so that the next parser has some
+			// chance of finding a valid expression.
+			p.recoverAfterClose(TokenCParen)
+			return expr, diags
+		}
+
+		p.Read() // eat closing paren
+
+		return &ast.ParenExpr{
+			WithRange: ast.WithRange{
+				Range: source.RangeBetween(open.Range, close.Range),
+			},
+			Content: expr,
+		}, diags
+
+	case TokenStringLit:
+		tok := p.Read()
+		val, diags := p.decodeStringLiteral(tok)
+
+		return &ast.StringLit{
+			WithRange: ast.WithRange{
+				Range: tok.Range,
+			},
+			Value: val,
+		}, diags
+
+	default:
+		var diags source.Diags
+		if !p.recovering {
+			diags = append(diags, source.Diag{
+				Level:   source.Error,
+				Summary: "Invalid expression",
+				Detail:  "Expected the start of an expression, but found invalid characters.",
+				Ranges:  start.Range.List(),
+			})
+		}
+		p.setRecovering()
+
+		return &ast.Invalid{
+			WithRange: ast.WithRange{
+				Range: start.Range,
+			},
+		}, diags
+	}
 }
 
 func (p *parser) decodeIdentifierBytes(src []byte) string {
@@ -459,6 +634,42 @@ Character:
 	return string(ret), diags
 }
 
+func (p *parser) setRecovering() {
+	p.recovering = true
+}
+
+// recoverAfterClose seeks forward in the token stream until it finds TokenType
+// "end", then returns with the peeker pointed at the following token.
+//
+// If the given token type is a bracketer, this function will additionally
+// count nested instances of the brackets to try to leave the peeker at
+// the end of the _current_ instance of that bracketer, skipping over any
+// nested instances. This is a best-effort operation and may have
+// unpredictable results on input with bad bracketer nesting.
+func (p *parser) recoverAfterClose(end TokenType) Token {
+	start := p.oppositeBracket(end)
+	p.recovering = true
+
+	nest := 0
+	for {
+		tok := p.Read()
+		ty := tok.Type
+
+		switch ty {
+		case start:
+			nest++
+		case end:
+			if nest < 1 {
+				return tok
+			}
+
+			nest--
+		case TokenEOF:
+			return tok
+		}
+	}
+}
+
 // recoverAfterBlock sets the recovery flag and then tries to place the
 // peeker just after the brace that closes the current block.
 //
@@ -470,31 +681,14 @@ Character:
 // place that will lead to more errors. The recovery flag should be used to
 // suppress "invalid token"-type errors and abort early to reduce the risk
 // of reporting a chain of compounding errors to the user.
-func (p *parser) recoverAfterCurrentBlock() {
-	p.recovering = true
-	braceCount := 1 // assume that one brace is open already
-
-	for {
-		next := p.Read()
-
-		switch next.Type {
-		case TokenEOF:
-			return
-		case TokenOBrace:
-			braceCount++
-		case TokenCBrace:
-			braceCount--
-			if braceCount <= 0 {
-				return
-			}
-		}
-	}
+func (p *parser) recoverAfterCurrentBlock() Token {
+	return p.recoverAfterClose(TokenCBrace)
 }
 
 // recoverAfterNextBlock is like recoverAfterCurrentBlock except that it
 // first seeks forward to locate the next opening brace, and then places
 // the peeker after its corresponding closing brace.
-func (p *parser) recoverAfterNextBlock() {
+func (p *parser) recoverAfterNextBlock() Token {
 	for p.Peek().Type != TokenOBrace && p.Peek().Type != TokenEOF {
 		p.Read()
 	}
@@ -504,7 +698,7 @@ func (p *parser) recoverAfterNextBlock() {
 	// get the same EOF again.)
 	p.Read()
 
-	p.recoverAfterCurrentBlock()
+	return p.recoverAfterCurrentBlock()
 }
 
 // recoverAfterSemicolon sets the recovery flag and then tries to place the
@@ -537,6 +731,37 @@ func (p *parser) recoverAfterSemicolon() {
 				return
 			}
 		}
+	}
+}
+
+// oppositeBracket finds the bracket that opposes the given bracketer, or
+// NilToken if the given token isn't a bracketer.
+//
+// "Bracketer", for the sake of this function, is one end of a matching
+// open/close set of tokens that establish a bracketing context.
+func (p *parser) oppositeBracket(ty TokenType) TokenType {
+	switch ty {
+
+	case TokenOBrace:
+		return TokenCBrace
+	case TokenOBrack:
+		return TokenCBrack
+	case TokenOParen:
+		return TokenCParen
+	case TokenOPoint:
+		return TokenCPoint
+
+	case TokenCBrace:
+		return TokenOBrace
+	case TokenCBrack:
+		return TokenOBrack
+	case TokenCParen:
+		return TokenOParen
+	case TokenCPoint:
+		return TokenOPoint
+
+	default:
+		return TokenNil
 	}
 }
 

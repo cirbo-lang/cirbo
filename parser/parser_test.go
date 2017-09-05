@@ -143,3 +143,165 @@ func TestParseTopLevel(t *testing.T) {
 		})
 	}
 }
+func TestParseExpression(t *testing.T) {
+	tests := []struct {
+		Input     string
+		Want      ast.Node
+		DiagCount int
+	}{
+		{
+			"",
+			&ast.Invalid{
+				WithRange: ast.WithRange{
+					Range: source.Range{
+						Start: source.Pos{Line: 1, Column: 1, Byte: 0},
+						End:   source.Pos{Line: 1, Column: 1, Byte: 0},
+					},
+				},
+			},
+			1, // expected start of expression
+		},
+		{
+			"    ",
+			&ast.Invalid{
+				WithRange: ast.WithRange{
+					Range: source.Range{
+						Start: source.Pos{Line: 1, Column: 5, Byte: 4},
+						End:   source.Pos{Line: 1, Column: 5, Byte: 4},
+					},
+				},
+			},
+			1, // expected start of expression
+		},
+		{
+			"\n\n\n\n",
+			&ast.Invalid{
+				WithRange: ast.WithRange{
+					Range: source.Range{
+						Start: source.Pos{Line: 5, Column: 1, Byte: 4},
+						End:   source.Pos{Line: 5, Column: 1, Byte: 4},
+					},
+				},
+			},
+			1, // expected start of expression
+		},
+
+		{
+			`"hello"`,
+			&ast.StringLit{
+				Value: "hello",
+				WithRange: ast.WithRange{
+					Range: source.Range{
+						Start: source.Pos{Line: 1, Column: 1, Byte: 0},
+						End:   source.Pos{Line: 1, Column: 8, Byte: 7},
+					},
+				},
+			},
+			0,
+		},
+		{
+			`"he\nlo"`,
+			&ast.StringLit{
+				Value: "he\nlo",
+				WithRange: ast.WithRange{
+					Range: source.Range{
+						Start: source.Pos{Line: 1, Column: 1, Byte: 0},
+						End:   source.Pos{Line: 1, Column: 9, Byte: 8},
+					},
+				},
+			},
+			0,
+		},
+		{
+			`"\q"`,
+			&ast.StringLit{
+				Value: "q",
+				WithRange: ast.WithRange{
+					Range: source.Range{
+						Start: source.Pos{Line: 1, Column: 1, Byte: 0},
+						End:   source.Pos{Line: 1, Column: 5, Byte: 4},
+					},
+				},
+			},
+			1, // invalid escape sequence
+		},
+
+		{
+			`("hello")`,
+			&ast.ParenExpr{
+				WithRange: ast.WithRange{
+					Range: source.Range{
+						Start: source.Pos{Line: 1, Column: 1, Byte: 0},
+						End:   source.Pos{Line: 1, Column: 10, Byte: 9},
+					},
+				},
+				Content: &ast.StringLit{
+					Value: "hello",
+					WithRange: ast.WithRange{
+						Range: source.Range{
+							Start: source.Pos{Line: 1, Column: 2, Byte: 1},
+							End:   source.Pos{Line: 1, Column: 9, Byte: 8},
+						},
+					},
+				},
+			},
+			0,
+		},
+
+		{
+			`"hello " .. "world"`,
+			&ast.ArithmeticBinary{
+				Op: ast.Concat,
+				LHS: &ast.StringLit{
+					Value: "hello ",
+					WithRange: ast.WithRange{
+						Range: source.Range{
+							Start: source.Pos{Line: 1, Column: 1, Byte: 0},
+							End:   source.Pos{Line: 1, Column: 9, Byte: 8},
+						},
+					},
+				},
+				RHS: &ast.StringLit{
+					Value: "world",
+					WithRange: ast.WithRange{
+						Range: source.Range{
+							Start: source.Pos{Line: 1, Column: 13, Byte: 12},
+							End:   source.Pos{Line: 1, Column: 20, Byte: 19},
+						},
+					},
+				},
+				WithRange: ast.WithRange{
+					Range: source.Range{
+						Start: source.Pos{Line: 1, Column: 1, Byte: 0},
+						End:   source.Pos{Line: 1, Column: 20, Byte: 19},
+					},
+				},
+			},
+			0,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.Input, func(t *testing.T) {
+			got, diags := ParseExpr([]byte(test.Input))
+
+			if len(diags) != test.DiagCount {
+				t.Errorf("wrong number of diagnostics %d; want %d", len(diags), test.DiagCount)
+				for _, diag := range diags {
+					t.Logf("- %s", diag.String())
+				}
+			}
+
+			prettyConfig := &pretty.Config{
+				Diffable:          true,
+				IncludeUnexported: true,
+				PrintStringers:    false,
+			}
+
+			if !reflect.DeepEqual(got, test.Want) {
+				diff := prettyConfig.Compare(test.Want, got)
+				t.Errorf("wrong result\ninput:\n%s\n\ndiff: %s", test.Input, diff)
+			}
+		})
+	}
+}
