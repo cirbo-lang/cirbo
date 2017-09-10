@@ -24,24 +24,56 @@ type Parser struct {
 	diags    source.Diags
 }
 
-func NewParser(fs vfs.FileSystem) *Parser {
+// NewParser creates a new parser that works with files under the given
+// project root directory.
+//
+// A project directory should usually contain one or more project files
+// (with the ".cb" filename extension) and may contain subdirectories
+// that represent project-local packages. It may also contain a directory
+// called "cirbo-pkg" which contains local copies of third-party packages,
+// usually managed with cirbo's built-in package management tools.
+//
+// Internally, the given directory is used as the root of a virtual filesystem
+// and all file paths are rooted in that filesystem. These project-relative
+// paths appear, in particular, in returned diagnostics. Before displaying such
+// paths to an end-user a caller should re-interpret these paths relative to
+// the "real" filesystem to avoid confusion.
+func NewParser(projectRoot string) *Parser {
+	fs := vfs.OS(projectRoot)
+
 	return &Parser{
+		fs:       fs,
 		files:    map[string]*ast.File{},
 		packages: map[string]*ast.Package{},
 	}
 }
 
 // ParsePackage parses all of the source files in a given package.
-func (p *Parser) ParsePackage(ppath string) (*ast.Package, source.Diags) {
-	if pkg := p.packages[ppath]; pkg != nil {
+//
+// If "from" is non-empty then it is a project-root-relative path to the file
+// that is requesting this package, which enables the use of relative package
+// paths.
+func (p *Parser) ParsePackage(ppath string, from string) (*ast.Package, source.Diags) {
+	pkg := &ast.Package{
+		DefaultName: path.Base(ppath),
+	}
+
+	vfsPath := p.resolvePackagePath(ppath, from)
+	if vfsPath == "" {
+		return pkg, source.Diags{
+			{
+				Level:   source.Error,
+				Summary: "Package not found",
+				Detail:  fmt.Sprintf("The given path %q could not be resolved as a package path.", ppath),
+			},
+		}
+	}
+
+	if pkg := p.packages[vfsPath]; pkg != nil {
 		return pkg, nil
 	}
 
-	pkg := &ast.Package{
-		Path: ppath,
-	}
-
-	entries, err := p.fs.ReadDir(ppath)
+	entries, err := p.fs.ReadDir(vfsPath)
 	if err != nil {
 		return pkg, source.Diags{
 			{
@@ -52,7 +84,7 @@ func (p *Parser) ParsePackage(ppath string) (*ast.Package, source.Diags) {
 		}
 	}
 
-	p.packages[ppath] = pkg
+	p.packages[vfsPath] = pkg
 
 	var diags source.Diags
 	var files []*ast.File
@@ -61,11 +93,11 @@ func (p *Parser) ParsePackage(ppath string) (*ast.Package, source.Diags) {
 			continue
 		}
 		name := i.Name()
-		if !strings.HasSuffix(name, ".cb") {
+		if !pathHasExtension(name, ".cbm") {
 			continue
 		}
 
-		filePath := path.Join(ppath, name)
+		filePath := path.Join(vfsPath, name)
 		file, fileDiags := p.ParseFile(filePath)
 		diags = append(diags, fileDiags...)
 		files = append(files, file)
@@ -76,7 +108,52 @@ func (p *Parser) ParsePackage(ppath string) (*ast.Package, source.Diags) {
 	return pkg, diags
 }
 
-// ParseFile parses a single file. Most callers should use LoadPackage.
+// ParseAllProjectFiles finds all of the project files in the project root and
+// parses them, returning a slice containing one entry for each.
+//
+// Most normal operations operate on a single file at a time, provided by the
+// user on the command line. This method is provided for the rare commands that
+// operate on an entire project directory, such as the package installer when
+// it's looking for dependencies in all project files.
+func (p *Parser) ParseAllProjectFiles() ([]*ast.File, source.Diags) {
+	var files []*ast.File
+
+	entries, err := p.fs.ReadDir("/")
+	if err != nil {
+		return files, source.Diags{
+			{
+				Level:   source.Error,
+				Summary: "Invalid project root",
+				Detail:  fmt.Sprintf("Failed to read from the project root: %s", err),
+			},
+		}
+	}
+
+	var diags source.Diags
+	for _, i := range entries {
+		if i.IsDir() {
+			continue
+		}
+		name := i.Name()
+		if !pathHasExtension(name, ".cb") {
+			continue
+		}
+
+		filePath := path.Join("/", name)
+		file, fileDiags := p.ParseFile(filePath)
+		diags = append(diags, fileDiags...)
+		files = append(files, file)
+	}
+
+	return files, diags
+}
+
+// ParseFile parses a single file.
+//
+// This is usually used for project files. Module files can be loaded via this
+// method for purposes such as single-file validation and text editor support
+// tools, but in normal use modules should be loaded as part of their packages
+// using ParsePackage.
 func (p *Parser) ParseFile(fpath string) (*ast.File, source.Diags) {
 	if ret := p.files[fpath]; ret != nil {
 		return ret, nil
@@ -119,7 +196,7 @@ func (p *Parser) ParseFile(fpath string) (*ast.File, source.Diags) {
 
 	p.files[fpath] = ret
 
-	tokens := scanTokens(src, "", source.StartPos, scanNormal)
+	tokens := scanTokens(src, fpath, source.StartPos, scanNormal)
 	it := newTokenIterator(tokens)
 	ip := &parser{
 		tokenPeeker: tokenPeeker{
@@ -157,6 +234,46 @@ func (p *Parser) ScanFile(fpath string) (Tokens, error) {
 
 func (p *Parser) Diagnostics() source.Diags {
 	return p.diags
+}
+
+func (p *Parser) resolvePackagePath(ppath string, from string) string {
+	if len(ppath) == 0 {
+		return ""
+	}
+
+	parts := strings.Split(ppath, "/")
+	for i, part := range parts {
+		if part == "" {
+			// empty segments are never valid
+			return ""
+		}
+
+		if i > 0 {
+			if part == "." || part == ".." {
+				// relative references only allowed in first segment
+				return ""
+			}
+		}
+	}
+
+	if parts[0] == "." || parts[0] == ".." {
+		// relative to requesting file
+
+		if from == "" {
+			// no requesting file, so relative references are not allowed
+			return ""
+		}
+
+		// must always have at least one additional part to traverse after
+		// the relative.
+		if len(parts) < 2 {
+			return ""
+		}
+
+		return path.Join(path.Dir(from), ppath)
+	}
+
+	return path.Join("/cirbo-pkg", ppath)
 }
 
 // ParseExpr parses a standalone expression.
@@ -285,8 +402,8 @@ func (p *parser) parseImport() (ast.Node, source.Diags) {
 		if !p.recovering {
 			diags = append(diags, source.Diag{
 				Level:   source.Error,
-				Summary: "Invalid import name",
-				Detail:  "The name for an import must be an identifier.",
+				Summary: "Unterminated statement",
+				Detail:  "This import statement must be terminated by a semicolon.",
 				Ranges:  []source.Range{p.PeekRange()},
 			})
 		}
@@ -1111,4 +1228,19 @@ func mustParseBigFloat(str string) *big.Float {
 		panic(err)
 	}
 	return f
+}
+
+// pathHasExtension checks if the given path has the given extension (suffix)
+// while also ignoring files that have names starting with "." or "_" that
+// are presumed to be temporary files created by editors or other tools.
+func pathHasExtension(path, ext string) bool {
+	if !strings.HasSuffix(path, ext) {
+		return false
+	}
+
+	if strings.HasPrefix(path, ".") || strings.HasPrefix(path, "_") {
+		return false
+	}
+
+	return true
 }

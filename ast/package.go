@@ -5,8 +5,8 @@ package ast
 //
 // A Package is not actually a Node.
 type Package struct {
-	Path  string
-	Files []*File
+	DefaultName string
+	Files       []*File
 }
 
 // VisitAll is a helper that calls the top-level VisitAll for each of the
