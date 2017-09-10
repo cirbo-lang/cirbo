@@ -808,6 +808,84 @@ func TestParseTopLevel(t *testing.T) {
 			0,
 		},
 		{
+			`MODE -- R1(1kohm) -- VCC;`,
+			[]ast.Node{
+				&ast.Connection{
+					Seq: []ast.Node{
+						&ast.Variable{
+							Name: "MODE",
+
+							WithRange: ast.WithRange{
+								Range: source.Range{
+									Start: source.Pos{Line: 1, Column: 1, Byte: 0},
+									End:   source.Pos{Line: 1, Column: 5, Byte: 4},
+								},
+							},
+						},
+						&ast.Call{
+							Callee: &ast.Variable{
+								Name: "R1",
+
+								WithRange: ast.WithRange{
+									Range: source.Range{
+										Start: source.Pos{Line: 1, Column: 9, Byte: 8},
+										End:   source.Pos{Line: 1, Column: 11, Byte: 10},
+									},
+								},
+							},
+							Args: &ast.Arguments{
+								Positional: []ast.Node{
+									&ast.QuantityLit{
+										Value: mustParseBigFloat("1"),
+										Unit:  "kohm",
+
+										WithRange: ast.WithRange{
+											Range: source.Range{
+												Start: source.Pos{Line: 1, Column: 12, Byte: 11},
+												End:   source.Pos{Line: 1, Column: 17, Byte: 16},
+											},
+										},
+									},
+								},
+
+								WithRange: ast.WithRange{
+									Range: source.Range{
+										Start: source.Pos{Line: 1, Column: 11, Byte: 10},
+										End:   source.Pos{Line: 1, Column: 18, Byte: 17},
+									},
+								},
+							},
+
+							WithRange: ast.WithRange{
+								Range: source.Range{
+									Start: source.Pos{Line: 1, Column: 9, Byte: 8},
+									End:   source.Pos{Line: 1, Column: 18, Byte: 17},
+								},
+							},
+						},
+						&ast.Variable{
+							Name: "VCC",
+
+							WithRange: ast.WithRange{
+								Range: source.Range{
+									Start: source.Pos{Line: 1, Column: 22, Byte: 21},
+									End:   source.Pos{Line: 1, Column: 25, Byte: 24},
+								},
+							},
+						},
+					},
+
+					WithRange: ast.WithRange{
+						Range: source.Range{
+							Start: source.Pos{Line: 1, Column: 1, Byte: 0},
+							End:   source.Pos{Line: 1, Column: 26, Byte: 25},
+						},
+					},
+				},
+			},
+			0,
+		},
+		{
 			`GND --;`,
 			[]ast.Node{
 				&ast.Connection{
