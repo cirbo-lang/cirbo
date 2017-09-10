@@ -620,6 +620,271 @@ func TestParseExpression(t *testing.T) {
 			},
 			0,
 		},
+
+		{
+			`foo.bar`,
+			&ast.GetAttr{
+				Source: &ast.Variable{
+					Name: "foo",
+
+					WithRange: ast.WithRange{
+						Range: source.Range{
+							Start: source.Pos{Line: 1, Column: 1, Byte: 0},
+							End:   source.Pos{Line: 1, Column: 4, Byte: 3},
+						},
+					},
+				},
+				Name: "bar",
+
+				WithRange: ast.WithRange{
+					Range: source.Range{
+						Start: source.Pos{Line: 1, Column: 1, Byte: 0},
+						End:   source.Pos{Line: 1, Column: 8, Byte: 7},
+					},
+				},
+			},
+			0,
+		},
+		{
+			`foo.bar.baz`,
+			&ast.GetAttr{
+				Source: &ast.GetAttr{
+					Source: &ast.Variable{
+						Name: "foo",
+
+						WithRange: ast.WithRange{
+							Range: source.Range{
+								Start: source.Pos{Line: 1, Column: 1, Byte: 0},
+								End:   source.Pos{Line: 1, Column: 4, Byte: 3},
+							},
+						},
+					},
+					Name: "bar",
+
+					WithRange: ast.WithRange{
+						Range: source.Range{
+							Start: source.Pos{Line: 1, Column: 1, Byte: 0},
+							End:   source.Pos{Line: 1, Column: 8, Byte: 7},
+						},
+					},
+				},
+				Name: "baz",
+
+				WithRange: ast.WithRange{
+					Range: source.Range{
+						Start: source.Pos{Line: 1, Column: 1, Byte: 0},
+						End:   source.Pos{Line: 1, Column: 12, Byte: 11},
+					},
+				},
+			},
+			0,
+		},
+		{
+			`foo.bar + baz`,
+			&ast.ArithmeticBinary{
+				LHS: &ast.GetAttr{
+					Source: &ast.Variable{
+						Name: "foo",
+
+						WithRange: ast.WithRange{
+							Range: source.Range{
+								Start: source.Pos{Line: 1, Column: 1, Byte: 0},
+								End:   source.Pos{Line: 1, Column: 4, Byte: 3},
+							},
+						},
+					},
+					Name: "bar",
+
+					WithRange: ast.WithRange{
+						Range: source.Range{
+							Start: source.Pos{Line: 1, Column: 1, Byte: 0},
+							End:   source.Pos{Line: 1, Column: 8, Byte: 7},
+						},
+					},
+				},
+				RHS: &ast.Variable{
+					Name: "baz",
+
+					WithRange: ast.WithRange{
+						Range: source.Range{
+							Start: source.Pos{Line: 1, Column: 11, Byte: 10},
+							End:   source.Pos{Line: 1, Column: 14, Byte: 13},
+						},
+					},
+				},
+				Op: ast.Add,
+
+				WithRange: ast.WithRange{
+					Range: source.Range{
+						Start: source.Pos{Line: 1, Column: 1, Byte: 0},
+						End:   source.Pos{Line: 1, Column: 14, Byte: 13},
+					},
+				},
+			},
+			0,
+		},
+		{
+			`foo. + bar`,
+			&ast.GetAttr{
+				Source: &ast.Variable{
+					Name: "foo",
+
+					WithRange: ast.WithRange{
+						Range: source.Range{
+							Start: source.Pos{Line: 1, Column: 1, Byte: 0},
+							End:   source.Pos{Line: 1, Column: 4, Byte: 3},
+						},
+					},
+				},
+				Name: "", // empty to indicate that it was invalid
+
+				WithRange: ast.WithRange{
+					Range: source.Range{
+						Start: source.Pos{Line: 1, Column: 1, Byte: 0},
+						End:   source.Pos{Line: 1, Column: 5, Byte: 4},
+					},
+				},
+			},
+			1, // Invalid attribute name
+		},
+
+		{
+			`foo[bar]`,
+			&ast.GetIndex{
+				Source: &ast.Variable{
+					Name: "foo",
+
+					WithRange: ast.WithRange{
+						Range: source.Range{
+							Start: source.Pos{Line: 1, Column: 1, Byte: 0},
+							End:   source.Pos{Line: 1, Column: 4, Byte: 3},
+						},
+					},
+				},
+				Index: &ast.Variable{
+					Name: "bar",
+
+					WithRange: ast.WithRange{
+						Range: source.Range{
+							Start: source.Pos{Line: 1, Column: 5, Byte: 4},
+							End:   source.Pos{Line: 1, Column: 8, Byte: 7},
+						},
+					},
+				},
+
+				WithRange: ast.WithRange{
+					Range: source.Range{
+						Start: source.Pos{Line: 1, Column: 1, Byte: 0},
+						End:   source.Pos{Line: 1, Column: 9, Byte: 8},
+					},
+				},
+			},
+			0,
+		},
+		{
+			`foo[bar][baz]`,
+			&ast.GetIndex{
+				Source: &ast.GetIndex{
+					Source: &ast.Variable{
+						Name: "foo",
+
+						WithRange: ast.WithRange{
+							Range: source.Range{
+								Start: source.Pos{Line: 1, Column: 1, Byte: 0},
+								End:   source.Pos{Line: 1, Column: 4, Byte: 3},
+							},
+						},
+					},
+					Index: &ast.Variable{
+						Name: "bar",
+
+						WithRange: ast.WithRange{
+							Range: source.Range{
+								Start: source.Pos{Line: 1, Column: 5, Byte: 4},
+								End:   source.Pos{Line: 1, Column: 8, Byte: 7},
+							},
+						},
+					},
+
+					WithRange: ast.WithRange{
+						Range: source.Range{
+							Start: source.Pos{Line: 1, Column: 1, Byte: 0},
+							End:   source.Pos{Line: 1, Column: 9, Byte: 8},
+						},
+					},
+				},
+				Index: &ast.Variable{
+					Name: "baz",
+
+					WithRange: ast.WithRange{
+						Range: source.Range{
+							Start: source.Pos{Line: 1, Column: 10, Byte: 9},
+							End:   source.Pos{Line: 1, Column: 13, Byte: 12},
+						},
+					},
+				},
+
+				WithRange: ast.WithRange{
+					Range: source.Range{
+						Start: source.Pos{Line: 1, Column: 1, Byte: 0},
+						End:   source.Pos{Line: 1, Column: 14, Byte: 13},
+					},
+				},
+			},
+			0,
+		},
+		{
+			`foo[bar[baz]]`,
+			&ast.GetIndex{
+				Source: &ast.Variable{
+					Name: "foo",
+
+					WithRange: ast.WithRange{
+						Range: source.Range{
+							Start: source.Pos{Line: 1, Column: 1, Byte: 0},
+							End:   source.Pos{Line: 1, Column: 4, Byte: 3},
+						},
+					},
+				},
+
+				WithRange: ast.WithRange{
+					Range: source.Range{
+						Start: source.Pos{Line: 1, Column: 1, Byte: 0},
+						End:   source.Pos{Line: 1, Column: 14, Byte: 13},
+					},
+				},
+				Index: &ast.GetIndex{
+					Source: &ast.Variable{
+						Name: "bar",
+
+						WithRange: ast.WithRange{
+							Range: source.Range{
+								Start: source.Pos{Line: 1, Column: 5, Byte: 4},
+								End:   source.Pos{Line: 1, Column: 8, Byte: 7},
+							},
+						},
+					},
+					Index: &ast.Variable{
+						Name: "baz",
+
+						WithRange: ast.WithRange{
+							Range: source.Range{
+								Start: source.Pos{Line: 1, Column: 9, Byte: 8},
+								End:   source.Pos{Line: 1, Column: 12, Byte: 11},
+							},
+						},
+					},
+
+					WithRange: ast.WithRange{
+						Range: source.Range{
+							Start: source.Pos{Line: 1, Column: 5, Byte: 4},
+							End:   source.Pos{Line: 1, Column: 13, Byte: 12},
+						},
+					},
+				},
+			},
+			0,
+		},
 	}
 
 	for _, test := range tests {

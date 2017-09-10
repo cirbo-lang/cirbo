@@ -399,7 +399,87 @@ func (p *parser) parseBinaryOps(ops []map[TokenType]ast.ArithmeticOp) (ast.Node,
 func (p *parser) parseExpressionWithTrailers() (ast.Node, source.Diags) {
 	term, diags := p.parseExpressionTerm()
 
-	// TODO: actually parse trailers (GetAttr, GetIndex, Call)
+Trailers:
+	for {
+		next := p.Peek()
+		switch next.Type {
+
+		case TokenDot:
+			dot := p.Read()
+			if p.Peek().Type != TokenIdent {
+				if !p.recovering {
+					diags = append(diags, source.Diag{
+						Level:   source.Error,
+						Summary: "Invalid attribute name",
+						Detail:  "Expected the name of an attribute to access.",
+						Ranges:  p.Peek().Range.List(),
+					})
+				}
+				p.setRecovering()
+				// Still mark the place where an attribute is being accessed
+				// for use in analysis for e.g. autocomplete.
+				term = &ast.GetAttr{
+					Name:   "",
+					Source: term,
+
+					WithRange: ast.WithRange{
+						Range: source.RangeBetween(term.SourceRange(), dot.Range),
+					},
+				}
+				return term, diags
+			}
+
+			ident := p.Read()
+			name := p.decodeIdentifierBytes(ident.Bytes)
+
+			term = &ast.GetAttr{
+				Name:   name,
+				Source: term,
+
+				WithRange: ast.WithRange{
+					Range: source.RangeBetween(term.SourceRange(), ident.Range),
+				},
+			}
+
+		case TokenOBrack:
+			p.Read() // eat open bracket
+			idx, idxDiags := p.parseExpr()
+			diags = append(diags, idxDiags...)
+
+			if idxDiags.HasErrors() {
+				p.recoverAfterClose(TokenCBrack)
+			}
+
+			if p.Peek().Type != TokenCBrack {
+				if !p.recovering {
+					diags = append(diags, source.Diag{
+						Level:   source.Error,
+						Summary: "Mismatched brackets",
+						Detail:  "Expected a closing bracket \"]\" to mark the end of the index expression.",
+						Ranges:  p.Peek().Range.List(),
+					})
+				}
+				p.recoverAfterClose(TokenCBrack)
+			}
+
+			close := p.Read()
+
+			term = &ast.GetIndex{
+				Source: term,
+				Index:  idx,
+
+				WithRange: ast.WithRange{
+					Range: source.RangeBetween(term.SourceRange(), close.Range),
+				},
+			}
+
+		// TODO: Parse calls, indicated by OParen
+
+		default:
+			break Trailers
+
+		}
+	}
 
 	return term, diags
 }
