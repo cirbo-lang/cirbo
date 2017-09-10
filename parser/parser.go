@@ -493,7 +493,7 @@ func (p *parser) parseExpressionTerm() (ast.Node, source.Diags) {
 
 		expr, diags := p.parseExpr()
 		close := p.Peek()
-		if close.Type != TokenCParen {
+		if close.Type != TokenCParen && !p.recovering {
 			diags = append(diags, source.Diag{
 				Level:   source.Error,
 				Summary: "Unbalanced parentheses",
@@ -507,11 +507,13 @@ func (p *parser) parseExpressionTerm() (ast.Node, source.Diags) {
 			// before we return, so that the next parser has some
 			// chance of finding a valid expression.
 			p.recoverAfterClose(TokenCParen)
-			return expr, diags
+		} else {
+			p.Read() // eat closing paren
 		}
 
-		p.Read() // eat closing paren
-
+		// We return a ParenExpr even in the case of errors, so that the
+		// AST is complete as possible for syntax-only analyses such as
+		// autocomplete.
 		return &ast.ParenExpr{
 			WithRange: ast.WithRange{
 				Range: source.RangeBetween(open.Range, close.Range),
@@ -859,11 +861,10 @@ func (p *parser) recoverAfterClose(end TokenType) Token {
 		case start:
 			nest++
 		case end:
+			nest--
 			if nest < 1 {
 				return tok
 			}
-
-			nest--
 		case TokenEOF:
 			return tok
 		}

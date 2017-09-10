@@ -499,6 +499,48 @@ func TestParseExpression(t *testing.T) {
 			},
 			0,
 		},
+		{
+			`("hello"`,
+			&ast.ParenExpr{
+				WithRange: ast.WithRange{
+					Range: source.Range{
+						Start: source.Pos{Line: 1, Column: 1, Byte: 0},
+						End:   source.Pos{Line: 1, Column: 9, Byte: 8},
+					},
+				},
+				Content: &ast.StringLit{
+					Value: "hello",
+					WithRange: ast.WithRange{
+						Range: source.Range{
+							Start: source.Pos{Line: 1, Column: 2, Byte: 1},
+							End:   source.Pos{Line: 1, Column: 9, Byte: 8},
+						},
+					},
+				},
+			},
+			1, // expected a closing parenthesis
+		},
+		{
+			`("hello" world!`,
+			&ast.ParenExpr{
+				WithRange: ast.WithRange{
+					Range: source.Range{
+						Start: source.Pos{Line: 1, Column: 1, Byte: 0},
+						End:   source.Pos{Line: 1, Column: 15, Byte: 14},
+					},
+				},
+				Content: &ast.StringLit{
+					Value: "hello",
+					WithRange: ast.WithRange{
+						Range: source.Range{
+							Start: source.Pos{Line: 1, Column: 2, Byte: 1},
+							End:   source.Pos{Line: 1, Column: 9, Byte: 8},
+						},
+					},
+				},
+			},
+			1, // expected a closing parenthesis
+		},
 
 		{
 			`-1`,
