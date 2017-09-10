@@ -4,7 +4,7 @@ package parser
 
 import "fmt"
 
-const _TokenType_name = "TokenNilTokenWhitespaceTokenBangTokenPercentTokenBitwiseAndTokenOParenTokenCParenTokenStarTokenPlusTokenCommaTokenMinusTokenDotTokenSlashTokenColonTokenSemicolonTokenLessThanTokenAssignTokenGreaterThanTokenQuestionTokenCommentTokenIdentTokenNumberLitTokenStringLitTokenOBrackTokenCBrackTokenCaretTokenOBraceTokenBitwiseOrTokenCBraceTokenBitwiseNotTokenOPointTokenCPointTokenDashDashTokenDotDotTokenAndTokenOrTokenEqualTokenNotEqualTokenLessThanEqTokenGreaterThanEqTokenEOFTokenInvalidTokenBadUTF8"
+const _TokenType_name = "TokenNilTokenWhitespaceTokenBangTokenPercentTokenBitwiseAndTokenOParenTokenCParenTokenStarTokenPlusTokenCommaTokenMinusTokenDotTokenSlashTokenColonTokenSemicolonTokenLessThanTokenAssignTokenGreaterThanTokenQuestionTokenCommentTokenIdentTokenNumberLitTokenStringLitTokenOBrackTokenCBrackTokenCaretTokenOBraceTokenBitwiseOrTokenCBraceTokenBitwiseNotTokenOPointTokenCPointTokenDashDashTokenDotDotTokenAndTokenOrTokenEqualTokenNotEqualTokenLessThanEqTokenGreaterThanEqTokenEOFTokenBarDashDashTokenDashDashBarTokenInvalidTokenBadUTF8"
 
 var _TokenType_map = map[TokenType]string{
 	0:      _TokenType_name[0:8],
@@ -48,8 +48,10 @@ var _TokenType_map = map[TokenType]string{
 	8804:   _TokenType_name[431:446],
 	8805:   _TokenType_name[446:464],
 	9220:   _TokenType_name[464:472],
-	65533:  _TokenType_name[472:484],
-	128169: _TokenType_name[484:496],
+	9500:   _TokenType_name[472:488],
+	9508:   _TokenType_name[488:504],
+	65533:  _TokenType_name[504:516],
+	128169: _TokenType_name[516:528],
 }
 
 func (i TokenType) String() string {

@@ -529,6 +529,311 @@ func TestParseTopLevel(t *testing.T) {
 			},
 			1, // import path must be quoted string
 		},
+
+		{
+			`a = true;`,
+			[]ast.Node{
+				&ast.Assign{
+					Name: "a",
+					Value: &ast.BooleanLit{
+						Value: true,
+
+						WithRange: ast.WithRange{
+							Range: source.Range{
+								Start: source.Pos{Line: 1, Column: 5, Byte: 4},
+								End:   source.Pos{Line: 1, Column: 9, Byte: 8},
+							},
+						},
+					},
+
+					WithRange: ast.WithRange{
+						Range: source.Range{
+							Start: source.Pos{Line: 1, Column: 1, Byte: 0},
+							End:   source.Pos{Line: 1, Column: 10, Byte: 9},
+						},
+					},
+				},
+			},
+			0,
+		},
+		{
+			`a = true indeed;`,
+			[]ast.Node{
+				&ast.Assign{
+					Name: "a",
+					Value: &ast.BooleanLit{
+						Value: true,
+
+						WithRange: ast.WithRange{
+							Range: source.Range{
+								Start: source.Pos{Line: 1, Column: 5, Byte: 4},
+								End:   source.Pos{Line: 1, Column: 9, Byte: 8},
+							},
+						},
+					},
+
+					WithRange: ast.WithRange{
+						Range: source.Range{
+							Start: source.Pos{Line: 1, Column: 1, Byte: 0},
+							End:   source.Pos{Line: 1, Column: 16, Byte: 15},
+						},
+					},
+				},
+			},
+			1, // unterminated statement
+		},
+		{
+			`a = true indeed; b = true;`,
+			[]ast.Node{
+				&ast.Assign{
+					Name: "a",
+					Value: &ast.BooleanLit{
+						Value: true,
+
+						WithRange: ast.WithRange{
+							Range: source.Range{
+								Start: source.Pos{Line: 1, Column: 5, Byte: 4},
+								End:   source.Pos{Line: 1, Column: 9, Byte: 8},
+							},
+						},
+					},
+
+					WithRange: ast.WithRange{
+						Range: source.Range{
+							Start: source.Pos{Line: 1, Column: 1, Byte: 0},
+							End:   source.Pos{Line: 1, Column: 16, Byte: 15},
+						},
+					},
+				},
+				// We should recover from the error in the first statement
+				// and then successfully parse the second, below.
+				&ast.Assign{
+					Name: "b",
+					Value: &ast.BooleanLit{
+						Value: true,
+
+						WithRange: ast.WithRange{
+							Range: source.Range{
+								Start: source.Pos{Line: 1, Column: 22, Byte: 21},
+								End:   source.Pos{Line: 1, Column: 26, Byte: 25},
+							},
+						},
+					},
+
+					WithRange: ast.WithRange{
+						Range: source.Range{
+							Start: source.Pos{Line: 1, Column: 18, Byte: 17},
+							End:   source.Pos{Line: 1, Column: 27, Byte: 26},
+						},
+					},
+				},
+			},
+			1, // unterminated statement
+		},
+		{
+			`false = true;`,
+			[]ast.Node{
+				&ast.Assign{
+					Name: "",
+					Value: &ast.BooleanLit{
+						Value: true,
+
+						WithRange: ast.WithRange{
+							Range: source.Range{
+								Start: source.Pos{Line: 1, Column: 9, Byte: 8},
+								End:   source.Pos{Line: 1, Column: 13, Byte: 12},
+							},
+						},
+					},
+
+					WithRange: ast.WithRange{
+						Range: source.Range{
+							Start: source.Pos{Line: 1, Column: 1, Byte: 0},
+							End:   source.Pos{Line: 1, Column: 14, Byte: 13},
+						},
+					},
+				},
+			},
+			1, // invalid assignment expression (can't assign to boolean literal)
+		},
+		{
+			`true;`,
+			[]ast.Node{
+				&ast.BooleanLit{
+					Value: true,
+
+					WithRange: ast.WithRange{
+						Range: source.Range{
+							Start: source.Pos{Line: 1, Column: 1, Byte: 0},
+							End:   source.Pos{Line: 1, Column: 5, Byte: 4},
+						},
+					},
+				},
+			},
+			1, // Useless naked expression
+		},
+
+		{
+			`|-- GND;`,
+			[]ast.Node{
+				&ast.NoConnection{
+					Terminal: &ast.Variable{
+						Name: "GND",
+
+						WithRange: ast.WithRange{
+							Range: source.Range{
+								Start: source.Pos{Line: 1, Column: 5, Byte: 4},
+								End:   source.Pos{Line: 1, Column: 8, Byte: 7},
+							},
+						},
+					},
+
+					WithRange: ast.WithRange{
+						Range: source.Range{
+							Start: source.Pos{Line: 1, Column: 1, Byte: 0},
+							End:   source.Pos{Line: 1, Column: 9, Byte: 8},
+						},
+					},
+				},
+			},
+			0,
+		},
+		{
+			`GND --|;`,
+			[]ast.Node{
+				&ast.NoConnection{
+					Terminal: &ast.Variable{
+						Name: "GND",
+
+						WithRange: ast.WithRange{
+							Range: source.Range{
+								Start: source.Pos{Line: 1, Column: 1, Byte: 0},
+								End:   source.Pos{Line: 1, Column: 4, Byte: 3},
+							},
+						},
+					},
+
+					WithRange: ast.WithRange{
+						Range: source.Range{
+							Start: source.Pos{Line: 1, Column: 1, Byte: 0},
+							End:   source.Pos{Line: 1, Column: 9, Byte: 8},
+						},
+					},
+				},
+			},
+			0,
+		},
+		{
+			`GND -- PGND;`,
+			[]ast.Node{
+				&ast.Connection{
+					Seq: []ast.Node{
+						&ast.Variable{
+							Name: "GND",
+
+							WithRange: ast.WithRange{
+								Range: source.Range{
+									Start: source.Pos{Line: 1, Column: 1, Byte: 0},
+									End:   source.Pos{Line: 1, Column: 4, Byte: 3},
+								},
+							},
+						},
+						&ast.Variable{
+							Name: "PGND",
+
+							WithRange: ast.WithRange{
+								Range: source.Range{
+									Start: source.Pos{Line: 1, Column: 8, Byte: 7},
+									End:   source.Pos{Line: 1, Column: 12, Byte: 11},
+								},
+							},
+						},
+					},
+
+					WithRange: ast.WithRange{
+						Range: source.Range{
+							Start: source.Pos{Line: 1, Column: 1, Byte: 0},
+							End:   source.Pos{Line: 1, Column: 13, Byte: 12},
+						},
+					},
+				},
+			},
+			0,
+		},
+		{
+			`GND -- PGND -- AGND;`,
+			[]ast.Node{
+				&ast.Connection{
+					Seq: []ast.Node{
+						&ast.Variable{
+							Name: "GND",
+
+							WithRange: ast.WithRange{
+								Range: source.Range{
+									Start: source.Pos{Line: 1, Column: 1, Byte: 0},
+									End:   source.Pos{Line: 1, Column: 4, Byte: 3},
+								},
+							},
+						},
+						&ast.Variable{
+							Name: "PGND",
+
+							WithRange: ast.WithRange{
+								Range: source.Range{
+									Start: source.Pos{Line: 1, Column: 8, Byte: 7},
+									End:   source.Pos{Line: 1, Column: 12, Byte: 11},
+								},
+							},
+						},
+						&ast.Variable{
+							Name: "AGND",
+
+							WithRange: ast.WithRange{
+								Range: source.Range{
+									Start: source.Pos{Line: 1, Column: 16, Byte: 15},
+									End:   source.Pos{Line: 1, Column: 20, Byte: 19},
+								},
+							},
+						},
+					},
+
+					WithRange: ast.WithRange{
+						Range: source.Range{
+							Start: source.Pos{Line: 1, Column: 1, Byte: 0},
+							End:   source.Pos{Line: 1, Column: 21, Byte: 20},
+						},
+					},
+				},
+			},
+			0,
+		},
+		{
+			`GND --;`,
+			[]ast.Node{
+				&ast.Connection{
+					Seq: []ast.Node{
+						&ast.Variable{
+							Name: "GND",
+
+							WithRange: ast.WithRange{
+								Range: source.Range{
+									Start: source.Pos{Line: 1, Column: 1, Byte: 0},
+									End:   source.Pos{Line: 1, Column: 4, Byte: 3},
+								},
+							},
+						},
+					},
+
+					WithRange: ast.WithRange{
+						Range: source.Range{
+							Start: source.Pos{Line: 1, Column: 1, Byte: 0},
+							End:   source.Pos{Line: 1, Column: 8, Byte: 7},
+						},
+					},
+				},
+			},
+			1, // missing terminal expression
+		},
 	}
 
 	for _, test := range tests {

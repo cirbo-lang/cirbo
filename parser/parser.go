@@ -321,7 +321,6 @@ func (p *parser) parseTopLevel() ([]ast.Node, source.Range, source.Diags) {
 	startRange := p.PeekRange()
 	endRange := p.PeekRange()
 
-Statements:
 	for !p.EOF() {
 		var node ast.Node
 		var nodeDiags source.Diags
@@ -333,8 +332,9 @@ Statements:
 			node, nodeDiags = p.parseImport()
 
 		default:
-			// TODO: try to parse either assignment or connection statement
-			break Statements
+			// If not a keyword, then we should have either an assignment or
+			// a connection statement.
+			node, nodeDiags = p.parseAssignOrConnectStmt()
 		}
 
 		if node != nil {
@@ -347,6 +347,273 @@ Statements:
 	rng := source.RangeBetween(startRange, endRange)
 
 	return ret, rng, diags
+}
+
+func (p *parser) parseAssignOrConnectStmt() (ast.Node, source.Diags) {
+	switch p.Peek().Type {
+
+	case TokenBarDashDash:
+		// Left-pointing "not connected" symbol
+		return p.parseConnectStmt(nil)
+
+	default:
+		expr, exprDiags := p.parseExpr()
+		if exprDiags.HasErrors() {
+			p.recoverAfterSemicolon()
+			return &ast.Invalid{
+				WithRange: ast.WithRange{
+					Range: expr.SourceRange(),
+				},
+			}, exprDiags
+		}
+
+		// The token following the expression defines what kind of
+		// expression it is.
+		switch p.Peek().Type {
+		case TokenDashDash, TokenDashDashBar:
+			return p.parseConnectStmt(expr)
+		case TokenAssign:
+			return p.parseAssignStmt(expr)
+		case TokenSemicolon:
+			p.Read() // eat semicolon
+			return expr, source.Diags{
+				{
+					Level:   source.Error,
+					Summary: "Useless naked expression",
+					Detail:  "An expression alone is not a valid statement.",
+					Ranges:  expr.SourceRange().List(),
+				},
+			}
+		default:
+			var diags source.Diags
+			if !p.recovering {
+				diags = append(diags, source.Diag{
+					Level:   source.Error,
+					Summary: "Invalid characters after expression",
+					Detail:  "The remaining characters cannot be interpreted as part of this expression.",
+					Ranges:  p.PeekRange().List(),
+				})
+			}
+			p.recoverAfterSemicolon()
+			return expr, diags
+		}
+	}
+
+}
+
+func (p *parser) parseAssignStmt(lvalue ast.Node) (ast.Node, source.Diags) {
+	var diags source.Diags
+
+	// If the caller didn't already parse our lvalue expr, we'll do it
+	// right here.
+	if lvalue == nil {
+		lvalue, diags = p.parseExpr()
+		if diags.HasErrors() {
+			p.recoverAfterSemicolon()
+			return lvalue, diags
+		}
+	}
+
+	var name string
+	if varExpr, isVar := lvalue.(*ast.Variable); isVar {
+		name = varExpr.Name
+	} else {
+		diags = append(diags, source.Diag{
+			Level:   source.Error,
+			Summary: "Invalid assignment expression",
+			Detail:  "Can only assign directly to a variable name.",
+			Ranges:  lvalue.SourceRange().List(),
+		})
+	}
+
+	if p.Peek().Type != TokenAssign {
+		if !p.recovering {
+			diags = append(diags, source.Diag{
+				Level:   source.Error,
+				Summary: "Invalid characters after expression",
+				Detail:  "Expected an equals (\"=\") symbol to assign a value.",
+				Ranges:  p.PeekRange().List(),
+			})
+		}
+		wrong := p.Peek()
+		p.recoverAfterSemicolon()
+		return &ast.Assign{
+			Name: name,
+			Value: &ast.Invalid{
+				WithRange: ast.WithRange{
+					Range: wrong.Range,
+				},
+			},
+			WithRange: ast.WithRange{
+				Range: source.RangeBetween(lvalue.SourceRange(), p.Peek().Range),
+			},
+		}, diags
+	}
+
+	p.Read() // eat assignment equals
+
+	rhs, rhsDiags := p.parseExpr()
+	diags = append(diags, rhsDiags...)
+
+	var end Token
+	if p.Peek().Type != TokenSemicolon {
+		if !p.recovering {
+			diags = append(diags, source.Diag{
+				Level:   source.Error,
+				Summary: "Unterminated statement",
+				Detail:  "This assignment statement must be terminated by a semicolon.",
+				Ranges:  source.RangeBetween(lvalue.SourceRange(), rhs.SourceRange()).List(),
+			})
+		}
+		end = p.Peek()
+		p.recoverAfterSemicolon()
+	} else {
+		end = p.Read() // eat semicolon
+	}
+
+	return &ast.Assign{
+		Name:  name,
+		Value: rhs,
+
+		WithRange: ast.WithRange{
+			Range: source.RangeBetween(lvalue.SourceRange(), end.Range),
+		},
+	}, diags
+}
+
+func (p *parser) parseConnectStmt(first ast.Node) (ast.Node, source.Diags) {
+	var diags source.Diags
+
+	if p.Peek().Type == TokenBarDashDash {
+		if first != nil {
+			// this indicates a bug in the caller
+			panic("parseConnectStmt start must be nil when next token is |--")
+		}
+
+		start := p.Read() // eat |-- token
+
+		var expr ast.Node
+		expr, diags = p.parseExpr()
+		var end Token
+
+		if p.Peek().Type != TokenSemicolon {
+			if !p.recovering {
+				diags = append(diags, source.Diag{
+					Level:   source.Error,
+					Summary: "Unterminated statement",
+					Detail:  "This connection statement must be terminated by a semicolon.",
+					Ranges:  source.RangeBetween(start.Range, expr.SourceRange()).List(),
+				})
+			}
+			end = p.Peek()
+		} else {
+			end = p.Read() // eat semicolon
+		}
+
+		if diags.HasErrors() {
+			p.recoverAfterSemicolon()
+		}
+
+		return &ast.NoConnection{
+			Terminal: expr,
+
+			WithRange: ast.WithRange{
+				Range: source.RangeBetween(start.Range, end.Range),
+			},
+		}, diags
+	}
+
+	if first == nil {
+		// Only expect an initial expression if the caller didn't already
+		// pass one in. (Callers may need to look past an expression before
+		// they know they've found a connect statement.
+		first, diags = p.parseExpr()
+
+		if diags.HasErrors() {
+			p.recoverAfterSemicolon()
+			return &ast.Connection{
+				Seq: nil,
+
+				WithRange: ast.WithRange{
+					Range: first.SourceRange(),
+				},
+			}, diags
+		}
+	}
+
+	if p.Peek().Type == TokenDashDashBar {
+		p.Read() // eat --| token
+
+		var end Token
+		if p.Peek().Type != TokenSemicolon {
+			if !p.recovering {
+				diags = append(diags, source.Diag{
+					Level:   source.Error,
+					Summary: "Unterminated statement",
+					Detail:  "This connection statement must be terminated by a semicolon.",
+					Ranges:  []source.Range{p.PeekRange()},
+				})
+			}
+			end = p.Peek()
+			p.recoverAfterSemicolon()
+		} else {
+			end = p.Read() // eat semicolon
+		}
+
+		return &ast.NoConnection{
+			Terminal: first,
+
+			WithRange: ast.WithRange{
+				Range: source.RangeBetween(first.SourceRange(), end.Range),
+			},
+		}, diags
+	}
+
+	var terminals []ast.Node
+	terminals = append(terminals, first)
+	for p.Peek().Type == TokenDashDash {
+		p.Read() // eat "--" token
+
+		if p.Peek().Type == TokenSemicolon {
+			if !p.recovering {
+				diags = append(diags, source.Diag{
+					Level:   source.Error,
+					Summary: "Missing terminal expression",
+					Detail:  "The \"--\" symbol must be followed by an expression for a connection terminal.",
+					Ranges:  []source.Range{p.PeekRange()},
+				})
+			}
+			break
+		}
+
+		expr, exprDiags := p.parseExpr()
+		diags = append(diags, exprDiags...)
+		terminals = append(terminals, expr)
+	}
+
+	var end Token
+	if p.Peek().Type != TokenSemicolon {
+		if !p.recovering {
+			diags = append(diags, source.Diag{
+				Level:   source.Error,
+				Summary: "Unterminated statement",
+				Detail:  "This connection statement must be terminated by a semicolon.",
+				Ranges:  []source.Range{p.PeekRange()},
+			})
+		}
+		end = p.Peek()
+		p.recoverAfterSemicolon()
+	} else {
+		end = p.Read() // eat semicolon
+	}
+
+	return &ast.Connection{
+		Seq: terminals,
+
+		WithRange: ast.WithRange{
+			Range: source.RangeBetween(first.SourceRange(), end.Range),
+		},
+	}, diags
 }
 
 func (p *parser) parseImport() (ast.Node, source.Diags) {
@@ -404,7 +671,7 @@ func (p *parser) parseImport() (ast.Node, source.Diags) {
 				Level:   source.Error,
 				Summary: "Unterminated statement",
 				Detail:  "This import statement must be terminated by a semicolon.",
-				Ranges:  []source.Range{p.PeekRange()},
+				Ranges:  source.RangeBetween(kw.Range, p.Peek().Range).List(),
 			})
 		}
 		p.recoverAfterSemicolon()
