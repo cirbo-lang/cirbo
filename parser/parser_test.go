@@ -927,6 +927,426 @@ func TestParseExpression(t *testing.T) {
 			},
 			0,
 		},
+
+		{
+			`foo()`,
+			&ast.Call{
+				Callee: &ast.Variable{
+					Name: "foo",
+
+					WithRange: ast.WithRange{
+						Range: source.Range{
+							Start: source.Pos{Line: 1, Column: 1, Byte: 0},
+							End:   source.Pos{Line: 1, Column: 4, Byte: 3},
+						},
+					},
+				},
+				Args: &ast.Arguments{
+					WithRange: ast.WithRange{
+						Range: source.Range{
+							Start: source.Pos{Line: 1, Column: 4, Byte: 3},
+							End:   source.Pos{Line: 1, Column: 6, Byte: 5},
+						},
+					},
+				},
+
+				WithRange: ast.WithRange{
+					Range: source.Range{
+						Start: source.Pos{Line: 1, Column: 1, Byte: 0},
+						End:   source.Pos{Line: 1, Column: 6, Byte: 5},
+					},
+				},
+			},
+			0,
+		},
+		{
+			`foo(true)`,
+			&ast.Call{
+				Callee: &ast.Variable{
+					Name: "foo",
+
+					WithRange: ast.WithRange{
+						Range: source.Range{
+							Start: source.Pos{Line: 1, Column: 1, Byte: 0},
+							End:   source.Pos{Line: 1, Column: 4, Byte: 3},
+						},
+					},
+				},
+				Args: &ast.Arguments{
+					Positional: []ast.Node{
+						&ast.BooleanLit{
+							Value: true,
+
+							WithRange: ast.WithRange{
+								Range: source.Range{
+									Start: source.Pos{Line: 1, Column: 5, Byte: 4},
+									End:   source.Pos{Line: 1, Column: 9, Byte: 8},
+								},
+							},
+						},
+					},
+
+					WithRange: ast.WithRange{
+						Range: source.Range{
+							Start: source.Pos{Line: 1, Column: 4, Byte: 3},
+							End:   source.Pos{Line: 1, Column: 10, Byte: 9},
+						},
+					},
+				},
+
+				WithRange: ast.WithRange{
+					Range: source.Range{
+						Start: source.Pos{Line: 1, Column: 1, Byte: 0},
+						End:   source.Pos{Line: 1, Column: 10, Byte: 9},
+					},
+				},
+			},
+			0,
+		},
+		{
+			`foo(true, "?")`,
+			&ast.Call{
+				Callee: &ast.Variable{
+					Name: "foo",
+
+					WithRange: ast.WithRange{
+						Range: source.Range{
+							Start: source.Pos{Line: 1, Column: 1, Byte: 0},
+							End:   source.Pos{Line: 1, Column: 4, Byte: 3},
+						},
+					},
+				},
+				Args: &ast.Arguments{
+					Positional: []ast.Node{
+						&ast.BooleanLit{
+							Value: true,
+
+							WithRange: ast.WithRange{
+								Range: source.Range{
+									Start: source.Pos{Line: 1, Column: 5, Byte: 4},
+									End:   source.Pos{Line: 1, Column: 9, Byte: 8},
+								},
+							},
+						},
+						&ast.StringLit{
+							Value: "?",
+
+							WithRange: ast.WithRange{
+								Range: source.Range{
+									Start: source.Pos{Line: 1, Column: 11, Byte: 10},
+									End:   source.Pos{Line: 1, Column: 14, Byte: 13},
+								},
+							},
+						},
+					},
+
+					WithRange: ast.WithRange{
+						Range: source.Range{
+							Start: source.Pos{Line: 1, Column: 4, Byte: 3},
+							End:   source.Pos{Line: 1, Column: 15, Byte: 14},
+						},
+					},
+				},
+
+				WithRange: ast.WithRange{
+					Range: source.Range{
+						Start: source.Pos{Line: 1, Column: 1, Byte: 0},
+						End:   source.Pos{Line: 1, Column: 15, Byte: 14},
+					},
+				},
+			},
+			0,
+		},
+		{
+			`foo(good=true)`,
+			&ast.Call{
+				Callee: &ast.Variable{
+					Name: "foo",
+
+					WithRange: ast.WithRange{
+						Range: source.Range{
+							Start: source.Pos{Line: 1, Column: 1, Byte: 0},
+							End:   source.Pos{Line: 1, Column: 4, Byte: 3},
+						},
+					},
+				},
+				Args: &ast.Arguments{
+					Named: []*ast.NamedArgument{
+						{
+							Name: "good",
+							Value: &ast.BooleanLit{
+								Value: true,
+
+								WithRange: ast.WithRange{
+									Range: source.Range{
+										Start: source.Pos{Line: 1, Column: 10, Byte: 9},
+										End:   source.Pos{Line: 1, Column: 14, Byte: 13},
+									},
+								},
+							},
+
+							WithRange: ast.WithRange{
+								Range: source.Range{
+									Start: source.Pos{Line: 1, Column: 5, Byte: 4},
+									End:   source.Pos{Line: 1, Column: 14, Byte: 13},
+								},
+							},
+						},
+					},
+
+					WithRange: ast.WithRange{
+						Range: source.Range{
+							Start: source.Pos{Line: 1, Column: 4, Byte: 3},
+							End:   source.Pos{Line: 1, Column: 15, Byte: 14},
+						},
+					},
+				},
+
+				WithRange: ast.WithRange{
+					Range: source.Range{
+						Start: source.Pos{Line: 1, Column: 1, Byte: 0},
+						End:   source.Pos{Line: 1, Column: 15, Byte: 14},
+					},
+				},
+			},
+			0,
+		},
+		{
+			`foo(bar, good=true)`,
+			&ast.Call{
+				Callee: &ast.Variable{
+					Name: "foo",
+
+					WithRange: ast.WithRange{
+						Range: source.Range{
+							Start: source.Pos{Line: 1, Column: 1, Byte: 0},
+							End:   source.Pos{Line: 1, Column: 4, Byte: 3},
+						},
+					},
+				},
+				Args: &ast.Arguments{
+					Positional: []ast.Node{
+						&ast.Variable{
+							Name: "bar",
+
+							WithRange: ast.WithRange{
+								Range: source.Range{
+									Start: source.Pos{Line: 1, Column: 5, Byte: 4},
+									End:   source.Pos{Line: 1, Column: 8, Byte: 7},
+								},
+							},
+						},
+					},
+					Named: []*ast.NamedArgument{
+						{
+							Name: "good",
+							Value: &ast.BooleanLit{
+								Value: true,
+
+								WithRange: ast.WithRange{
+									Range: source.Range{
+										Start: source.Pos{Line: 1, Column: 15, Byte: 14},
+										End:   source.Pos{Line: 1, Column: 19, Byte: 18},
+									},
+								},
+							},
+
+							WithRange: ast.WithRange{
+								Range: source.Range{
+									Start: source.Pos{Line: 1, Column: 10, Byte: 9},
+									End:   source.Pos{Line: 1, Column: 19, Byte: 18},
+								},
+							},
+						},
+					},
+
+					WithRange: ast.WithRange{
+						Range: source.Range{
+							Start: source.Pos{Line: 1, Column: 4, Byte: 3},
+							End:   source.Pos{Line: 1, Column: 20, Byte: 19},
+						},
+					},
+				},
+
+				WithRange: ast.WithRange{
+					Range: source.Range{
+						Start: source.Pos{Line: 1, Column: 1, Byte: 0},
+						End:   source.Pos{Line: 1, Column: 20, Byte: 19},
+					},
+				},
+			},
+			0,
+		},
+		{
+			`foo(good=true, bar)`,
+			&ast.Call{
+				Callee: &ast.Variable{
+					Name: "foo",
+
+					WithRange: ast.WithRange{
+						Range: source.Range{
+							Start: source.Pos{Line: 1, Column: 1, Byte: 0},
+							End:   source.Pos{Line: 1, Column: 4, Byte: 3},
+						},
+					},
+				},
+				Args: &ast.Arguments{
+					Positional: []ast.Node{
+						&ast.Variable{
+							Name: "bar",
+
+							WithRange: ast.WithRange{
+								Range: source.Range{
+									Start: source.Pos{Line: 1, Column: 16, Byte: 15},
+									End:   source.Pos{Line: 1, Column: 19, Byte: 18},
+								},
+							},
+						},
+					},
+					Named: []*ast.NamedArgument{
+						{
+							Name: "good",
+							Value: &ast.BooleanLit{
+								Value: true,
+
+								WithRange: ast.WithRange{
+									Range: source.Range{
+										Start: source.Pos{Line: 1, Column: 10, Byte: 9},
+										End:   source.Pos{Line: 1, Column: 14, Byte: 13},
+									},
+								},
+							},
+
+							WithRange: ast.WithRange{
+								Range: source.Range{
+									Start: source.Pos{Line: 1, Column: 5, Byte: 4},
+									End:   source.Pos{Line: 1, Column: 14, Byte: 13},
+								},
+							},
+						},
+					},
+
+					WithRange: ast.WithRange{
+						Range: source.Range{
+							Start: source.Pos{Line: 1, Column: 4, Byte: 3},
+							End:   source.Pos{Line: 1, Column: 20, Byte: 19},
+						},
+					},
+				},
+
+				WithRange: ast.WithRange{
+					Range: source.Range{
+						Start: source.Pos{Line: 1, Column: 1, Byte: 0},
+						End:   source.Pos{Line: 1, Column: 20, Byte: 19},
+					},
+				},
+			},
+			1, // incorrect argument order
+		},
+		{
+			`foo()(a)`,
+			&ast.Call{
+				Callee: &ast.Call{
+					Callee: &ast.Variable{
+						Name: "foo",
+
+						WithRange: ast.WithRange{
+							Range: source.Range{
+								Start: source.Pos{Line: 1, Column: 1, Byte: 0},
+								End:   source.Pos{Line: 1, Column: 4, Byte: 3},
+							},
+						},
+					},
+					Args: &ast.Arguments{
+						WithRange: ast.WithRange{
+							Range: source.Range{
+								Start: source.Pos{Line: 1, Column: 4, Byte: 3},
+								End:   source.Pos{Line: 1, Column: 6, Byte: 5},
+							},
+						},
+					},
+
+					WithRange: ast.WithRange{
+						Range: source.Range{
+							Start: source.Pos{Line: 1, Column: 1, Byte: 0},
+							End:   source.Pos{Line: 1, Column: 6, Byte: 5},
+						},
+					},
+				},
+				Args: &ast.Arguments{
+					Positional: []ast.Node{
+						&ast.Variable{
+							Name: "a",
+
+							WithRange: ast.WithRange{
+								Range: source.Range{
+									Start: source.Pos{Line: 1, Column: 7, Byte: 6},
+									End:   source.Pos{Line: 1, Column: 8, Byte: 7},
+								},
+							},
+						},
+					},
+					WithRange: ast.WithRange{
+						Range: source.Range{
+							Start: source.Pos{Line: 1, Column: 6, Byte: 5},
+							End:   source.Pos{Line: 1, Column: 9, Byte: 8},
+						},
+					},
+				},
+
+				WithRange: ast.WithRange{
+					Range: source.Range{
+						Start: source.Pos{Line: 1, Column: 1, Byte: 0},
+						End:   source.Pos{Line: 1, Column: 9, Byte: 8},
+					},
+				},
+			},
+			0,
+		},
+		{
+			`foo(a`,
+			&ast.Call{
+				Callee: &ast.Variable{
+					Name: "foo",
+
+					WithRange: ast.WithRange{
+						Range: source.Range{
+							Start: source.Pos{Line: 1, Column: 1, Byte: 0},
+							End:   source.Pos{Line: 1, Column: 4, Byte: 3},
+						},
+					},
+				},
+				Args: &ast.Arguments{
+					Positional: []ast.Node{
+						&ast.Variable{
+							Name: "a",
+
+							WithRange: ast.WithRange{
+								Range: source.Range{
+									Start: source.Pos{Line: 1, Column: 5, Byte: 4},
+									End:   source.Pos{Line: 1, Column: 6, Byte: 5},
+								},
+							},
+						},
+					},
+
+					WithRange: ast.WithRange{
+						Range: source.Range{
+							Start: source.Pos{Line: 1, Column: 4, Byte: 3},
+							End:   source.Pos{Line: 1, Column: 6, Byte: 5},
+						},
+					},
+				},
+
+				WithRange: ast.WithRange{
+					Range: source.Range{
+						Start: source.Pos{Line: 1, Column: 1, Byte: 0},
+						End:   source.Pos{Line: 1, Column: 6, Byte: 5},
+					},
+				},
+			},
+			1, // missing argument separator
+		},
 	}
 
 	for _, test := range tests {

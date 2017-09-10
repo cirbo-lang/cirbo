@@ -473,7 +473,22 @@ Trailers:
 				},
 			}
 
-		// TODO: Parse calls, indicated by OParen
+		case TokenOParen:
+			args, argDiags := p.parseArguments()
+			diags = append(diags, argDiags...)
+
+			// parseArguments tries itself to recover to after the closing
+			// paren on errors, so we'll just continue and assume that the
+			// peeker is already placed as best it can be.
+
+			term = &ast.Call{
+				Callee: term,
+				Args:   args,
+
+				WithRange: ast.WithRange{
+					Range: source.RangeBetween(term.SourceRange(), args.SourceRange()),
+				},
+			}
 
 		default:
 			break Trailers
@@ -646,6 +661,116 @@ func (p *parser) parseExpressionTerm() (ast.Node, source.Diags) {
 			},
 		}, diags
 	}
+}
+
+func (p *parser) parseArguments() (*ast.Arguments, source.Diags) {
+	open := p.Read()
+	if open.Type != TokenOParen {
+		// indicates a bug in the caller
+		panic("parseArguments called with peeker not pointing at TokenOParen")
+	}
+
+	var diags source.Diags
+	ret := &ast.Arguments{}
+	first := true
+
+Arguments:
+	for {
+		if p.Peek().Type == TokenCParen {
+			close := p.Read()
+			ret.WithRange.Range = source.RangeBetween(open.Range, close.Range)
+			break Arguments
+		}
+
+		if !first {
+			if p.Peek().Type != TokenComma {
+				if !p.recovering {
+					diags = append(diags, source.Diag{
+						Level:   source.Error,
+						Summary: "Missing argument separator",
+						Detail:  "Call arguments must be separated by commas.",
+						Ranges:  p.Peek().Range.List(),
+					})
+				}
+				ret.WithRange.Range = source.RangeBetween(open.Range, p.Peek().Range)
+				p.recoverAfterClose(TokenCParen)
+				break Arguments
+			}
+
+			p.Read() // eat comma
+
+			if p.Peek().Type == TokenCParen {
+				close := p.Read()
+				ret.WithRange.Range = source.RangeBetween(open.Range, close.Range)
+				break Arguments
+			}
+		}
+		first = false
+
+		var nameExpr ast.Node
+		argExpr, argDiags := p.parseExpr()
+		diags = append(diags, argDiags...)
+		if argDiags.HasErrors() {
+			ret.WithRange.Range = source.RangeBetween(open.Range, argExpr.SourceRange())
+			p.recoverAfterClose(TokenCParen)
+			break Arguments
+		}
+
+		if p.Peek().Type == TokenAssign {
+			// A named argument
+
+			p.Read() // eat equals sign
+
+			nameExpr = argExpr
+			argExpr, argDiags = p.parseExpr()
+			diags = append(diags, argDiags...)
+			if argDiags.HasErrors() {
+				ret.WithRange.Range = source.RangeBetween(open.Range, argExpr.SourceRange())
+				p.recoverAfterClose(TokenCParen)
+				break Arguments
+			}
+		}
+
+		if nameExpr == nil {
+			// positional argument
+
+			if len(ret.Named) != 0 {
+				diags = append(diags, source.Diag{
+					Level:   source.Error,
+					Summary: "Incorrect argument order",
+					Detail:  "Positional arguments must all be listed before the first named argument.",
+					Ranges:  argExpr.SourceRange().List(),
+				})
+			}
+
+			ret.Positional = append(ret.Positional, argExpr)
+		} else {
+			var name string
+			if varNode, isVar := nameExpr.(*ast.Variable); isVar {
+				name = varNode.Name
+			} else {
+				if !p.recovering {
+					diags = append(diags, source.Diag{
+						Level:   source.Error,
+						Summary: "Invalid parameter name",
+						Detail:  "A parameter name must be a valid identifier.",
+						Ranges:  argExpr.SourceRange().List(),
+					})
+				}
+			}
+
+			ret.Named = append(ret.Named, &ast.NamedArgument{
+				Name:  name,
+				Value: argExpr,
+
+				WithRange: ast.WithRange{
+					Range: source.RangeBetween(nameExpr.SourceRange(), argExpr.SourceRange()),
+				},
+			})
+		}
+	}
+
+	return ret, diags
 }
 
 func (p *parser) decodeIdentifierBytes(src []byte) string {
