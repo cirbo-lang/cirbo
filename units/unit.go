@@ -3,93 +3,169 @@ package units
 type Unit struct {
 	dim  Dimensionality
 	base baseUnits
+
+	// For scaled units (millis, kilos, megas, etc) this stores the scale
+	// factor. If positive then a value must be divided by it to recover
+	// the unscaled unit, while if it's negative a value must be multiplied
+	// by its absolute value. 0 means "unscaled"
+	//
+	// Scaling is only used for derived units. Units of base dimensions are
+	// just represented directly.
+	scale int
 }
 
 var unitByName map[string]*Unit = map[string]*Unit{
 	// Mass Units
-	"kg": &Unit{Dimensionality{Mass: 1}, baseUnits{Mass: kilogram}},
-	"g":  &Unit{Dimensionality{Mass: 1}, baseUnits{Mass: gram}},
-	"lb": &Unit{Dimensionality{Mass: 1}, baseUnits{Mass: pound}},
-	"st": &Unit{Dimensionality{Mass: 1}, baseUnits{Mass: stone}},
+	"kg": &Unit{Dimensionality{Mass: 1}, baseUnits{Mass: kilogram}, 0},
+	"g":  &Unit{Dimensionality{Mass: 1}, baseUnits{Mass: gram}, 0},
+	"lb": &Unit{Dimensionality{Mass: 1}, baseUnits{Mass: pound}, 0},
+	"st": &Unit{Dimensionality{Mass: 1}, baseUnits{Mass: stone}, 0},
 
 	// Length Units
-	"m":   &Unit{Dimensionality{Length: 1}, baseUnits{Length: meter}},
-	"mm":  &Unit{Dimensionality{Length: 1}, baseUnits{Length: millimeter}},
-	"cm":  &Unit{Dimensionality{Length: 1}, baseUnits{Length: centimeter}},
-	"km":  &Unit{Dimensionality{Length: 1}, baseUnits{Length: kilometer}},
-	"mil": &Unit{Dimensionality{Length: 1}, baseUnits{Length: mil}},
-	"in":  &Unit{Dimensionality{Length: 1}, baseUnits{Length: inch}},
-	"ft":  &Unit{Dimensionality{Length: 1}, baseUnits{Length: foot}},
-	"yd":  &Unit{Dimensionality{Length: 1}, baseUnits{Length: yard}},
+	"m":   &Unit{Dimensionality{Length: 1}, baseUnits{Length: meter}, 0},
+	"mm":  &Unit{Dimensionality{Length: 1}, baseUnits{Length: millimeter}, 0},
+	"cm":  &Unit{Dimensionality{Length: 1}, baseUnits{Length: centimeter}, 0},
+	"km":  &Unit{Dimensionality{Length: 1}, baseUnits{Length: kilometer}, 0},
+	"mil": &Unit{Dimensionality{Length: 1}, baseUnits{Length: mil}, 0},
+	"in":  &Unit{Dimensionality{Length: 1}, baseUnits{Length: inch}, 0},
+	"ft":  &Unit{Dimensionality{Length: 1}, baseUnits{Length: foot}, 0},
+	"yd":  &Unit{Dimensionality{Length: 1}, baseUnits{Length: yard}, 0},
 
 	// Angle Units
-	"deg":  &Unit{Dimensionality{Angle: 1}, baseUnits{Angle: degree}},
-	"rad":  &Unit{Dimensionality{Angle: 1}, baseUnits{Angle: radian}},
-	"turn": &Unit{Dimensionality{Angle: 1}, baseUnits{Angle: turn}},
+	"deg":  &Unit{Dimensionality{Angle: 1}, baseUnits{Angle: degree}, 0},
+	"rad":  &Unit{Dimensionality{Angle: 1}, baseUnits{Angle: radian}, 0},
+	"turn": &Unit{Dimensionality{Angle: 1}, baseUnits{Angle: turn}, 0},
 
 	// Time Units
-	"s":  &Unit{Dimensionality{Time: 1}, baseUnits{Time: second}}, // There is no secs in physics.
-	"ms": &Unit{Dimensionality{Time: 1}, baseUnits{Time: millisecond}},
-	"us": &Unit{Dimensionality{Time: 1}, baseUnits{Time: microsecond}},
+	"s":  &Unit{Dimensionality{Time: 1}, baseUnits{Time: second}, 0}, // There is no secs in physics.
+	"ms": &Unit{Dimensionality{Time: 1}, baseUnits{Time: millisecond}, 0},
+	"us": &Unit{Dimensionality{Time: 1}, baseUnits{Time: microsecond}, 0},
 
 	// Electric Current Units
-	"A": &Unit{Dimensionality{ElectricCurrent: 1}, baseUnits{ElectricCurrent: ampere}},
+	"A": &Unit{Dimensionality{ElectricCurrent: 1}, baseUnits{ElectricCurrent: ampere}, 0},
 
 	// Luminous Intensity Units
-	"cd": &Unit{Dimensionality{LuminousIntensity: 1}, baseUnits{LuminousIntensity: candela}},
+	"cd": &Unit{Dimensionality{LuminousIntensity: 1}, baseUnits{LuminousIntensity: candela}, 0},
 
 	// Electic Resistance Units
 	"ohm": &Unit{
 		Dimensionality{Mass: 1, Length: 2, Time: -3, ElectricCurrent: -2},
 		baseUnits{Mass: kilogram, Length: meter, Time: second, ElectricCurrent: ampere},
+		0,
 	},
-	// TODO: represent kohm, Mohm?
+	"kohm": &Unit{
+		Dimensionality{Mass: 1, Length: 2, Time: -3, ElectricCurrent: -2},
+		baseUnits{Mass: kilogram, Length: meter, Time: second, ElectricCurrent: ampere},
+		1000,
+	},
+	"Mohm": &Unit{
+		Dimensionality{Mass: 1, Length: 2, Time: -3, ElectricCurrent: -2},
+		baseUnits{Mass: kilogram, Length: meter, Time: second, ElectricCurrent: ampere},
+		1000000,
+	},
 
 	// Electric Voltage Units
 	"V": &Unit{
 		Dimensionality{Mass: 1, Length: 2, Time: -3, ElectricCurrent: -1},
 		baseUnits{Mass: kilogram, Length: meter, Time: second, ElectricCurrent: ampere},
+		0,
 	},
-	// TODO: represent mV, kV
+	"mV": &Unit{
+		Dimensionality{Mass: 1, Length: 2, Time: -3, ElectricCurrent: -1},
+		baseUnits{Mass: kilogram, Length: meter, Time: second, ElectricCurrent: ampere},
+		-1000,
+	},
+	"kV": &Unit{
+		Dimensionality{Mass: 1, Length: 2, Time: -3, ElectricCurrent: -1},
+		baseUnits{Mass: kilogram, Length: meter, Time: second, ElectricCurrent: ampere},
+		1000,
+	},
 
 	// Frequency Units
 	"Hz": &Unit{
 		Dimensionality{Time: -1},
 		baseUnits{Time: second},
+		0,
 	},
-	// TODO: represent kHz, mHz
+	"kHz": &Unit{
+		Dimensionality{Time: -1},
+		baseUnits{Time: second},
+		1000,
+	},
+	"MHz": &Unit{
+		Dimensionality{Time: -1},
+		baseUnits{Time: second},
+		1000000,
+	},
 
 	// Force Units
 	"N": &Unit{
 		Dimensionality{Mass: 1, Length: 1, Time: -2},
 		baseUnits{Mass: kilogram, Length: meter, Time: second},
+		0,
 	},
 
 	// Power Units
 	"W": &Unit{
 		Dimensionality{Mass: 1, Length: 2, Time: -3},
 		baseUnits{Mass: kilogram, Length: meter, Time: second},
+		0,
 	},
-	// TODO: represent mW, kW
+	"mW": &Unit{
+		Dimensionality{Time: -1},
+		baseUnits{Time: second},
+		-1000,
+	},
+	"kW": &Unit{
+		Dimensionality{Time: -1},
+		baseUnits{Time: second},
+		1000,
+	},
+	"MW": &Unit{
+		Dimensionality{Time: -1},
+		baseUnits{Time: second},
+		1000000,
+	},
+	"GW": &Unit{
+		Dimensionality{Time: -1},
+		baseUnits{Time: second},
+		1000000000,
+	},
 
 	// Electrical Capacitance Units
 	"F": &Unit{
 		Dimensionality{Mass: -1, Length: -2, Time: 4, ElectricCurrent: 2},
 		baseUnits{Mass: kilogram, Length: meter, Time: second, ElectricCurrent: ampere},
+		0,
 	},
-	// TODO: represent uF, mF
+	"mF": &Unit{
+		Dimensionality{Mass: -1, Length: -2, Time: 4, ElectricCurrent: 2},
+		baseUnits{Mass: kilogram, Length: meter, Time: second, ElectricCurrent: ampere},
+		-1000,
+	},
+	"uF": &Unit{
+		Dimensionality{Mass: -1, Length: -2, Time: 4, ElectricCurrent: 2},
+		baseUnits{Mass: kilogram, Length: meter, Time: second, ElectricCurrent: ampere},
+		-1000000,
+	},
 
 	// Electrical Inductance Units
 	"H": &Unit{
 		Dimensionality{Mass: 1, Length: 2, Time: -2, ElectricCurrent: -2},
 		baseUnits{Mass: kilogram, Length: meter, Time: second, ElectricCurrent: ampere},
+		0,
 	},
-	// TODO: represent uH
+	"uH": &Unit{
+		Dimensionality{Mass: 1, Length: 2, Time: -2, ElectricCurrent: -2},
+		baseUnits{Mass: kilogram, Length: meter, Time: second, ElectricCurrent: ampere},
+		-1000000,
+	},
 
 	// Illuminance units
 	"lx": &Unit{
 		Dimensionality{Length: -2, LuminousIntensity: 1},
 		baseUnits{Length: meter, LuminousIntensity: candela},
+		0,
 	},
 }
 
