@@ -912,6 +912,178 @@ func TestParseTopLevel(t *testing.T) {
 			},
 			1, // missing terminal expression
 		},
+
+		{
+			`circuit foo {}`,
+			[]ast.Node{
+				&ast.Circuit{
+					Name: "foo",
+
+					HeaderRange: source.Range{
+						Start: source.Pos{Line: 1, Column: 1, Byte: 0},
+						End:   source.Pos{Line: 1, Column: 12, Byte: 11},
+					},
+					WithRange: ast.WithRange{
+						Range: source.Range{
+							Start: source.Pos{Line: 1, Column: 1, Byte: 0},
+							End:   source.Pos{Line: 1, Column: 15, Byte: 14},
+						},
+					},
+				},
+			},
+			0,
+		},
+		{
+			`circuit foo { import "baz"; }`, // import not semantically valid here, but okay syntax-wise
+			[]ast.Node{
+				&ast.Circuit{
+					Name: "foo",
+					Body: []ast.Node{
+						&ast.Import{
+							Package: "baz",
+							PackageRange: source.Range{
+								Start: source.Pos{Line: 1, Column: 22, Byte: 21},
+								End:   source.Pos{Line: 1, Column: 27, Byte: 26},
+							},
+							WithRange: ast.WithRange{
+								Range: source.Range{
+									Start: source.Pos{Line: 1, Column: 15, Byte: 14},
+									End:   source.Pos{Line: 1, Column: 28, Byte: 27},
+								},
+							},
+						},
+					},
+
+					HeaderRange: source.Range{
+						Start: source.Pos{Line: 1, Column: 1, Byte: 0},
+						End:   source.Pos{Line: 1, Column: 12, Byte: 11},
+					},
+					WithRange: ast.WithRange{
+						Range: source.Range{
+							Start: source.Pos{Line: 1, Column: 1, Byte: 0},
+							End:   source.Pos{Line: 1, Column: 30, Byte: 29},
+						},
+					},
+				},
+			},
+			0,
+		},
+		{
+			"circuit `foo` {}",
+			[]ast.Node{
+				&ast.Circuit{
+					Name: "foo",
+
+					HeaderRange: source.Range{
+						Start: source.Pos{Line: 1, Column: 1, Byte: 0},
+						End:   source.Pos{Line: 1, Column: 14, Byte: 13},
+					},
+					WithRange: ast.WithRange{
+						Range: source.Range{
+							Start: source.Pos{Line: 1, Column: 1, Byte: 0},
+							End:   source.Pos{Line: 1, Column: 17, Byte: 16},
+						},
+					},
+				},
+			},
+			0,
+		},
+		{
+			`circuit "foo" {}`,
+			[]ast.Node{
+				&ast.Circuit{
+					Name: "",
+
+					HeaderRange: source.Range{
+						Start: source.Pos{Line: 1, Column: 1, Byte: 0},
+						End:   source.Pos{Line: 1, Column: 8, Byte: 7},
+					},
+					WithRange: ast.WithRange{
+						Range: source.Range{
+							Start: source.Pos{Line: 1, Column: 1, Byte: 0},
+							End:   source.Pos{Line: 1, Column: 14, Byte: 13},
+						},
+					},
+				},
+			},
+			1, // circuit name must be an identifier
+		},
+		{
+			`circuit "foo" {} circuit bar {}`,
+			[]ast.Node{
+				&ast.Circuit{
+					Name: "",
+
+					HeaderRange: source.Range{
+						Start: source.Pos{Line: 1, Column: 1, Byte: 0},
+						End:   source.Pos{Line: 1, Column: 8, Byte: 7},
+					},
+					WithRange: ast.WithRange{
+						Range: source.Range{
+							Start: source.Pos{Line: 1, Column: 1, Byte: 0},
+							End:   source.Pos{Line: 1, Column: 14, Byte: 13},
+						},
+					},
+				},
+
+				// should recover from error in first circuit and then parse the second
+				&ast.Circuit{
+					Name: "bar",
+
+					HeaderRange: source.Range{
+						Start: source.Pos{Line: 1, Column: 18, Byte: 17},
+						End:   source.Pos{Line: 1, Column: 29, Byte: 28},
+					},
+					WithRange: ast.WithRange{
+						Range: source.Range{
+							Start: source.Pos{Line: 1, Column: 18, Byte: 17},
+							End:   source.Pos{Line: 1, Column: 32, Byte: 31},
+						},
+					},
+				},
+			},
+			1, // circuit name must be an identifier
+		},
+		{
+			`circuit foo {`,
+			[]ast.Node{
+				&ast.Circuit{
+					Name: "foo",
+
+					HeaderRange: source.Range{
+						Start: source.Pos{Line: 1, Column: 1, Byte: 0},
+						End:   source.Pos{Line: 1, Column: 12, Byte: 11},
+					},
+					WithRange: ast.WithRange{
+						Range: source.Range{
+							Start: source.Pos{Line: 1, Column: 1, Byte: 0},
+							End:   source.Pos{Line: 1, Column: 14, Byte: 13},
+						},
+					},
+				},
+			},
+			1, // unclosed statement block
+		},
+		{
+			`circuit {}`,
+			[]ast.Node{
+				&ast.Circuit{
+					Name: "",
+
+					HeaderRange: source.Range{
+						Start: source.Pos{Line: 1, Column: 1, Byte: 0},
+						End:   source.Pos{Line: 1, Column: 8, Byte: 7},
+					},
+					WithRange: ast.WithRange{
+						Range: source.Range{
+							Start: source.Pos{Line: 1, Column: 1, Byte: 0},
+							End:   source.Pos{Line: 1, Column: 10, Byte: 9},
+						},
+					},
+				},
+			},
+			1, // missing circuit name
+		},
 	}
 
 	for _, test := range tests {

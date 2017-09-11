@@ -776,6 +776,57 @@ func (p *parser) parseImport() (ast.Node, source.Diags) {
 	}, diags
 }
 
+func (p *parser) parseCircuit() (ast.Node, source.Diags) {
+	kw := p.Read()
+	if kw.Type != TokenIdent {
+		// Should never happen because caller should've peeked ahead here
+		panic("parseCircuit called with peeker not pointing at ident")
+	}
+
+	var diags source.Diags
+	circuit := &ast.Circuit{
+		HeaderRange: kw.Range,
+		WithRange: ast.WithRange{
+			Range: kw.Range,
+		},
+	}
+
+	if p.Peek().Type != TokenIdent {
+		if !p.recovering {
+			switch p.Peek().Type {
+			case TokenOBrace:
+				diags = append(diags, source.Diag{
+					Level:   source.Error,
+					Summary: "Missing circuit name",
+					Detail:  "The \"circuit\" keyword must be followed by a circuit name.",
+					Ranges:  []source.Range{p.PeekRange()},
+				})
+			default:
+				diags = append(diags, source.Diag{
+					Level:   source.Error,
+					Summary: "Invalid circuit name",
+					Detail:  "Circuit name must be an identifier.",
+					Ranges:  []source.Range{p.PeekRange()},
+				})
+			}
+		}
+		circuit.Range = source.RangeBetween(circuit.Range, p.PeekRange())
+		p.recoverAfterNextBlock()
+		return circuit, diags
+	}
+
+	nameTok := p.Read()
+	circuit.Name = p.decodeIdentifierBytes(nameTok.Bytes)
+	circuit.HeaderRange = source.RangeBetween(kw.Range, nameTok.Range)
+
+	body, bodyRange, bodyDiags := p.parseStmtBlock()
+	diags = append(diags, bodyDiags...)
+	circuit.Body = body
+	circuit.Range = source.RangeBetween(circuit.Range, bodyRange)
+
+	return circuit, diags
+}
+
 func (p *parser) parseExpr() (ast.Node, source.Diags) {
 	return p.parseTernaryConditional()
 }
