@@ -315,13 +315,32 @@ func (p *parser) ParseExpr() (ast.Node, source.Diags) {
 }
 
 func (p *parser) parseTopLevel() ([]ast.Node, source.Range, source.Diags) {
+	return p.parseStmts(TokenEOF)
+}
+
+func (p *parser) parseStmts(endType TokenType) ([]ast.Node, source.Range, source.Diags) {
 	var ret []ast.Node
 	var diags source.Diags
+
+	if p.Peek().Type == endType {
+		// With an empty body we can't really produce a real range, so we'll
+		// make a zero-length range that sits just before the next token.
+		rng := p.PeekRange()
+		rng.End = rng.Start
+		return ret, rng, diags
+	}
 
 	startRange := p.PeekRange()
 	endRange := p.PeekRange()
 
-	for !p.EOF() {
+Statements:
+	for p.Peek().Type != endType {
+		if p.Peek().Type == TokenEOF {
+			// It's the caller's responsibility to detect unclosed statement
+			// blocks if the end type isn't TokenEOF
+			break Statements
+		}
+
 		var node ast.Node
 		var nodeDiags source.Diags
 
@@ -331,7 +350,16 @@ func (p *parser) parseTopLevel() ([]ast.Node, source.Range, source.Diags) {
 		case "import":
 			node, nodeDiags = p.parseImport()
 
+		case "circuit":
+			node, nodeDiags = p.parseCircuit()
+
 		default:
+
+			if p.Peek().Type == TokenSemicolon {
+				p.Read()
+				continue Statements
+			}
+
 			// If not a keyword, then we should have either an assignment or
 			// a connection statement.
 			node, nodeDiags = p.parseAssignOrConnectStmt()
@@ -347,6 +375,62 @@ func (p *parser) parseTopLevel() ([]ast.Node, source.Range, source.Diags) {
 	rng := source.RangeBetween(startRange, endRange)
 
 	return ret, rng, diags
+}
+
+func (p *parser) parseStmtBlock() ([]ast.Node, source.Range, source.Diags) {
+	var ret []ast.Node
+	var diags source.Diags
+
+	if p.Peek().Type != TokenOBrace {
+		bad := p.Peek()
+		if !p.recovering {
+			switch p.Peek().Type {
+			case TokenSemicolon:
+				diags = append(diags, source.Diag{
+					Level:   source.Error,
+					Summary: "Missing block",
+					Detail:  "A brace-delimited statement block is required here.",
+					Ranges:  []source.Range{p.PeekRange()},
+				})
+				p.recoverAfterSemicolon()
+			default:
+				diags = append(diags, source.Diag{
+					Level:   source.Error,
+					Summary: "Invalid block",
+					Detail:  "A brace-delimited statement block is required here.",
+					Ranges:  []source.Range{p.PeekRange()},
+				})
+				p.recoverAfterNextBlock()
+			}
+		}
+		return ret, bad.Range, diags
+	}
+
+	open := p.Read() // eat {
+
+	var rng source.Range
+	ret, rng, diags = p.parseStmts(TokenCBrace)
+
+	if p.Peek().Type != TokenCBrace {
+		if !p.recovering {
+			diags = append(diags, source.Diag{
+				Level:   source.Error,
+				Summary: "Unclosed statement block",
+				Detail:  "This statement block is not closed before the end of the file. Ensure that each opening brace \"{\" has a corresponding closing brace \"}\".",
+				Ranges:  open.Range.List(),
+			})
+			// The only way we can get here is if we're at EOF, so calling
+			// this is a little silly but it at least activates recovery mode
+			// to inhibit any other errors that might otherwise be emitted
+			// as we unwind our parsing stack.
+			p.recoverAfterCurrentBlock()
+		}
+		return ret, source.RangeBetween(open.Range, rng), diags
+	}
+
+	close := p.Read() // eat }
+
+	return ret, source.RangeBetween(open.Range, close.Range), diags
 }
 
 func (p *parser) parseAssignOrConnectStmt() (ast.Node, source.Diags) {
