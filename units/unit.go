@@ -1,5 +1,11 @@
 package units
 
+import (
+	"bytes"
+	"strconv"
+	"strings"
+)
+
 type Unit struct {
 	dim  Dimensionality
 	base baseUnits
@@ -200,6 +206,60 @@ func (u *Unit) CommensurableWith(other *Unit) bool {
 	}
 
 	return u.dim == other.dim
+}
+
+// String returns a compact, human-readable string representation of a given
+// unit.
+//
+// If the unit has its own name then that will be returned. Otherwise,
+// a name will be constructed from the set of base units that the given
+// derived unit is built from.
+func (u *Unit) String() string {
+	if name, hasName := unitName[u]; hasName {
+		return name
+	}
+
+	// If the unit doesn't have a name then we'll construct one from its
+	// base units, using its dimensionality entries.
+	buf := &bytes.Buffer{}
+	e := u.dim.dimEntries()
+
+	if u.scale != 0 && u.scale != 1 {
+		// should never happen, since scale should be used only for named units.
+		panic("constructed unit may not have scale")
+	}
+
+	for _, ei := range e {
+		var unit *Unit
+		switch ei.Dimension {
+		case Mass:
+			unit = massUnits[u.base.Mass]
+		case Length:
+			unit = lengthUnits[u.base.Length]
+		case Angle:
+			unit = angleUnits[u.base.Angle]
+		case Time:
+			unit = timeUnits[u.base.Time]
+		case ElectricCurrent:
+			unit = electricCurrentUnits[u.base.ElectricCurrent]
+		case LuminousIntensity:
+			unit = luminousIntensityUnits[u.base.LuminousIntensity]
+		default:
+			// should never happen if dimEntries is working correctly
+			panic("String called on Unit with invalid base dimension entry")
+		}
+
+		// We assume here that all units in the base tables will have names;
+		// if any don't, that's a bug to be fixed.
+		unitName := unitName[unit]
+		buf.WriteString(unitName)
+		if ei.Power != 1 {
+			buf.WriteString(powerReplacer.Replace(strconv.Itoa(ei.Power)))
+		}
+		buf.WriteString(" ")
+	}
+
+	return strings.TrimSpace(buf.String())
 }
 
 // normalize checks if the receiver is one of the named units, and if so

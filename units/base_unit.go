@@ -65,6 +65,39 @@ var ampere = &electricCurrentUnit{bf("1")}
 
 var candela = &luminousIntensityUnit{bf("1")}
 
+var massUnits = map[*massUnit]*Unit{
+	kilogram: unitByName["kg"],
+	gram:     unitByName["g"],
+	pound:    unitByName["lb"],
+	stone:    unitByName["st"],
+}
+var lengthUnits = map[*lengthUnit]*Unit{
+	meter:      unitByName["m"],
+	centimeter: unitByName["cm"],
+	millimeter: unitByName["mm"],
+	kilometer:  unitByName["km"],
+	yard:       unitByName["yd"],
+	inch:       unitByName["in"],
+	foot:       unitByName["ft"],
+	mil:        unitByName["mil"],
+}
+var angleUnits = map[*angleUnit]*Unit{
+	degree: unitByName["deg"],
+	radian: unitByName["rad"],
+	turn:   unitByName["turn"],
+}
+var timeUnits = map[*timeUnit]*Unit{
+	second:      unitByName["s"],
+	millisecond: unitByName["ms"],
+	microsecond: unitByName["us"],
+}
+var electricCurrentUnits = map[*electricCurrentUnit]*Unit{
+	ampere: unitByName["A"],
+}
+var luminousIntensityUnits = map[*luminousIntensityUnit]*Unit{
+	candela: unitByName["cd"],
+}
+
 func bf(s string) big.Float {
 	var ret big.Float
 	_, _, err := ret.Parse(s, 10)

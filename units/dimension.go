@@ -83,6 +83,20 @@ type Dimensionality struct {
 func (d Dimensionality) String() string {
 	b := &bytes.Buffer{}
 
+	e := d.dimEntries()
+
+	sort.Stable(e)
+	for _, ei := range e {
+		b.WriteString(ei.Dimension.String())
+		if ei.Power != 1 {
+			b.WriteString(powerReplacer.Replace(strconv.Itoa(ei.Power)))
+		}
+	}
+
+	return strings.TrimSpace(b.String())
+}
+
+func (d Dimensionality) dimEntries() dimEntries {
 	e := make(dimEntries, 0, 6)
 	if d.Mass != 0 {
 		e = append(e, dimEntry{Mass, d.Mass})
@@ -102,16 +116,7 @@ func (d Dimensionality) String() string {
 	if d.LuminousIntensity != 0 {
 		e = append(e, dimEntry{LuminousIntensity, d.LuminousIntensity})
 	}
-
-	sort.Stable(e)
-	for _, ei := range e {
-		b.WriteString(ei.Dimension.String())
-		if ei.Power != 1 {
-			b.WriteString(powerReplacer.Replace(strconv.Itoa(ei.Power)))
-		}
-	}
-
-	return strings.TrimSpace(b.String())
+	return e
 }
 
 type dimEntry struct {

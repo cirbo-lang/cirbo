@@ -67,3 +67,101 @@ func TestUnitCommensurableWith(t *testing.T) {
 		})
 	}
 }
+
+func TestUnitString(t *testing.T) {
+	tests := []struct {
+		Input *Unit
+		Want  string
+	}{
+		{
+			dimless,
+			"",
+		},
+		{
+			unitByName["kg"],
+			"kg",
+		},
+		{
+			unitByName["m"],
+			"m",
+		},
+		{
+			unitByName["V"],
+			"V",
+		},
+		{
+			unitByName["kohm"],
+			"kohm",
+		},
+		{
+			&Unit{
+				Dimensionality{Mass: 1, Time: 1},
+				baseUnits{Mass: kilogram, Time: second},
+				0,
+			},
+			"kg s",
+		},
+		{
+			&Unit{
+				Dimensionality{Length: 1, Time: -2},
+				baseUnits{Length: meter, Time: second},
+				0,
+			},
+			"m s⁻²",
+		},
+		{
+			&Unit{
+				Dimensionality{Angle: 1, Time: -2},
+				baseUnits{Angle: degree, Time: second},
+				0,
+			},
+			"deg s⁻²",
+		},
+		{
+			&Unit{
+				Dimensionality{Length: 1, Time: -1},
+				baseUnits{Length: inch, Time: microsecond},
+				0,
+			},
+			"in us⁻¹",
+		},
+		{
+			&Unit{
+				Dimensionality{Length: 2},
+				baseUnits{Length: centimeter},
+				0,
+			},
+			"cm²",
+		},
+		{
+			&Unit{
+				Dimensionality{ElectricCurrent: 12},
+				baseUnits{ElectricCurrent: ampere},
+				0,
+			},
+			"A¹²",
+		},
+		{
+			&Unit{
+				Dimensionality{LuminousIntensity: -20},
+				baseUnits{LuminousIntensity: candela},
+				0,
+			},
+			"cd⁻²⁰",
+		},
+	}
+
+	for _, test := range tests {
+		name := fmt.Sprintf("%#v", test.Input)
+		t.Run(name, func(t *testing.T) {
+			got := test.Input.String()
+
+			if got != test.Want {
+				t.Errorf(
+					"wrong result\ninput: %#v\ngot:  %s\nwant: %s",
+					test.Input, got, test.Want,
+				)
+			}
+		})
+	}
+}
