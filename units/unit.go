@@ -192,6 +192,11 @@ func init() {
 	}
 }
 
+// Dimensionality returns the dimensionality of the receiver.
+func (u *Unit) Dimensionality() Dimensionality {
+	return u.dim
+}
+
 // CommensurableWith returns true if the receiver and the given unit
 // have the same dimensionality.
 //
