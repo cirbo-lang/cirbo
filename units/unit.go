@@ -174,15 +174,15 @@ var unitByName map[string]*Unit = map[string]*Unit{
 	},
 }
 
-var unitName map[Unit]string
 var units map[Unit]*Unit
+var unitName map[*Unit]string
 
 func init() {
-	unitName = make(map[Unit]string, len(unitByName))
 	units = make(map[Unit]*Unit, len(unitByName))
+	unitName = make(map[*Unit]string, len(unitByName))
 	for name, unit := range unitByName {
-		unitName[*unit] = name
 		units[*unit] = unit
+		unitName[unit] = name
 	}
 }
 
@@ -200,4 +200,14 @@ func (u *Unit) CommensurableWith(other *Unit) bool {
 	}
 
 	return u.dim == other.dim
+}
+
+// normalize checks if the receiver is one of the named units, and if so
+// returns the pointer to the canonical instance of that unit, which can
+// then in turn by looked up in the unitName table to recover the name.
+func (u *Unit) normalize() *Unit {
+	if nu := units[*u]; nu != nil {
+		return nu
+	}
+	return u
 }
