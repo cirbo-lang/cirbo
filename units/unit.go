@@ -14,7 +14,12 @@ type Unit struct {
 	scale int
 }
 
+var dimless = &Unit{Dimensionality{}, baseUnits{}, 0}
+
 var unitByName map[string]*Unit = map[string]*Unit{
+	// Dimensionless
+	"": dimless,
+
 	// Mass Units
 	"kg": &Unit{Dimensionality{Mass: 1}, baseUnits{Mass: kilogram}, 0},
 	"g":  &Unit{Dimensionality{Mass: 1}, baseUnits{Mass: gram}, 0},
@@ -170,10 +175,29 @@ var unitByName map[string]*Unit = map[string]*Unit{
 }
 
 var unitName map[Unit]string
+var units map[Unit]*Unit
 
 func init() {
 	unitName = make(map[Unit]string, len(unitByName))
+	units = make(map[Unit]*Unit, len(unitByName))
 	for name, unit := range unitByName {
 		unitName[*unit] = name
+		units[*unit] = unit
 	}
+}
+
+// CommensurableWith returns true if the receiver and the given unit
+// have the same dimensionality.
+//
+// For example, two length units are commensurable but a mass unit is not
+// commensurable with a length unit.
+func (u *Unit) CommensurableWith(other *Unit) bool {
+	if u == nil && other == nil {
+		return true
+	}
+	if u == nil || other == nil {
+		return false
+	}
+
+	return u.dim == other.dim
 }
