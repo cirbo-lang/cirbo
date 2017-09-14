@@ -6,6 +6,80 @@ import (
 	"testing"
 )
 
+func TestQuantityConvert(t *testing.T) {
+	tests := []struct {
+		Q    Quantity
+		U    *Unit
+		Want string
+	}{
+		{
+			q("1", unitByName["m"]),
+			unitByName["cm"],
+			"100 cm",
+		},
+		{
+			q("1", unitByName["in"]),
+			unitByName["cm"],
+			"2.540000003 cm", // FIXME: Sucky loss of precision because we go via metric :(
+		},
+		{
+			q("1", unitByName["in"]),
+			unitByName["mil"],
+			"1000 mil",
+		},
+		{
+			q("1", unitByName["ft"]),
+			unitByName["in"],
+			"11.99999997 in", // FIXME: Sucky loss of precision because we go via metric :(
+		},
+		{
+			q("1", &Unit{Dimensionality{Length: 2}, baseUnits{Length: meter}, 0}),
+			&Unit{Dimensionality{Length: 2}, baseUnits{Length: centimeter}, 0},
+			"10000 cm²",
+		},
+		{
+			q("1", &Unit{Dimensionality{Length: 3}, baseUnits{Length: meter}, 0}),
+			&Unit{Dimensionality{Length: 3}, baseUnits{Length: centimeter}, 0},
+			"1000000 cm³",
+		},
+		{
+			q("1", &Unit{Dimensionality{Length: -2}, baseUnits{Length: meter}, 0}),
+			&Unit{Dimensionality{Length: -2}, baseUnits{Length: centimeter}, 0},
+			"0.0001 cm⁻²",
+		},
+		{
+			q("1", &Unit{Dimensionality{Length: -3}, baseUnits{Length: meter}, 0}),
+			&Unit{Dimensionality{Length: -3}, baseUnits{Length: centimeter}, 0},
+			"1e-06 cm⁻³",
+		},
+		{
+			q("1", unitByName["MHz"]),
+			unitByName["Hz"],
+			"1000000 Hz",
+		},
+		{
+			q("1", unitByName["ohm"]),
+			unitByName["kohm"],
+			"0.001 kohm",
+		},
+		{
+			q("1", unitByName["kohm"]),
+			unitByName["ohm"],
+			"1000 ohm",
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(fmt.Sprintf("%s to %s", test.Q, test.U), func(t *testing.T) {
+			got := test.Q.Convert(test.U)
+			gotStr := got.String()
+			if gotStr != test.Want {
+				t.Errorf("wrong result\nquant: %s\nunit:  %s\ngot:   %s\nwant:  %s", test.Q, test.U, gotStr, test.Want)
+			}
+		})
+	}
+}
+
 func TestQuantityString(t *testing.T) {
 	tests := []struct {
 		Input Quantity

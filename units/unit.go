@@ -17,7 +17,7 @@ type Unit struct {
 	//
 	// Scaling is only used for derived units. Units of base dimensions are
 	// just represented directly.
-	scale int
+	scale int64
 }
 
 var dimless = &Unit{Dimensionality{}, baseUnits{}, 0}

@@ -6,6 +6,8 @@ import (
 	"math/big"
 )
 
+var one = bf("1")
+
 type baseUnits struct {
 	Mass              *massUnit
 	Length            *lengthUnit
@@ -110,4 +112,31 @@ func bf(s string) big.Float {
 func bff(v float64) big.Float {
 	f := big.NewFloat(v)
 	return *f
+}
+
+func powerScale(scale *big.Float, power int) *big.Float {
+	if power == 1 {
+		return scale
+	}
+
+	ret := (&big.Float{}).Copy(scale)
+	var absPower int
+	if power < 0 {
+		absPower = -power
+	} else {
+		absPower = power
+	}
+
+	if absPower > 1 {
+		p := (&big.Float{}).Copy(ret)
+		for i := 1; i < absPower; i++ {
+			ret.Mul(ret, p)
+		}
+	}
+
+	if power < 0 {
+		ret.Quo(&one, ret)
+	}
+
+	return ret
 }
