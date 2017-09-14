@@ -95,6 +95,96 @@ func TestQuantityConvert(t *testing.T) {
 	}
 }
 
+func TestQuantityWithBaseUnits(t *testing.T) {
+	tests := []struct {
+		Q    Quantity
+		Want string
+	}{
+		{
+			q("20", dimless),
+			"20",
+		},
+		{
+			q("2", unitByName["lb"]),
+			"0.90718474 kg",
+		},
+		{
+			q("50", unitByName["cm"]),
+			"0.5 m",
+		},
+		{
+			q("5", unitByName["in"]),
+			"0.127 m",
+		},
+		{
+			q("2", unitByName["yd"]),
+			"1.8288 m",
+		},
+		{
+			q("1000", unitByName["mil"]),
+			"0.0254 m",
+		},
+		{
+			q("2", unitByName["turn"]),
+			"720 deg",
+		},
+		{
+			q("1", unitByName["turn"]),
+			"360 deg",
+		},
+		{
+			q("0.5", unitByName["turn"]),
+			"180 deg",
+		},
+		{
+			q("3.1415926535897932384626433832795028841971693993751", unitByName["rad"]),
+			"180 deg",
+		},
+		{
+			q("0.25", unitByName["turn"]),
+			"90 deg",
+		},
+		{
+			q("100", unitByName["ms"]),
+			"0.1 s",
+		},
+		{
+			q("1", unitByName["kohm"]),
+			"1000 ohm",
+		},
+		{
+			q("1000000", &Unit{
+				Dimensionality{Length: 1, Time: -1},
+				baseUnits{Length: inch, Time: microsecond},
+				0,
+			}),
+			"0.0254 m s⁻¹",
+		},
+		{
+			// This is a rather odd expression of voltage using inches,
+			// which tests whether we end up normalizing the result to
+			// be "V" after conversion. The un-normalized form is
+			// kg m² s⁻³ A⁻¹, which is not the correct answer here.
+			q("1000", &Unit{
+				Dimensionality{Mass: 1, Length: 2, Time: -3, ElectricCurrent: -1},
+				baseUnits{Mass: kilogram, Length: inch, Time: second, ElectricCurrent: ampere},
+				0,
+			}),
+			"0.64516 V",
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.Q.String(), func(t *testing.T) {
+			got := test.Q.WithBaseUnits()
+			gotStr := got.String()
+			if gotStr != test.Want {
+				t.Errorf("wrong result\ninput: %s\ngot:   %s\nwant:  %s", test.Q, gotStr, test.Want)
+			}
+		})
+	}
+}
+
 func TestQuantityString(t *testing.T) {
 	tests := []struct {
 		Input Quantity

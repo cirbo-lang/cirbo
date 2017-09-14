@@ -119,6 +119,33 @@ func (q Quantity) Convert(new *Unit) Quantity {
 	return MakeQuantity(nf, new)
 }
 
+func (q Quantity) WithBaseUnits() Quantity {
+	u := *q.unit
+
+	if u.base.Mass != nil {
+		u.base.Mass = kilogram
+	}
+	if u.base.Length != nil {
+		u.base.Length = meter
+	}
+	if u.base.Angle != nil {
+		u.base.Angle = degree
+	}
+	if u.base.Time != nil {
+		u.base.Time = second
+	}
+	if u.base.ElectricCurrent != nil {
+		u.base.ElectricCurrent = ampere
+	}
+	if u.base.LuminousIntensity != nil {
+		u.base.LuminousIntensity = candela
+	}
+	u.scale = 0
+
+	up := (&u).normalize()
+	return q.Convert(up)
+}
+
 // String returns a compact, human-readable representation of the receiver.
 //
 // It is primarily intended for debugging and is thus not optimized.
