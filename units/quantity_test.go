@@ -13,6 +13,16 @@ func TestQuantityConvert(t *testing.T) {
 		Want string
 	}{
 		{
+			q("1", unitByName["lb"]),
+			unitByName["kg"],
+			"0.45359237 kg",
+		},
+		{
+			q("1", unitByName["lb"]),
+			unitByName["st"],
+			"14 st",
+		},
+		{
 			q("1", unitByName["m"]),
 			unitByName["cm"],
 			"100 cm",
@@ -20,7 +30,7 @@ func TestQuantityConvert(t *testing.T) {
 		{
 			q("1", unitByName["in"]),
 			unitByName["cm"],
-			"2.540000003 cm", // FIXME: Sucky loss of precision because we go via metric :(
+			"2.54 cm",
 		},
 		{
 			q("1", unitByName["in"]),
@@ -30,7 +40,12 @@ func TestQuantityConvert(t *testing.T) {
 		{
 			q("1", unitByName["ft"]),
 			unitByName["in"],
-			"11.99999997 in", // FIXME: Sucky loss of precision because we go via metric :(
+			"12 in",
+		},
+		{
+			q("1", unitByName["yd"]),
+			unitByName["in"],
+			"36 in",
 		},
 		{
 			q("1", &Unit{Dimensionality{Length: 2}, baseUnits{Length: meter}, 0}),

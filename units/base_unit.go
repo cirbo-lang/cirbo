@@ -2,7 +2,6 @@ package units
 
 import (
 	"fmt"
-	"math"
 	"math/big"
 )
 
@@ -43,21 +42,21 @@ type luminousIntensityUnit struct {
 
 var kilogram = &massUnit{bf("1")}
 var gram = &massUnit{bf("1000")}
-var pound = &massUnit{bf("2.20462262")}
-var stone = &massUnit{bf("0.157473")}
+var pound = &massUnit{bf("2.2046226218487758072297380134502703385420702733602")}
+var stone = &massUnit{bf("30.864716705882861301216332188303784739588983827043")}
 
 var meter = &lengthUnit{bf("1")}
 var centimeter = &lengthUnit{bf("100")}
 var millimeter = &lengthUnit{bf("1000")}
 var kilometer = &lengthUnit{bf("0.001")}
-var yard = &lengthUnit{bf("0.9144")}
-var inch = &lengthUnit{bf("39.3700787")}
-var foot = &lengthUnit{bf("3.2808399")}
-var mil = &lengthUnit{bf("39370.0787")}
+var yard = &lengthUnit{bf("1.0936132983377077865266841644794400699912510936133")}
+var inch = &lengthUnit{bf("39.370078740157480314960629921259842519685039370079")}
+var foot = &lengthUnit{bf("3.2808398950131233595800524934383202099737532808399")}
+var mil = &lengthUnit{bf("39370.078740157480314960629921259842519685039370079")}
 
 var degree = &angleUnit{bf("1")}
-var radian = &angleUnit{bff(math.Pi / 180)}
-var turn = &angleUnit{bf("360")}
+var radian = &angleUnit{bf("0.017453292519943295769236907684886127134428718885417")}
+var turn = &angleUnit{bf("0.002777777777777777777777777777777777777777777778")}
 
 var second = &timeUnit{bf("1")}
 var millisecond = &timeUnit{bf("1000")}
