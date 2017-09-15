@@ -95,7 +95,7 @@ func TestQuantityConvert(t *testing.T) {
 	}
 }
 
-func TestQuantityWithBaseUnits(t *testing.T) {
+func TestQuantityWithStandardUnits(t *testing.T) {
 	tests := []struct {
 		Q    Quantity
 		Want string
@@ -176,7 +176,7 @@ func TestQuantityWithBaseUnits(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.Q.String(), func(t *testing.T) {
-			got := test.Q.WithBaseUnits()
+			got := test.Q.WithStandardUnits()
 			gotStr := got.String()
 			if gotStr != test.Want {
 				t.Errorf("wrong result\ninput: %s\ngot:   %s\nwant:  %s", test.Q, gotStr, test.Want)

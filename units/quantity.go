@@ -119,8 +119,8 @@ func (q Quantity) Convert(new *Unit) Quantity {
 	return MakeQuantity(nf, new)
 }
 
-func (q Quantity) WithBaseUnits() Quantity {
-	u := q.unit.ToBaseUnits()
+func (q Quantity) WithStandardUnits() Quantity {
+	u := q.unit.ToStandardUnits()
 	return q.Convert(u)
 }
 

@@ -213,7 +213,7 @@ func (u *Unit) CommensurableWith(other *Unit) bool {
 	return u.dim == other.dim
 }
 
-func (u *Unit) ToBaseUnits() *Unit {
+func (u *Unit) ToStandardUnits() *Unit {
 	nu := *u
 
 	if u.base.Mass != nil {
