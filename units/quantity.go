@@ -22,6 +22,14 @@ func MakeQuantity(value *big.Float, unit *Unit) Quantity {
 	}
 }
 
+// MakeDimensionless initializes a dimensionless Quantity with the given value
+func MakeDimensionless(value *big.Float) Quantity {
+	return Quantity{
+		value: value,
+		unit:  dimless,
+	}
+}
+
 // Value returns the value of the receiving quantity.
 func (q Quantity) Value() *big.Float {
 	// Since big floats are mutable, we return a copy to prevent

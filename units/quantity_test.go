@@ -192,6 +192,16 @@ func TestQuantityMultiply(t *testing.T) {
 		Want string
 	}{
 		{
+			MakeDimensionless(bfp("2")),
+			MakeDimensionless(bfp("2")),
+			"4",
+		},
+		{
+			MakeDimensionless(bfp("2")),
+			MakeQuantity(bfp("2"), unitByName["m"]),
+			"4 m",
+		},
+		{
 			MakeQuantity(bfp("2"), unitByName["kg"]),
 			MakeQuantity(bfp("2"), unitByName["m"]),
 			"4 kg m",
