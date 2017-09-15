@@ -20,6 +20,19 @@ type Unit struct {
 	scale int64
 }
 
+// ByName returns the unit with the given name, or nil if the name is not
+// recognized as a unit.
+//
+// This function only works with units that have specifically been named. It
+// cannot be used to create unnamed derived units, such as "meters squared";
+// these must be constructed, such as:
+//
+//     meters := units.ByName("m")
+//     metersSquared := meters.Multiply(meters)
+func ByName(n string) *Unit {
+	return unitByName[n]
+}
+
 var dimless = &Unit{Dimensionality{}, baseUnits{}, 0}
 
 var unitByName map[string]*Unit = map[string]*Unit{
