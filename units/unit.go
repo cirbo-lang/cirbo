@@ -213,6 +213,32 @@ func (u *Unit) CommensurableWith(other *Unit) bool {
 	return u.dim == other.dim
 }
 
+func (u *Unit) ToBaseUnits() *Unit {
+	nu := *u
+
+	if u.base.Mass != nil {
+		nu.base.Mass = kilogram
+	}
+	if u.base.Length != nil {
+		nu.base.Length = meter
+	}
+	if u.base.Angle != nil {
+		nu.base.Angle = degree
+	}
+	if u.base.Time != nil {
+		nu.base.Time = second
+	}
+	if u.base.ElectricCurrent != nil {
+		nu.base.ElectricCurrent = ampere
+	}
+	if u.base.LuminousIntensity != nil {
+		nu.base.LuminousIntensity = candela
+	}
+	nu.scale = 0
+
+	return (&nu).normalize()
+}
+
 // String returns a compact, human-readable string representation of a given
 // unit.
 //

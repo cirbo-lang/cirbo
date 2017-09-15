@@ -120,30 +120,8 @@ func (q Quantity) Convert(new *Unit) Quantity {
 }
 
 func (q Quantity) WithBaseUnits() Quantity {
-	u := *q.unit
-
-	if u.base.Mass != nil {
-		u.base.Mass = kilogram
-	}
-	if u.base.Length != nil {
-		u.base.Length = meter
-	}
-	if u.base.Angle != nil {
-		u.base.Angle = degree
-	}
-	if u.base.Time != nil {
-		u.base.Time = second
-	}
-	if u.base.ElectricCurrent != nil {
-		u.base.ElectricCurrent = ampere
-	}
-	if u.base.LuminousIntensity != nil {
-		u.base.LuminousIntensity = candela
-	}
-	u.scale = 0
-
-	up := (&u).normalize()
-	return q.Convert(up)
+	u := q.unit.ToBaseUnits()
+	return q.Convert(u)
 }
 
 // String returns a compact, human-readable representation of the receiver.
