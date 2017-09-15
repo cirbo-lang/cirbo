@@ -63,6 +63,7 @@ var millisecond = &timeUnit{bf("1000")}
 var microsecond = &timeUnit{bf("1000000")}
 
 var ampere = &electricCurrentUnit{bf("1")}
+var milliampere = &electricCurrentUnit{bf("1000")}
 
 var candela = &luminousIntensityUnit{bf("1")}
 
@@ -93,7 +94,8 @@ var timeUnits = map[*timeUnit]*Unit{
 	microsecond: unitByName["us"],
 }
 var electricCurrentUnits = map[*electricCurrentUnit]*Unit{
-	ampere: unitByName["A"],
+	ampere:      unitByName["A"],
+	milliampere: unitByName["mA"],
 }
 var luminousIntensityUnits = map[*luminousIntensityUnit]*Unit{
 	candela: unitByName["cd"],

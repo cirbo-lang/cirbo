@@ -53,7 +53,8 @@ var unitByName map[string]*Unit = map[string]*Unit{
 	"us": &Unit{Dimensionality{Time: 1}, baseUnits{Time: microsecond}, 0},
 
 	// Electric Current Units
-	"A": &Unit{Dimensionality{ElectricCurrent: 1}, baseUnits{ElectricCurrent: ampere}, 0},
+	"A":  &Unit{Dimensionality{ElectricCurrent: 1}, baseUnits{ElectricCurrent: ampere}, 0},
+	"mA": &Unit{Dimensionality{ElectricCurrent: 1}, baseUnits{ElectricCurrent: milliampere}, 0},
 
 	// Luminous Intensity Units
 	"cd": &Unit{Dimensionality{LuminousIntensity: 1}, baseUnits{LuminousIntensity: candela}, 0},
