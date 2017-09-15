@@ -124,6 +124,33 @@ func (q Quantity) WithStandardUnits() Quantity {
 	return q.Convert(u)
 }
 
+// Multiply computes the product of the receiver and the given quantity,
+// multiplying both the value and the units to produce a new quantity.
+//
+// If the two values use the same units for the base dimensions, or have
+// non-overlapping base dimensions, these base units will be left untouched.
+// If they differ, both quantities will be converted to standard units so that
+// the result has a consistent set of units.
+//
+// For example, inches divided by seconds yields a result in inches per second,
+// but inches multiplied by yards yields a result in square meters since the
+// differing length units must be normalized to avoid producing the nonsense
+// unit "inch-yards".
+func (q Quantity) Multiply(o Quantity) Quantity {
+	if !q.unit.SameBaseUnits(o.unit) {
+		q = q.WithStandardUnits()
+		o = o.WithStandardUnits()
+	}
+
+	nu := q.unit.Multiply(o.unit)
+	nv := (&big.Float{}).Mul(q.value, o.value)
+
+	return Quantity{
+		unit:  nu,
+		value: nv,
+	}
+}
+
 // String returns a compact, human-readable representation of the receiver.
 //
 // It is primarily intended for debugging and is thus not optimized.

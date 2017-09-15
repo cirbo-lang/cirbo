@@ -240,6 +240,104 @@ func (u *Unit) ToStandardUnits() *Unit {
 	return (&nu).normalize()
 }
 
+// Multiply returns a new unit that is the result of multiplying the receiver
+// with the given unit.
+//
+// Since we can't convert an associated value when multiplying units alone,
+// both units must be using the same units for each base dimension.
+// For example, it's not valid to multiply inches by centimeters because
+// the result would be inch-centimeters, and that's a nonsense unit.
+// This method will panic if given differing base units.
+//
+// Use SameBaseUnits to determine if two units are safe to multiply.
+// Quantity.Multiply is an easier method to use, since it can handle value
+// conversions automatically.
+func (u *Unit) Multiply(o *Unit) *Unit {
+	n := &Unit{}
+	n.dim.Mass = u.dim.Mass + o.dim.Mass
+	n.dim.Length = u.dim.Length + o.dim.Length
+	n.dim.Angle = u.dim.Angle + o.dim.Angle
+	n.dim.Time = u.dim.Time + o.dim.Time
+	n.dim.ElectricCurrent = u.dim.ElectricCurrent + o.dim.ElectricCurrent
+	n.dim.LuminousIntensity = u.dim.LuminousIntensity + o.dim.LuminousIntensity
+
+	if !u.SameBaseUnits(o) {
+		panic("can't multiply units with differing base units")
+	}
+
+	if u.base.Mass != nil {
+		n.base.Mass = u.base.Mass
+	}
+	if u.base.Length != nil {
+		n.base.Length = u.base.Length
+	}
+	if u.base.Angle != nil {
+		n.base.Angle = u.base.Angle
+	}
+	if u.base.Time != nil {
+		n.base.Time = u.base.Time
+	}
+	if u.base.ElectricCurrent != nil {
+		n.base.ElectricCurrent = u.base.ElectricCurrent
+	}
+	if u.base.LuminousIntensity != nil {
+		n.base.LuminousIntensity = u.base.LuminousIntensity
+	}
+
+	if o.base.Mass != nil {
+		n.base.Mass = o.base.Mass
+	}
+	if o.base.Length != nil {
+		n.base.Length = o.base.Length
+	}
+	if o.base.Angle != nil {
+		n.base.Angle = o.base.Angle
+	}
+	if o.base.Time != nil {
+		n.base.Time = o.base.Time
+	}
+	if o.base.ElectricCurrent != nil {
+		n.base.ElectricCurrent = o.base.ElectricCurrent
+	}
+	if o.base.LuminousIntensity != nil {
+		n.base.LuminousIntensity = o.base.LuminousIntensity
+	}
+
+	n.scale = u.scale
+
+	return n.normalize()
+}
+
+// SameBaseUnits returns true if the two units have either the same base
+// units for each dimension or have non-overlapping dimensionality.
+//
+// For derived units that have an associated SI scale factor, this too must
+// match for the result to be true.
+func (u *Unit) SameBaseUnits(o *Unit) bool {
+	if u.base.Mass != o.base.Mass && u.base.Mass != nil && o.base.Mass != nil {
+		return false
+	}
+	if u.base.Length != o.base.Length && u.base.Length != nil && o.base.Length != nil {
+		return false
+	}
+	if u.base.Angle != o.base.Angle && u.base.Angle != nil && o.base.Angle != nil {
+		return false
+	}
+	if u.base.Time != o.base.Time && u.base.Time != nil && o.base.Time != nil {
+		return false
+	}
+	if u.base.ElectricCurrent != o.base.ElectricCurrent && u.base.ElectricCurrent != nil && o.base.ElectricCurrent != nil {
+		return false
+	}
+	if u.base.LuminousIntensity != o.base.LuminousIntensity && u.base.LuminousIntensity != nil && o.base.LuminousIntensity != nil {
+		return false
+	}
+	if u.scale != o.scale {
+		return false
+	}
+	return true
+}
+
 // String returns a compact, human-readable string representation of a given
 // unit.
 //

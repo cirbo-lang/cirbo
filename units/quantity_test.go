@@ -185,6 +185,90 @@ func TestQuantityWithStandardUnits(t *testing.T) {
 	}
 }
 
+func TestQuantityMultiply(t *testing.T) {
+	tests := []struct {
+		A    Quantity
+		B    Quantity
+		Want string
+	}{
+		{
+			MakeQuantity(bfp("2"), unitByName["kg"]),
+			MakeQuantity(bfp("2"), unitByName["m"]),
+			"4 kg m",
+		},
+		{
+			MakeQuantity(bfp("2"), unitByName["lb"]),
+			MakeQuantity(bfp("2"), unitByName["in"]),
+			"4 lb in",
+		},
+		{
+			MakeQuantity(bfp("2"), unitByName["m"]),
+			MakeQuantity(bfp("2"), unitByName["m"]),
+			"4 m²",
+		},
+		{
+			MakeQuantity(bfp("2"), unitByName["in"]),
+			MakeQuantity(bfp("2"), unitByName["in"]),
+			"4 in²",
+		},
+		{
+			MakeQuantity(bfp("2"), unitByName["cm"]),
+			MakeQuantity(bfp("2"), unitByName["in"]),
+			"0.001016 m²",
+		},
+		{
+			MakeQuantity(bfp("2"), unitByName["s"]).Multiply(MakeQuantity(bfp("2"), unitByName["s"])),
+			MakeQuantity(bfp("2"), unitByName["s"]),
+			"8 s³",
+		},
+		{
+			MakeQuantity(bfp("2"), unitByName["kg"]),
+			MakeQuantity(bfp("2"), unitByName["kg"]),
+			"4 kg²",
+		},
+		{
+			MakeQuantity(bfp("2"), unitByName["deg"]),
+			MakeQuantity(bfp("2"), unitByName["deg"]),
+			"4 deg²",
+		},
+		{
+			MakeQuantity(bfp("2"), unitByName["A"]),
+			MakeQuantity(bfp("2"), unitByName["A"]),
+			"4 A²",
+		},
+		{
+			MakeQuantity(bfp("2"), unitByName["cd"]),
+			MakeQuantity(bfp("2"), unitByName["cd"]),
+			"4 cd²",
+		},
+		{
+			MakeQuantity(bfp("2"), unitByName["A"]),
+			MakeQuantity(bfp("2"), unitByName["ohm"]),
+			"4 V", // should normalize to V; kg m² s⁻³ A⁻¹ is equivalent but not what we want here
+		},
+		{
+			MakeQuantity(bfp("2"), unitByName["A"]),
+			MakeQuantity(bfp("2"), unitByName["kohm"]),
+			"4000 V", // should normalize to V; kg m² s⁻³ A⁻¹ is equivalent but not what we want here
+		},
+		{
+			MakeQuantity(bfp("2"), unitByName["mA"]),
+			MakeQuantity(bfp("2"), unitByName["kohm"]),
+			"4 V", // should normalize to V; kg m² s⁻³ A⁻¹ is equivalent but not what we want here
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(fmt.Sprintf("%s * %s", test.A, test.B), func(t *testing.T) {
+			got := test.A.Multiply(test.B)
+			gotStr := got.String()
+			if gotStr != test.Want {
+				t.Errorf("wrong result\ninput: %s * %s\ngot:   %s\nwant:  %s", test.A, test.B, gotStr, test.Want)
+			}
+		})
+	}
+}
+
 func TestQuantityString(t *testing.T) {
 	tests := []struct {
 		Input Quantity

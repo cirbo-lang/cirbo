@@ -101,6 +101,15 @@ var luminousIntensityUnits = map[*luminousIntensityUnit]*Unit{
 	candela: unitByName["cd"],
 }
 
+func bfp(s string) *big.Float {
+	ret := &big.Float{}
+	_, _, err := ret.Parse(s, 10)
+	if err != nil {
+		panic(fmt.Errorf("failed to parse float %q", s))
+	}
+	return ret
+}
+
 func bf(s string) big.Float {
 	var ret big.Float
 	_, _, err := ret.Parse(s, 10)
