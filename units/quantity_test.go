@@ -575,28 +575,33 @@ func TestQuantityFormatValue(t *testing.T) {
 	}{
 		{
 			q("1", unitByName["cm"]),
-			'f', 2, unitByName["m"],
+			'f', 2, Meter,
 			"0.01",
 		},
 		{
 			q("1", unitByName["cm"]),
-			'f', 4, unitByName["m"],
+			'f', 4, Meter,
 			"0.0100",
 		},
 		{
 			q("1", unitByName["cm"]),
-			'f', 1, unitByName["m"],
+			'f', 1, Meter,
 			"0.0",
 		},
 		{
-			q("1", unitByName["in"]),
-			'f', 3, unitByName["in"],
+			q("1", Inch),
+			'f', 3, Inch,
 			"1.000",
 		},
 		{
-			q("1", unitByName["in"]),
+			q("1", Inch),
 			'f', 3, unitByName["cm"],
 			"2.540",
+		},
+		{
+			q("1", Millimeter),
+			'f', 3, Mil,
+			"39.370",
 		},
 		{
 			q("1", unitByName["kV"]),
@@ -604,9 +609,9 @@ func TestQuantityFormatValue(t *testing.T) {
 			"1.0000e+03",
 		},
 		{
-			// Kicad-style 0.1-degree angle units
-			q("45", unitByName["deg"]),
-			'f', 0, &Unit{Dimensionality{Angle: 1}, baseUnits{Angle: degree}, -10},
+			// Kicad-style formatting of angles as 0.1-degree increments
+			q("45", Degree),
+			'f', 0, DegreeTenths,
 			"450",
 		},
 	}
