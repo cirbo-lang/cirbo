@@ -82,6 +82,11 @@ func TestQuantityConvert(t *testing.T) {
 			unitByName["ohm"],
 			"1000 ohm",
 		},
+		{
+			q("1", unitByName["kV"]),
+			unitByName["V"],
+			"1000 V",
+		},
 	}
 
 	for _, test := range tests {
@@ -151,6 +156,10 @@ func TestQuantityWithStandardUnits(t *testing.T) {
 		{
 			q("1", unitByName["kohm"]),
 			"1000 ohm",
+		},
+		{
+			q("1", unitByName["kV"]),
+			"1000 V",
 		},
 		{
 			q("1000000", &Unit{
