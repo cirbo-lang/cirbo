@@ -27,8 +27,7 @@ type Unit struct {
 // cannot be used to create unnamed derived units, such as "meters squared";
 // these must be constructed, such as:
 //
-//     meters := units.ByName("m")
-//     metersSquared := meters.Multiply(meters)
+//     metersSquared := units.ByName("m").ToPower(2)
 func ByName(n string) *Unit {
 	return unitByName[n]
 }
