@@ -75,6 +75,7 @@ type Dimensionality struct {
 	LuminousIntensity int
 }
 
+// Reciprocal returns the multiplicative inverse of the receiver.
 func (d Dimensionality) Reciprocal() Dimensionality {
 	var ret Dimensionality
 	ret.Mass = -d.Mass
@@ -86,6 +87,11 @@ func (d Dimensionality) Reciprocal() Dimensionality {
 	return ret
 }
 
+// ToPower returns a new dimensionality that is the receiver rased to
+// the given integer power.
+//
+// In other words, it multiplies all of the powers already present in the
+// receiver by the given power, and returns the result.
 func (d Dimensionality) ToPower(power int) Dimensionality {
 	return Dimensionality{
 		Mass:              d.Mass * power,

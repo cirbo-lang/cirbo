@@ -127,6 +127,15 @@ func (q Quantity) Convert(new *Unit) Quantity {
 	return MakeQuantity(nf, new)
 }
 
+// WithStandardUnits converts the quantity so it uses the standard units for
+// each base dimension. The standard units are:
+//
+//    mass                 kg      (kilograms)
+//    length               meter   (meters)
+//    angle                deg     (degrees)
+//    time                 s       (seconds)
+//    electric current     A       (amps)
+//    luminous intensity   cd      (candelas)
 func (q Quantity) WithStandardUnits() Quantity {
 	u := q.unit.ToStandardUnits()
 	return q.Convert(u)

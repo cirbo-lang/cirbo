@@ -240,6 +240,9 @@ func (u *Unit) CommensurableWith(other *Unit) bool {
 	return u.dim == other.dim
 }
 
+// ToStandardUnits returns a unit of equivalent dimensionality but that
+// uses the standard units for each base dimension. See the
+// Quantity.WithStandardUnits documentation for a table of the standard units.
 func (u *Unit) ToStandardUnits() *Unit {
 	nu := *u
 
