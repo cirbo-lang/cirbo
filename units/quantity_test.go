@@ -393,6 +393,154 @@ func TestQuantityDivide(t *testing.T) {
 	}
 }
 
+func TestQuantityAdd(t *testing.T) {
+	tests := []struct {
+		A    Quantity
+		B    Quantity
+		Want string
+	}{
+		{
+			MakeDimensionless(bfp("2")),
+			MakeDimensionless(bfp("2")),
+			"4",
+		},
+		{
+			MakeQuantity(bfp("2"), unitByName["m"]),
+			MakeQuantity(bfp("2"), unitByName["m"]),
+			"4 m",
+		},
+		{
+			MakeQuantity(bfp("2"), unitByName["in"]),
+			MakeQuantity(bfp("2"), unitByName["in"]),
+			"4 in",
+		},
+		{
+			MakeQuantity(bfp("2"), unitByName["m"]),
+			MakeQuantity(bfp("2"), unitByName["ft"]),
+			"2.6096 m",
+		},
+		{
+			MakeQuantity(bfp("2"), unitByName["s"]).Multiply(MakeQuantity(bfp("2"), unitByName["s"])),
+			MakeQuantity(bfp("2"), unitByName["s"]).Multiply(MakeQuantity(bfp("2"), unitByName["s"])),
+			"8 s²",
+		},
+		{
+			MakeQuantity(bfp("2"), unitByName["kg"]),
+			MakeQuantity(bfp("2"), unitByName["kg"]),
+			"4 kg",
+		},
+		{
+			MakeQuantity(bfp("2"), unitByName["deg"]),
+			MakeQuantity(bfp("2"), unitByName["deg"]),
+			"4 deg",
+		},
+		{
+			MakeQuantity(bfp("2"), unitByName["A"]),
+			MakeQuantity(bfp("2"), unitByName["A"]),
+			"4 A",
+		},
+		{
+			MakeQuantity(bfp("2"), unitByName["cd"]),
+			MakeQuantity(bfp("2"), unitByName["cd"]),
+			"4 cd",
+		},
+		{
+			MakeQuantity(bfp("2"), unitByName["V"]),
+			MakeQuantity(bfp("2"), unitByName["V"]),
+			"4 V",
+		},
+		{
+			MakeQuantity(bfp("2"), unitByName["V"]),
+			MakeQuantity(bfp("2"), unitByName["kV"]),
+			"2002 V",
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(fmt.Sprintf("%s + %s", test.A, test.B), func(t *testing.T) {
+			got := test.A.Add(test.B)
+			gotStr := got.String()
+			if gotStr != test.Want {
+				t.Errorf("wrong result\ninput: %s + %s\ngot:   %s\nwant:  %s", test.A, test.B, gotStr, test.Want)
+			}
+		})
+	}
+}
+
+func TestQuantitySubtract(t *testing.T) {
+	tests := []struct {
+		A    Quantity
+		B    Quantity
+		Want string
+	}{
+		{
+			MakeDimensionless(bfp("2")),
+			MakeDimensionless(bfp("1")),
+			"1",
+		},
+		{
+			MakeQuantity(bfp("2"), unitByName["m"]),
+			MakeQuantity(bfp("1"), unitByName["m"]),
+			"1 m",
+		},
+		{
+			MakeQuantity(bfp("2"), unitByName["in"]),
+			MakeQuantity(bfp("1"), unitByName["in"]),
+			"1 in",
+		},
+		{
+			MakeQuantity(bfp("2"), unitByName["m"]),
+			MakeQuantity(bfp("2"), unitByName["ft"]),
+			"1.3904 m",
+		},
+		{
+			MakeQuantity(bfp("2"), unitByName["s"]).Multiply(MakeQuantity(bfp("2"), unitByName["s"])),
+			MakeQuantity(bfp("1"), unitByName["s"]).Multiply(MakeQuantity(bfp("2"), unitByName["s"])),
+			"2 s²",
+		},
+		{
+			MakeQuantity(bfp("2"), unitByName["kg"]),
+			MakeQuantity(bfp("1"), unitByName["kg"]),
+			"1 kg",
+		},
+		{
+			MakeQuantity(bfp("2"), unitByName["deg"]),
+			MakeQuantity(bfp("1"), unitByName["deg"]),
+			"1 deg",
+		},
+		{
+			MakeQuantity(bfp("2"), unitByName["A"]),
+			MakeQuantity(bfp("1"), unitByName["A"]),
+			"1 A",
+		},
+		{
+			MakeQuantity(bfp("2"), unitByName["cd"]),
+			MakeQuantity(bfp("1"), unitByName["cd"]),
+			"1 cd",
+		},
+		{
+			MakeQuantity(bfp("2"), unitByName["V"]),
+			MakeQuantity(bfp("1"), unitByName["V"]),
+			"1 V",
+		},
+		{
+			MakeQuantity(bfp("2"), unitByName["V"]),
+			MakeQuantity(bfp("2"), unitByName["kV"]),
+			"-1998 V",
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(fmt.Sprintf("%s - %s", test.A, test.B), func(t *testing.T) {
+			got := test.A.Subtract(test.B)
+			gotStr := got.String()
+			if gotStr != test.Want {
+				t.Errorf("wrong result\ninput: %s - %s\ngot:   %s\nwant:  %s", test.A, test.B, gotStr, test.Want)
+			}
+		})
+	}
+}
+
 func TestQuantityString(t *testing.T) {
 	tests := []struct {
 		Input Quantity

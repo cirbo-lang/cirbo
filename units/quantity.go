@@ -178,6 +178,56 @@ func (q Quantity) Divide(o Quantity) Quantity {
 	}
 }
 
+// Add computes the sum of the receiver and the given quantity, which must
+// have commensurable units.
+//
+// If the units are not commensurable, this method will panic.
+//
+// If the units are identical (same base units) then the result will have the
+// same units. Otherwise, the result will be in the standard units.
+func (q Quantity) Add(o Quantity) Quantity {
+	if !q.CommensurableWith(o) {
+		panic("Attempt to Add non-commensurable quantities")
+	}
+
+	if !q.unit.SameBaseUnits(o.unit) {
+		q = q.WithStandardUnits()
+		o = o.WithStandardUnits()
+	}
+
+	nv := (&big.Float{}).Add(q.value, o.value)
+
+	return Quantity{
+		unit:  q.unit,
+		value: nv,
+	}
+}
+
+// Subtract computes the difference between the given receiver and the given
+// quantity, which must both have commensurable units.
+//
+// If the units are not commensurable, this method will panic.
+//
+// If the units are identical (same base units) then the result will have the
+// same units. Otherwise, the result will be in the standard units.
+func (q Quantity) Subtract(o Quantity) Quantity {
+	if !q.CommensurableWith(o) {
+		panic("Attempt to Subtract non-commensurable quantities")
+	}
+
+	if !q.unit.SameBaseUnits(o.unit) {
+		q = q.WithStandardUnits()
+		o = o.WithStandardUnits()
+	}
+
+	nv := (&big.Float{}).Sub(q.value, o.value)
+
+	return Quantity{
+		unit:  q.unit,
+		value: nv,
+	}
+}
+
 // String returns a compact, human-readable representation of the receiver.
 //
 // It is primarily intended for debugging and is thus not optimized.
