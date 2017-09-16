@@ -75,6 +75,17 @@ type Dimensionality struct {
 	LuminousIntensity int
 }
 
+func (d Dimensionality) Reciprocal() Dimensionality {
+	var ret Dimensionality
+	ret.Mass = -d.Mass
+	ret.Length = -d.Length
+	ret.Angle = -d.Angle
+	ret.Time = -d.Time
+	ret.ElectricCurrent = -d.ElectricCurrent
+	ret.LuminousIntensity = -d.LuminousIntensity
+	return ret
+}
+
 // String returns a compact string representation of a dimensionality,
 // which is stable for a given dimensionality value.
 //

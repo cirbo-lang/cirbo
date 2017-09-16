@@ -321,6 +321,16 @@ func (u *Unit) Multiply(o *Unit) *Unit {
 	return n.normalize()
 }
 
+// Reciprocal returns the multiplicative inverse of the receiver. For example,
+// the reciprocal of "m s⁻¹" is "s m⁻¹".
+func (u *Unit) Reciprocal() *Unit {
+	n := &Unit{}
+	n.dim = u.dim.Reciprocal()
+	n.base = u.base
+	n.scale = u.scale
+	return n.normalize()
+}
+
 // SameBaseUnits returns true if the two units have either the same base
 // units for each dimension or have non-overlapping dimensionality.
 //

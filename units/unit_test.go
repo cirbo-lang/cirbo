@@ -68,6 +68,77 @@ func TestUnitCommensurableWith(t *testing.T) {
 	}
 }
 
+func TestUnitReciprocal(t *testing.T) {
+	tests := []struct {
+		Input *Unit
+		Want  string
+	}{
+		{
+			dimless,
+			"",
+		},
+		{
+			unitByName["kg"],
+			"kg⁻¹",
+		},
+		{
+			unitByName["m"],
+			"m⁻¹",
+		},
+		{
+			unitByName["in"],
+			"in⁻¹",
+		},
+		{
+			unitByName["deg"],
+			"deg⁻¹",
+		},
+		{
+			unitByName["s"],
+			"Hz",
+		},
+		{
+			unitByName["Hz"],
+			"s",
+		},
+		{
+			unitByName["A"],
+			"A⁻¹",
+		},
+		{
+			unitByName["cd"],
+			"cd⁻¹",
+		},
+		{
+			unitByName["m"].Multiply(unitByName["s"]),
+			"m⁻¹ s⁻¹",
+		},
+		{
+			unitByName["V"],
+			"kg⁻¹ m⁻² s³ A",
+		},
+		{
+			unitByName["lx"],
+			"m² cd⁻¹",
+		},
+	}
+
+	for _, test := range tests {
+		name := fmt.Sprintf("%#v", test.Input)
+		t.Run(name, func(t *testing.T) {
+			got := test.Input.Reciprocal().String()
+
+			if got != test.Want {
+				t.Errorf(
+					"wrong result\ninput: %#v\ngot:  %s\nwant: %s",
+					test.Input, got, test.Want,
+				)
+			}
+		})
+	}
+
+}
+
 func TestUnitString(t *testing.T) {
 	tests := []struct {
 		Input *Unit
