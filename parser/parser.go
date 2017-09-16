@@ -791,34 +791,35 @@ func (p *parser) parseImport() (ast.Node, source.Diags) {
 	}, diags
 }
 
-func (p *parser) parseCircuit() (ast.Node, source.Diags) {
-	kw := p.Read()
-	if kw.Type != TokenIdent {
+func (p *parser) parseNamedObjectBlock() (name string, params *ast.Arguments, body *ast.StatementBlock, headerRange source.Range, fullRange source.Range, diags source.Diags) {
+	kwTok := p.Peek()
+	if kwTok.Type != TokenIdent {
 		// Should never happen because caller should've peeked ahead here
-		panic("parseCircuit called with peeker not pointing at ident")
+		panic("parseNamedObjectBlock called with peeker not pointing at ident")
 	}
 
-	var diags source.Diags
-	circuit := &ast.Circuit{
-		HeaderRange: kw.Range,
-		Params: &ast.Arguments{
-			WithRange: ast.WithRange{
-				Range: source.Range{
-					Start: kw.Range.End,
-					End:   kw.Range.End,
-				},
-			},
-		},
-		Body: &ast.StatementBlock{
-			WithRange: ast.WithRange{
-				Range: source.Range{
-					Start: kw.Range.End,
-					End:   kw.Range.End,
-				},
-			},
-		},
+	kw := p.PeekKeyword()
+	p.Read() // eat keyword
+
+	// Start with reasonable values for all of our results that are valid
+	// enough to return on an error, and then we'll fix these up to be more
+	// useful as we go along.
+	headerRange = kwTok.Range
+	fullRange = kwTok.Range
+	params = &ast.Arguments{
 		WithRange: ast.WithRange{
-			Range: kw.Range,
+			Range: source.Range{
+				Start: kwTok.Range.End,
+				End:   kwTok.Range.End,
+			},
+		},
+	}
+	body = &ast.StatementBlock{
+		WithRange: ast.WithRange{
+			Range: source.Range{
+				Start: kwTok.Range.End,
+				End:   kwTok.Range.End,
+			},
 		},
 	}
 
@@ -828,42 +829,64 @@ func (p *parser) parseCircuit() (ast.Node, source.Diags) {
 			case TokenOBrace:
 				diags = append(diags, source.Diag{
 					Level:   source.Error,
-					Summary: "Missing circuit name",
-					Detail:  "The \"circuit\" keyword must be followed by a circuit name.",
+					Summary: fmt.Sprintf("Missing %s name", kw),
+					Detail:  fmt.Sprintf("The %q keyword must be followed by a name for this %s.", kw, kw),
 					Ranges:  []source.Range{p.PeekRange()},
 				})
 			default:
 				diags = append(diags, source.Diag{
 					Level:   source.Error,
-					Summary: "Invalid circuit name",
-					Detail:  "Circuit name must be an identifier.",
+					Summary: fmt.Sprintf("Invalid %s name", kw),
+					Detail:  fmt.Sprintf("The name of this %s must be an identifier.", kw),
 					Ranges:  []source.Range{p.PeekRange()},
 				})
 			}
 		}
-		circuit.Range = source.RangeBetween(circuit.Range, p.PeekRange())
+		fullRange = source.RangeBetween(fullRange, p.PeekRange())
 		p.recoverAfterNextBlock()
-		return circuit, diags
+		return
 	}
 
 	nameTok := p.Read()
-	circuit.Name = p.decodeIdentifierBytes(nameTok.Bytes)
+	name = p.decodeIdentifierBytes(nameTok.Bytes)
 
-	params, paramsDiags := p.parseParameters()
+	var paramsDiags source.Diags
+	params, paramsDiags = p.parseParameters()
 	diags = append(diags, paramsDiags...)
-	circuit.Params = params
 	if len(params.Positional) == 0 {
-		circuit.HeaderRange = source.RangeBetween(kw.Range, nameTok.Range)
+		headerRange = source.RangeBetween(kwTok.Range, nameTok.Range)
 	} else {
-		circuit.HeaderRange = source.RangeBetween(kw.Range, params.Range)
+		headerRange = source.RangeBetween(kwTok.Range, params.Range)
 	}
 
-	body, bodyDiags := p.parseStmtBlock()
+	var bodyDiags source.Diags
+	body, bodyDiags = p.parseStmtBlock()
 	diags = append(diags, bodyDiags...)
-	circuit.Body = body
-	circuit.Range = source.RangeBetween(circuit.Range, body.SourceRange())
+	fullRange = source.RangeBetween(headerRange, body.SourceRange())
 
-	return circuit, diags
+	return
+
+}
+
+func (p *parser) parseCircuit() (ast.Node, source.Diags) {
+	kw := p.PeekKeyword()
+	if kw != "circuit" {
+		// Should never happen because caller should've peeked ahead here
+		panic("parseCircuit called with peeker not pointing at circuit keyword")
+	}
+
+	name, params, body, headerRange, fullRange, diags := p.parseNamedObjectBlock()
+
+	return &ast.Circuit{
+		Name:   name,
+		Params: params,
+		Body:   body,
+
+		HeaderRange: headerRange,
+		WithRange: ast.WithRange{
+			Range: fullRange,
+		},
+	}, diags
 }
 
 func (p *parser) parseExpr() (ast.Node, source.Diags) {
