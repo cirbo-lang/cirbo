@@ -113,6 +113,73 @@ func TestScanTokens(t *testing.T) {
 				},
 			},
 		},
+		{
+			// We treat +5V as a funny sort of ident because it's more common
+			// as a terminal/net name than it is as part of a sum of voltages.
+			// It must be expressed with no spaces to be interpreted in this way.
+			"+5V",
+			[]Token{
+				{
+					Type:  TokenIdent,
+					Bytes: []byte("+5V"),
+					Range: source.Range{
+						Start: source.Pos{Byte: 0, Line: 1, Column: 1},
+						End:   source.Pos{Byte: 3, Line: 1, Column: 4},
+					},
+				},
+				{
+					Type:  TokenEOF,
+					Bytes: []byte{},
+					Range: source.Range{
+						Start: source.Pos{Byte: 3, Line: 1, Column: 4},
+						End:   source.Pos{Byte: 3, Line: 1, Column: 4},
+					},
+				},
+			},
+		},
+		{
+			// Similar to +5V above, but we also absorb digits following the V
+			"+3V3",
+			[]Token{
+				{
+					Type:  TokenIdent,
+					Bytes: []byte("+3V3"),
+					Range: source.Range{
+						Start: source.Pos{Byte: 0, Line: 1, Column: 1},
+						End:   source.Pos{Byte: 4, Line: 1, Column: 5},
+					},
+				},
+				{
+					Type:  TokenEOF,
+					Bytes: []byte{},
+					Range: source.Range{
+						Start: source.Pos{Byte: 4, Line: 1, Column: 5},
+						End:   source.Pos{Byte: 4, Line: 1, Column: 5},
+					},
+				},
+			},
+		},
+		{
+			"-12V",
+			[]Token{
+				{
+					Type:  TokenIdent,
+					Bytes: []byte("-12V"),
+					Range: source.Range{
+						Start: source.Pos{Byte: 0, Line: 1, Column: 1},
+						End:   source.Pos{Byte: 4, Line: 1, Column: 5},
+					},
+				},
+				{
+					Type:  TokenEOF,
+					Bytes: []byte{},
+					Range: source.Range{
+						Start: source.Pos{Byte: 4, Line: 1, Column: 5},
+						End:   source.Pos{Byte: 4, Line: 1, Column: 5},
+					},
+				},
+			},
+		},
 
 		{
 			`1234`,
@@ -295,6 +362,52 @@ func TestScanTokens(t *testing.T) {
 					Range: source.Range{
 						Start: source.Pos{Byte: 7, Line: 1, Column: 8},
 						End:   source.Pos{Byte: 7, Line: 1, Column: 8},
+					},
+				},
+			},
+		},
+
+		{
+			`- 5V`,
+			[]Token{
+				{
+					Type:  TokenMinus,
+					Bytes: []byte(`-`),
+					Range: source.Range{
+						Start: source.Pos{Byte: 0, Line: 1, Column: 1},
+						End:   source.Pos{Byte: 1, Line: 1, Column: 2},
+					},
+				},
+				{
+					Type:  TokenWhitespace,
+					Bytes: []byte(` `),
+					Range: source.Range{
+						Start: source.Pos{Byte: 1, Line: 1, Column: 2},
+						End:   source.Pos{Byte: 2, Line: 1, Column: 3},
+					},
+				},
+				{
+					Type:  TokenNumberLit,
+					Bytes: []byte(`5`),
+					Range: source.Range{
+						Start: source.Pos{Byte: 2, Line: 1, Column: 3},
+						End:   source.Pos{Byte: 3, Line: 1, Column: 4},
+					},
+				},
+				{
+					Type:  TokenIdent,
+					Bytes: []byte(`V`),
+					Range: source.Range{
+						Start: source.Pos{Byte: 3, Line: 1, Column: 4},
+						End:   source.Pos{Byte: 4, Line: 1, Column: 5},
+					},
+				},
+				{
+					Type:  TokenEOF,
+					Bytes: []byte{},
+					Range: source.Range{
+						Start: source.Pos{Byte: 4, Line: 1, Column: 5},
+						End:   source.Pos{Byte: 4, Line: 1, Column: 5},
 					},
 				},
 			},
