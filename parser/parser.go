@@ -377,7 +377,7 @@ Statements:
 	return ret, rng, diags
 }
 
-func (p *parser) parseStmtBlock() ([]ast.Node, source.Range, source.Diags) {
+func (p *parser) parseStmtBlock() (*ast.StatementBlock, source.Diags) {
 	var ret []ast.Node
 	var diags source.Diags
 
@@ -403,7 +403,12 @@ func (p *parser) parseStmtBlock() ([]ast.Node, source.Range, source.Diags) {
 				p.recoverAfterNextBlock()
 			}
 		}
-		return ret, bad.Range, diags
+		return &ast.StatementBlock{
+			Statements: ret,
+			WithRange: ast.WithRange{
+				Range: bad.Range,
+			},
+		}, diags
 	}
 
 	open := p.Read() // eat {
@@ -425,12 +430,22 @@ func (p *parser) parseStmtBlock() ([]ast.Node, source.Range, source.Diags) {
 			// as we unwind our parsing stack.
 			p.recoverAfterCurrentBlock()
 		}
-		return ret, source.RangeBetween(open.Range, rng), diags
+		return &ast.StatementBlock{
+			Statements: ret,
+			WithRange: ast.WithRange{
+				Range: source.RangeBetween(open.Range, rng),
+			},
+		}, diags
 	}
 
 	close := p.Read() // eat }
 
-	return ret, source.RangeBetween(open.Range, close.Range), diags
+	return &ast.StatementBlock{
+		Statements: ret,
+		WithRange: ast.WithRange{
+			Range: source.RangeBetween(open.Range, close.Range),
+		},
+	}, diags
 }
 
 func (p *parser) parseAssignOrConnectStmt() (ast.Node, source.Diags) {
@@ -786,6 +801,22 @@ func (p *parser) parseCircuit() (ast.Node, source.Diags) {
 	var diags source.Diags
 	circuit := &ast.Circuit{
 		HeaderRange: kw.Range,
+		Params: &ast.Arguments{
+			WithRange: ast.WithRange{
+				Range: source.Range{
+					Start: kw.Range.End,
+					End:   kw.Range.End,
+				},
+			},
+		},
+		Body: &ast.StatementBlock{
+			WithRange: ast.WithRange{
+				Range: source.Range{
+					Start: kw.Range.End,
+					End:   kw.Range.End,
+				},
+			},
+		},
 		WithRange: ast.WithRange{
 			Range: kw.Range,
 		},
@@ -817,12 +848,20 @@ func (p *parser) parseCircuit() (ast.Node, source.Diags) {
 
 	nameTok := p.Read()
 	circuit.Name = p.decodeIdentifierBytes(nameTok.Bytes)
-	circuit.HeaderRange = source.RangeBetween(kw.Range, nameTok.Range)
 
-	body, bodyRange, bodyDiags := p.parseStmtBlock()
+	params, paramsDiags := p.parseParameters()
+	diags = append(diags, paramsDiags...)
+	circuit.Params = params
+	if len(params.Positional) == 0 {
+		circuit.HeaderRange = source.RangeBetween(kw.Range, nameTok.Range)
+	} else {
+		circuit.HeaderRange = source.RangeBetween(kw.Range, params.Range)
+	}
+
+	body, bodyDiags := p.parseStmtBlock()
 	diags = append(diags, bodyDiags...)
 	circuit.Body = body
-	circuit.Range = source.RangeBetween(circuit.Range, bodyRange)
+	circuit.Range = source.RangeBetween(circuit.Range, body.SourceRange())
 
 	return circuit, diags
 }
@@ -1180,6 +1219,57 @@ func (p *parser) parseExpressionTerm() (ast.Node, source.Diags) {
 			},
 		}, diags
 	}
+}
+
+func (p *parser) parseParameters() (*ast.Arguments, source.Diags) {
+	// parseParameters raturns an ast.Arguments that meets the constraints for
+	// a parameter list: contains only positional arguments, and all of the
+	// arguments are just direct variable references.
+	//
+	// If the result parses as an argument list but does _not_ meet the constraints
+	// for parameter lists, the argument list is returned as parsed but error
+	// diagnostics are emitted.
+
+	if p.Peek().Type != TokenOParen {
+		// Parameter lists are optional, so if there's no open then we'll
+		// assume that the parameter list has been omitted and return
+		// an empty one.
+		rng := p.PeekRange()
+		rng.End = rng.Start // make empty range just before the next token
+		return &ast.Arguments{
+			WithRange: ast.WithRange{
+				Range: rng,
+			},
+		}, nil
+	}
+
+	args, diags := p.parseArguments()
+	if diags.HasErrors() {
+		return args, diags
+	}
+
+	for _, n := range args.Positional {
+		if _, isVar := n.(*ast.Variable); !isVar {
+			diags = append(diags, source.Diag{
+				Level:   source.Error,
+				Summary: "Invalid parameter declaration",
+				Detail:  "A parameter declaration must be just the parameter's name.",
+				Ranges:  n.SourceRange().List(),
+			})
+		}
+	}
+
+	// Verify that this arguments object is a valid parameter declaration.
+	if len(args.Named) != 0 {
+		diags = append(diags, source.Diag{
+			Level:   source.Error,
+			Summary: "Invalid parameter declaration",
+			Detail:  "Default values may not be declared within the parameter list. Use 'attr' statements within the following block to define types and default values.",
+			Ranges:  args.Named[0].SourceRange().List(),
+		})
+	}
+
+	return args, diags
 }
 
 func (p *parser) parseArguments() (*ast.Arguments, source.Diags) {

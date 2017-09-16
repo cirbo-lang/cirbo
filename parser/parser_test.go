@@ -918,6 +918,22 @@ func TestParseTopLevel(t *testing.T) {
 			[]ast.Node{
 				&ast.Circuit{
 					Name: "foo",
+					Params: &ast.Arguments{
+						WithRange: ast.WithRange{
+							Range: source.Range{
+								Start: source.Pos{Line: 1, Column: 13, Byte: 12},
+								End:   source.Pos{Line: 1, Column: 13, Byte: 12},
+							},
+						},
+					},
+					Body: &ast.StatementBlock{
+						WithRange: ast.WithRange{
+							Range: source.Range{
+								Start: source.Pos{Line: 1, Column: 13, Byte: 12},
+								End:   source.Pos{Line: 1, Column: 15, Byte: 14},
+							},
+						},
+					},
 
 					HeaderRange: source.Range{
 						Start: source.Pos{Line: 1, Column: 1, Byte: 0},
@@ -934,22 +950,96 @@ func TestParseTopLevel(t *testing.T) {
 			0,
 		},
 		{
+			`circuit foo(bar, baz) {}`,
+			[]ast.Node{
+				&ast.Circuit{
+					Name: "foo",
+					Params: &ast.Arguments{
+						Positional: []ast.Node{
+							&ast.Variable{
+								Name: "bar",
+								WithRange: ast.WithRange{
+									Range: source.Range{
+										Start: source.Pos{Line: 1, Column: 13, Byte: 12},
+										End:   source.Pos{Line: 1, Column: 16, Byte: 15},
+									},
+								},
+							},
+							&ast.Variable{
+								Name: "baz",
+								WithRange: ast.WithRange{
+									Range: source.Range{
+										Start: source.Pos{Line: 1, Column: 18, Byte: 17},
+										End:   source.Pos{Line: 1, Column: 21, Byte: 20},
+									},
+								},
+							},
+						},
+
+						WithRange: ast.WithRange{
+							Range: source.Range{
+								Start: source.Pos{Line: 1, Column: 12, Byte: 11},
+								End:   source.Pos{Line: 1, Column: 22, Byte: 21},
+							},
+						},
+					},
+					Body: &ast.StatementBlock{
+						WithRange: ast.WithRange{
+							Range: source.Range{
+								Start: source.Pos{Line: 1, Column: 23, Byte: 22},
+								End:   source.Pos{Line: 1, Column: 25, Byte: 24},
+							},
+						},
+					},
+
+					HeaderRange: source.Range{
+						Start: source.Pos{Line: 1, Column: 1, Byte: 0},
+						End:   source.Pos{Line: 1, Column: 22, Byte: 21},
+					},
+					WithRange: ast.WithRange{
+						Range: source.Range{
+							Start: source.Pos{Line: 1, Column: 1, Byte: 0},
+							End:   source.Pos{Line: 1, Column: 25, Byte: 24},
+						},
+					},
+				},
+			},
+			0,
+		},
+		{
 			`circuit foo { import "baz"; }`, // import not semantically valid here, but okay syntax-wise
 			[]ast.Node{
 				&ast.Circuit{
 					Name: "foo",
-					Body: []ast.Node{
-						&ast.Import{
-							Package: "baz",
-							PackageRange: source.Range{
-								Start: source.Pos{Line: 1, Column: 22, Byte: 21},
-								End:   source.Pos{Line: 1, Column: 27, Byte: 26},
+					Params: &ast.Arguments{
+						WithRange: ast.WithRange{
+							Range: source.Range{
+								Start: source.Pos{Line: 1, Column: 13, Byte: 12},
+								End:   source.Pos{Line: 1, Column: 13, Byte: 12},
 							},
-							WithRange: ast.WithRange{
-								Range: source.Range{
-									Start: source.Pos{Line: 1, Column: 15, Byte: 14},
-									End:   source.Pos{Line: 1, Column: 28, Byte: 27},
+						},
+					},
+					Body: &ast.StatementBlock{
+						Statements: []ast.Node{
+							&ast.Import{
+								Package: "baz",
+								PackageRange: source.Range{
+									Start: source.Pos{Line: 1, Column: 22, Byte: 21},
+									End:   source.Pos{Line: 1, Column: 27, Byte: 26},
 								},
+								WithRange: ast.WithRange{
+									Range: source.Range{
+										Start: source.Pos{Line: 1, Column: 15, Byte: 14},
+										End:   source.Pos{Line: 1, Column: 28, Byte: 27},
+									},
+								},
+							},
+						},
+
+						WithRange: ast.WithRange{
+							Range: source.Range{
+								Start: source.Pos{Line: 1, Column: 13, Byte: 12},
+								End:   source.Pos{Line: 1, Column: 30, Byte: 29},
 							},
 						},
 					},
@@ -973,6 +1063,22 @@ func TestParseTopLevel(t *testing.T) {
 			[]ast.Node{
 				&ast.Circuit{
 					Name: "foo",
+					Params: &ast.Arguments{
+						WithRange: ast.WithRange{
+							Range: source.Range{
+								Start: source.Pos{Line: 1, Column: 15, Byte: 14},
+								End:   source.Pos{Line: 1, Column: 15, Byte: 14},
+							},
+						},
+					},
+					Body: &ast.StatementBlock{
+						WithRange: ast.WithRange{
+							Range: source.Range{
+								Start: source.Pos{Line: 1, Column: 15, Byte: 14},
+								End:   source.Pos{Line: 1, Column: 17, Byte: 16},
+							},
+						},
+					},
 
 					HeaderRange: source.Range{
 						Start: source.Pos{Line: 1, Column: 1, Byte: 0},
@@ -993,6 +1099,22 @@ func TestParseTopLevel(t *testing.T) {
 			[]ast.Node{
 				&ast.Circuit{
 					Name: "",
+					Params: &ast.Arguments{
+						WithRange: ast.WithRange{
+							Range: source.Range{
+								Start: source.Pos{Line: 1, Column: 8, Byte: 7},
+								End:   source.Pos{Line: 1, Column: 8, Byte: 7},
+							},
+						},
+					},
+					Body: &ast.StatementBlock{
+						WithRange: ast.WithRange{
+							Range: source.Range{
+								Start: source.Pos{Line: 1, Column: 8, Byte: 7},
+								End:   source.Pos{Line: 1, Column: 8, Byte: 7},
+							},
+						},
+					},
 
 					HeaderRange: source.Range{
 						Start: source.Pos{Line: 1, Column: 1, Byte: 0},
@@ -1013,6 +1135,22 @@ func TestParseTopLevel(t *testing.T) {
 			[]ast.Node{
 				&ast.Circuit{
 					Name: "",
+					Params: &ast.Arguments{
+						WithRange: ast.WithRange{
+							Range: source.Range{
+								Start: source.Pos{Line: 1, Column: 8, Byte: 7},
+								End:   source.Pos{Line: 1, Column: 8, Byte: 7},
+							},
+						},
+					},
+					Body: &ast.StatementBlock{
+						WithRange: ast.WithRange{
+							Range: source.Range{
+								Start: source.Pos{Line: 1, Column: 8, Byte: 7},
+								End:   source.Pos{Line: 1, Column: 8, Byte: 7},
+							},
+						},
+					},
 
 					HeaderRange: source.Range{
 						Start: source.Pos{Line: 1, Column: 1, Byte: 0},
@@ -1029,6 +1167,22 @@ func TestParseTopLevel(t *testing.T) {
 				// should recover from error in first circuit and then parse the second
 				&ast.Circuit{
 					Name: "bar",
+					Params: &ast.Arguments{
+						WithRange: ast.WithRange{
+							Range: source.Range{
+								Start: source.Pos{Line: 1, Column: 30, Byte: 29},
+								End:   source.Pos{Line: 1, Column: 30, Byte: 29},
+							},
+						},
+					},
+					Body: &ast.StatementBlock{
+						WithRange: ast.WithRange{
+							Range: source.Range{
+								Start: source.Pos{Line: 1, Column: 30, Byte: 29},
+								End:   source.Pos{Line: 1, Column: 32, Byte: 31},
+							},
+						},
+					},
 
 					HeaderRange: source.Range{
 						Start: source.Pos{Line: 1, Column: 18, Byte: 17},
@@ -1049,6 +1203,22 @@ func TestParseTopLevel(t *testing.T) {
 			[]ast.Node{
 				&ast.Circuit{
 					Name: "foo",
+					Params: &ast.Arguments{
+						WithRange: ast.WithRange{
+							Range: source.Range{
+								Start: source.Pos{Line: 1, Column: 13, Byte: 12},
+								End:   source.Pos{Line: 1, Column: 13, Byte: 12},
+							},
+						},
+					},
+					Body: &ast.StatementBlock{
+						WithRange: ast.WithRange{
+							Range: source.Range{
+								Start: source.Pos{Line: 1, Column: 13, Byte: 12},
+								End:   source.Pos{Line: 1, Column: 14, Byte: 13},
+							},
+						},
+					},
 
 					HeaderRange: source.Range{
 						Start: source.Pos{Line: 1, Column: 1, Byte: 0},
@@ -1069,6 +1239,22 @@ func TestParseTopLevel(t *testing.T) {
 			[]ast.Node{
 				&ast.Circuit{
 					Name: "",
+					Params: &ast.Arguments{
+						WithRange: ast.WithRange{
+							Range: source.Range{
+								Start: source.Pos{Line: 1, Column: 8, Byte: 7},
+								End:   source.Pos{Line: 1, Column: 8, Byte: 7},
+							},
+						},
+					},
+					Body: &ast.StatementBlock{
+						WithRange: ast.WithRange{
+							Range: source.Range{
+								Start: source.Pos{Line: 1, Column: 8, Byte: 7},
+								End:   source.Pos{Line: 1, Column: 8, Byte: 7},
+							},
+						},
+					},
 
 					HeaderRange: source.Range{
 						Start: source.Pos{Line: 1, Column: 1, Byte: 0},
@@ -1083,6 +1269,133 @@ func TestParseTopLevel(t *testing.T) {
 				},
 			},
 			1, // missing circuit name
+		},
+		{
+			`circuit foo(bar, "a") {}`,
+			[]ast.Node{
+				&ast.Circuit{
+					Name: "foo",
+					Params: &ast.Arguments{
+						Positional: []ast.Node{
+							&ast.Variable{
+								Name: "bar",
+								WithRange: ast.WithRange{
+									Range: source.Range{
+										Start: source.Pos{Line: 1, Column: 13, Byte: 12},
+										End:   source.Pos{Line: 1, Column: 16, Byte: 15},
+									},
+								},
+							},
+							&ast.StringLit{
+								Value: "a",
+								WithRange: ast.WithRange{
+									Range: source.Range{
+										Start: source.Pos{Line: 1, Column: 18, Byte: 17},
+										End:   source.Pos{Line: 1, Column: 21, Byte: 20},
+									},
+								},
+							},
+						},
+
+						WithRange: ast.WithRange{
+							Range: source.Range{
+								Start: source.Pos{Line: 1, Column: 12, Byte: 11},
+								End:   source.Pos{Line: 1, Column: 22, Byte: 21},
+							},
+						},
+					},
+					Body: &ast.StatementBlock{
+						WithRange: ast.WithRange{
+							Range: source.Range{
+								Start: source.Pos{Line: 1, Column: 23, Byte: 22},
+								End:   source.Pos{Line: 1, Column: 25, Byte: 24},
+							},
+						},
+					},
+
+					HeaderRange: source.Range{
+						Start: source.Pos{Line: 1, Column: 1, Byte: 0},
+						End:   source.Pos{Line: 1, Column: 22, Byte: 21},
+					},
+					WithRange: ast.WithRange{
+						Range: source.Range{
+							Start: source.Pos{Line: 1, Column: 1, Byte: 0},
+							End:   source.Pos{Line: 1, Column: 25, Byte: 24},
+						},
+					},
+				},
+			},
+			1, // invalid parameter declaration (can't use string literal)
+		},
+		{
+			`circuit foo(bar, a=1) {}`,
+			[]ast.Node{
+				&ast.Circuit{
+					Name: "foo",
+					Params: &ast.Arguments{
+						Positional: []ast.Node{
+							&ast.Variable{
+								Name: "bar",
+								WithRange: ast.WithRange{
+									Range: source.Range{
+										Start: source.Pos{Line: 1, Column: 13, Byte: 12},
+										End:   source.Pos{Line: 1, Column: 16, Byte: 15},
+									},
+								},
+							},
+						},
+						Named: []*ast.NamedArgument{
+							{
+								Name: "a",
+								Value: &ast.NumberLit{
+									Value: mustParseBigFloat("1"),
+
+									WithRange: ast.WithRange{
+										Range: source.Range{
+											Start: source.Pos{Line: 1, Column: 20, Byte: 19},
+											End:   source.Pos{Line: 1, Column: 21, Byte: 20},
+										},
+									},
+								},
+
+								WithRange: ast.WithRange{
+									Range: source.Range{
+										Start: source.Pos{Line: 1, Column: 18, Byte: 17},
+										End:   source.Pos{Line: 1, Column: 21, Byte: 20},
+									},
+								},
+							},
+						},
+
+						WithRange: ast.WithRange{
+							Range: source.Range{
+								Start: source.Pos{Line: 1, Column: 12, Byte: 11},
+								End:   source.Pos{Line: 1, Column: 22, Byte: 21},
+							},
+						},
+					},
+					Body: &ast.StatementBlock{
+						WithRange: ast.WithRange{
+							Range: source.Range{
+								Start: source.Pos{Line: 1, Column: 23, Byte: 22},
+								End:   source.Pos{Line: 1, Column: 25, Byte: 24},
+							},
+						},
+					},
+
+					HeaderRange: source.Range{
+						Start: source.Pos{Line: 1, Column: 1, Byte: 0},
+						End:   source.Pos{Line: 1, Column: 22, Byte: 21},
+					},
+					WithRange: ast.WithRange{
+						Range: source.Range{
+							Start: source.Pos{Line: 1, Column: 1, Byte: 0},
+							End:   source.Pos{Line: 1, Column: 25, Byte: 24},
+						},
+					},
+				},
+			},
+			1, // invalid parameter declaration (can't use named argument)
 		},
 	}
 

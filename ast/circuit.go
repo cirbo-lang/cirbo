@@ -6,15 +6,16 @@ import (
 
 type Circuit struct {
 	WithRange
-	Name string
-	Body []Node
+	Name   string
+	Params *Arguments
+	Body   *StatementBlock
 
 	HeaderRange source.Range
 }
 
 func (n *Circuit) walkChildNodes(cb internalWalkFunc) {
-	// TODO: Implement child nodes
-	panic("walkChildNodes not implemented for Circuit")
+	cb(n.Params)
+	cb(n.Body)
 }
 
 func (n *Circuit) DeclRange() source.Range {
