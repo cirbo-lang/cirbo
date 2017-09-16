@@ -565,6 +565,62 @@ func TestQuantitySubtract(t *testing.T) {
 	}
 }
 
+func TestQuantityFormatValue(t *testing.T) {
+	tests := []struct {
+		Input  Quantity
+		Format byte
+		Prec   int
+		Unit   *Unit
+		Want   string
+	}{
+		{
+			q("1", unitByName["cm"]),
+			'f', 2, unitByName["m"],
+			"0.01",
+		},
+		{
+			q("1", unitByName["cm"]),
+			'f', 4, unitByName["m"],
+			"0.0100",
+		},
+		{
+			q("1", unitByName["cm"]),
+			'f', 1, unitByName["m"],
+			"0.0",
+		},
+		{
+			q("1", unitByName["in"]),
+			'f', 3, unitByName["in"],
+			"1.000",
+		},
+		{
+			q("1", unitByName["in"]),
+			'f', 3, unitByName["cm"],
+			"2.540",
+		},
+		{
+			q("1", unitByName["kV"]),
+			'e', 4, unitByName["V"],
+			"1.0000e+03",
+		},
+		{
+			// Kicad-style 0.1-degree angle units
+			q("45", unitByName["deg"]),
+			'f', 0, &Unit{Dimensionality{Angle: 1}, baseUnits{Angle: degree}, -10},
+			"450",
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(fmt.Sprintf("%s format %c prec %d in %s", test.Input, test.Format, test.Prec, test.Unit), func(t *testing.T) {
+			got := test.Input.FormatValue(test.Format, test.Prec, test.Unit)
+			if got != test.Want {
+				t.Errorf("wrong result\ngot:   %s\nwant:  %s", got, test.Want)
+			}
+		})
+	}
+}
+
 func TestQuantityString(t *testing.T) {
 	tests := []struct {
 		Input Quantity

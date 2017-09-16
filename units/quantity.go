@@ -237,6 +237,28 @@ func (q Quantity) Subtract(o Quantity) Quantity {
 	}
 }
 
+// FormatValue returns a string representation of the value expressed in the
+// given unit.
+//
+// This is intended to provide a convenient way to obtain a string
+// representation of a quantity to include when serializing data into an
+// application-specific file format that assumes a particular unit rather
+// than supporting arbitrary units.
+//
+// The "format" and "prec" arguments take the same meaning as for
+// big.Float.Text. The unit conversion is performed first at high
+// precision, before rounding the result during formatting.
+//
+// The given unit must be commensurable with the quantity's own unit, or
+// this method will panic.
+func (q Quantity) FormatValue(format byte, prec int, unit *Unit) string {
+	if q.unit.base != unit.base || q.unit.scale != unit.scale {
+		q = q.Convert(unit)
+	}
+
+	return q.value.Text(format, prec)
+}
+
 // String returns a compact, human-readable representation of the receiver.
 //
 // It is primarily intended for debugging and is thus not optimized.
