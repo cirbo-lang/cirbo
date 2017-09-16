@@ -279,6 +279,120 @@ func TestQuantityMultiply(t *testing.T) {
 	}
 }
 
+func TestQuantityDivide(t *testing.T) {
+	tests := []struct {
+		A    Quantity
+		B    Quantity
+		Want string
+	}{
+		{
+			MakeDimensionless(bfp("2")),
+			MakeDimensionless(bfp("2")),
+			"1",
+		},
+		{
+			MakeDimensionless(bfp("2")),
+			MakeQuantity(bfp("2"), unitByName["m"]),
+			"1 m⁻¹",
+		},
+		{
+			MakeQuantity(bfp("2"), unitByName["kg"]),
+			MakeQuantity(bfp("2"), unitByName["m"]),
+			"1 kg m⁻¹",
+		},
+		{
+			MakeQuantity(bfp("2"), unitByName["lb"]),
+			MakeQuantity(bfp("2"), unitByName["in"]),
+			"1 lb in⁻¹",
+		},
+		{
+			MakeQuantity(bfp("2"), unitByName["m"]),
+			MakeQuantity(bfp("2"), unitByName["m"]),
+			"1",
+		},
+		{
+			MakeQuantity(bfp("2"), unitByName["in"]),
+			MakeQuantity(bfp("2"), unitByName["in"]),
+			"1",
+		},
+		{
+			MakeQuantity(bfp("2"), unitByName["cm"]),
+			MakeQuantity(bfp("2"), unitByName["in"]),
+			"0.3937007874",
+		},
+		{
+			MakeQuantity(bfp("2"), unitByName["s"]).Multiply(MakeQuantity(bfp("2"), unitByName["s"])),
+			MakeQuantity(bfp("2"), unitByName["s"]),
+			"2 s",
+		},
+		{
+			MakeQuantity(bfp("2"), unitByName["kg"]),
+			MakeQuantity(bfp("2"), unitByName["kg"]),
+			"1",
+		},
+		{
+			MakeQuantity(bfp("2"), unitByName["deg"]),
+			MakeQuantity(bfp("2"), unitByName["deg"]),
+			"1",
+		},
+		{
+			MakeQuantity(bfp("2"), unitByName["A"]),
+			MakeQuantity(bfp("2"), unitByName["A"]),
+			"1",
+		},
+		{
+			MakeQuantity(bfp("2"), unitByName["cd"]),
+			MakeQuantity(bfp("2"), unitByName["cd"]),
+			"1",
+		},
+		{
+			MakeQuantity(bfp("2"), unitByName["A"]),
+			MakeQuantity(bfp("2"), unitByName["ohm"]),
+			"1 kg⁻¹ m⁻² s³ A³",
+		},
+		{
+			MakeQuantity(bfp("2"), unitByName["A"]),
+			MakeQuantity(bfp("2"), unitByName["kohm"]),
+			"0.001 kg⁻¹ m⁻² s³ A³",
+		},
+		{
+			MakeQuantity(bfp("2"), unitByName["mA"]),
+			MakeQuantity(bfp("2"), unitByName["kohm"]),
+			"1e-06 kg⁻¹ m⁻² s³ A³",
+		},
+		{
+			MakeQuantity(bfp("4"), unitByName["m"]),
+			MakeQuantity(bfp("2"), unitByName["s"]),
+			"2 m s⁻¹",
+		},
+		{
+			MakeQuantity(bfp("4"), unitByName["V"]),
+			MakeQuantity(bfp("2"), unitByName["A"]),
+			"2 ohm", // unit must normalize to ohm
+		},
+		{
+			MakeQuantity(bfp("4"), unitByName["W"]),
+			MakeQuantity(bfp("2"), unitByName["A"]),
+			"2 V", // unit must normalize to volt
+		},
+		{
+			MakeQuantity(bfp("4"), unitByName["W"]),
+			MakeQuantity(bfp("2"), unitByName["V"]),
+			"2 A",
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(fmt.Sprintf("%s ÷ %s", test.A, test.B), func(t *testing.T) {
+			got := test.A.Divide(test.B)
+			gotStr := got.String()
+			if gotStr != test.Want {
+				t.Errorf("wrong result\ninput: %s ÷ %s\ngot:   %s\nwant:  %s", test.A, test.B, gotStr, test.Want)
+			}
+		})
+	}
+}
+
 func TestQuantityString(t *testing.T) {
 	tests := []struct {
 		Input Quantity

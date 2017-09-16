@@ -159,6 +159,25 @@ func (q Quantity) Multiply(o Quantity) Quantity {
 	}
 }
 
+// Divide computes the quotient of the receiver by the given quantity,
+// dividing both the value and the units to produce a new quantity.
+//
+// The same normalization of unit applies as for the Multiply method.
+func (q Quantity) Divide(o Quantity) Quantity {
+	if !q.unit.SameBaseUnits(o.unit) {
+		q = q.WithStandardUnits()
+		o = o.WithStandardUnits()
+	}
+
+	nu := q.unit.Multiply(o.unit.Reciprocal())
+	nv := (&big.Float{}).Quo(q.value, o.value)
+
+	return Quantity{
+		unit:  nu,
+		value: nv,
+	}
+}
+
 // String returns a compact, human-readable representation of the receiver.
 //
 // It is primarily intended for debugging and is thus not optimized.
