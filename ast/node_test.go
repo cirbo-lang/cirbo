@@ -33,7 +33,6 @@ func TestNodeImpls(t *testing.T) {
 		&Object{},
 		&ObjectElem{},
 		&Pinout{},
-		&QuantityLit{},
 		&Slice{},
 		&StringLit{},
 		&Terminal{},

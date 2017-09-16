@@ -1115,7 +1115,7 @@ func (p *parser) parseExpressionTerm() (ast.Node, source.Diags) {
 			kw := p.PeekKeyword()
 			if ast.IsQuantityUnitKeyword(kw) {
 				marker := p.Read()
-				return &ast.QuantityLit{
+				return &ast.NumberLit{
 					WithRange: ast.WithRange{
 						Range: source.RangeBetween(tok.Range, marker.Range),
 					},

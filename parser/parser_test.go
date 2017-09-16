@@ -835,7 +835,7 @@ func TestParseTopLevel(t *testing.T) {
 							},
 							Args: &ast.Arguments{
 								Positional: []ast.Node{
-									&ast.QuantityLit{
+									&ast.NumberLit{
 										Value: mustParseBigFloat("1"),
 										Unit:  "kohm",
 
@@ -1398,7 +1398,7 @@ func TestParseExpression(t *testing.T) {
 		},
 		{
 			`1m`,
-			&ast.QuantityLit{
+			&ast.NumberLit{
 				Value: mustParseBigFloat("1"),
 				Unit:  "m",
 				WithRange: ast.WithRange{
@@ -1412,7 +1412,7 @@ func TestParseExpression(t *testing.T) {
 		},
 		{
 			`1kV`,
-			&ast.QuantityLit{
+			&ast.NumberLit{
 				Value: mustParseBigFloat("1"),
 				Unit:  "kV",
 				WithRange: ast.WithRange{
@@ -1426,7 +1426,7 @@ func TestParseExpression(t *testing.T) {
 		},
 		{
 			`1 ohm`,
-			&ast.QuantityLit{
+			&ast.NumberLit{
 				Value: mustParseBigFloat("1"),
 				Unit:  "ohm",
 				WithRange: ast.WithRange{
