@@ -86,6 +86,17 @@ func (d Dimensionality) Reciprocal() Dimensionality {
 	return ret
 }
 
+func (d Dimensionality) ToPower(power int) Dimensionality {
+	return Dimensionality{
+		Mass:              d.Mass * power,
+		Length:            d.Length * power,
+		Angle:             d.Angle * power,
+		Time:              d.Time * power,
+		ElectricCurrent:   d.ElectricCurrent * power,
+		LuminousIntensity: d.LuminousIntensity * power,
+	}
+}
+
 // String returns a compact string representation of a dimensionality,
 // which is stable for a given dimensionality value.
 //

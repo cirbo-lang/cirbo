@@ -211,6 +211,19 @@ func (u *Unit) Dimensionality() Dimensionality {
 	return u.dim
 }
 
+// ToPower returns a new unit that is the receiver raised to the given
+// integer power.
+//
+// Package units only represents integer powers, so it is not possible to
+// represent square roots, etc.
+func (u *Unit) ToPower(power int) *Unit {
+	return &Unit{
+		dim:   u.dim.ToPower(power),
+		base:  u.base,
+		scale: u.scale,
+	}
+}
+
 // CommensurableWith returns true if the receiver and the given unit
 // have the same dimensionality.
 //

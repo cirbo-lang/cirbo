@@ -425,6 +425,21 @@ func TestQuantityAdd(t *testing.T) {
 			"8 s²",
 		},
 		{
+			MakeQuantity(bfp("2"), unitByName["s"].ToPower(2)),
+			MakeQuantity(bfp("2"), unitByName["s"].ToPower(2)),
+			"4 s²",
+		},
+		{
+			MakeQuantity(bfp("2"), unitByName["s"].ToPower(2).ToPower(2)),
+			MakeQuantity(bfp("2"), unitByName["s"].ToPower(2).ToPower(2)),
+			"4 s⁴",
+		},
+		{
+			MakeQuantity(bfp("2"), unitByName["m"].Multiply(unitByName["s"].ToPower(-1))),
+			MakeQuantity(bfp("2"), unitByName["m"].Multiply(unitByName["s"].ToPower(-1))),
+			"4 m s⁻¹",
+		},
+		{
 			MakeQuantity(bfp("2"), unitByName["kg"]),
 			MakeQuantity(bfp("2"), unitByName["kg"]),
 			"4 kg",
