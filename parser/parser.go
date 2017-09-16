@@ -353,6 +353,12 @@ Statements:
 		case "circuit":
 			node, nodeDiags = p.parseCircuit()
 
+		case "device":
+			node, nodeDiags = p.parseDevice()
+
+		case "land":
+			node, nodeDiags = p.parseLand()
+
 		default:
 
 			if p.Peek().Type == TokenSemicolon {
@@ -878,6 +884,48 @@ func (p *parser) parseCircuit() (ast.Node, source.Diags) {
 	name, params, body, headerRange, fullRange, diags := p.parseNamedObjectBlock()
 
 	return &ast.Circuit{
+		Name:   name,
+		Params: params,
+		Body:   body,
+
+		HeaderRange: headerRange,
+		WithRange: ast.WithRange{
+			Range: fullRange,
+		},
+	}, diags
+}
+
+func (p *parser) parseDevice() (ast.Node, source.Diags) {
+	kw := p.PeekKeyword()
+	if kw != "device" {
+		// Should never happen because caller should've peeked ahead here
+		panic("parseDevice called with peeker not pointing at device keyword")
+	}
+
+	name, params, body, headerRange, fullRange, diags := p.parseNamedObjectBlock()
+
+	return &ast.Device{
+		Name:   name,
+		Params: params,
+		Body:   body,
+
+		HeaderRange: headerRange,
+		WithRange: ast.WithRange{
+			Range: fullRange,
+		},
+	}, diags
+}
+
+func (p *parser) parseLand() (ast.Node, source.Diags) {
+	kw := p.PeekKeyword()
+	if kw != "land" {
+		// Should never happen because caller should've peeked ahead here
+		panic("parseLand called with peeker not pointing at land keyword")
+	}
+
+	name, params, body, headerRange, fullRange, diags := p.parseNamedObjectBlock()
+
+	return &ast.Land{
 		Name:   name,
 		Params: params,
 		Body:   body,

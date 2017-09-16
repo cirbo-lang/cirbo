@@ -1397,6 +1397,80 @@ func TestParseTopLevel(t *testing.T) {
 			},
 			1, // invalid parameter declaration (can't use named argument)
 		},
+
+		{
+			`device foo {}`,
+			[]ast.Node{
+				&ast.Device{
+					Name: "foo",
+					Params: &ast.Arguments{
+						WithRange: ast.WithRange{
+							Range: source.Range{
+								Start: source.Pos{Line: 1, Column: 12, Byte: 11},
+								End:   source.Pos{Line: 1, Column: 12, Byte: 11},
+							},
+						},
+					},
+					Body: &ast.StatementBlock{
+						WithRange: ast.WithRange{
+							Range: source.Range{
+								Start: source.Pos{Line: 1, Column: 12, Byte: 11},
+								End:   source.Pos{Line: 1, Column: 14, Byte: 13},
+							},
+						},
+					},
+
+					HeaderRange: source.Range{
+						Start: source.Pos{Line: 1, Column: 1, Byte: 0},
+						End:   source.Pos{Line: 1, Column: 11, Byte: 10},
+					},
+					WithRange: ast.WithRange{
+						Range: source.Range{
+							Start: source.Pos{Line: 1, Column: 1, Byte: 0},
+							End:   source.Pos{Line: 1, Column: 14, Byte: 13},
+						},
+					},
+				},
+			},
+			0,
+		},
+
+		{
+			`land foo {}`,
+			[]ast.Node{
+				&ast.Land{
+					Name: "foo",
+					Params: &ast.Arguments{
+						WithRange: ast.WithRange{
+							Range: source.Range{
+								Start: source.Pos{Line: 1, Column: 10, Byte: 9},
+								End:   source.Pos{Line: 1, Column: 10, Byte: 9},
+							},
+						},
+					},
+					Body: &ast.StatementBlock{
+						WithRange: ast.WithRange{
+							Range: source.Range{
+								Start: source.Pos{Line: 1, Column: 10, Byte: 9},
+								End:   source.Pos{Line: 1, Column: 12, Byte: 11},
+							},
+						},
+					},
+
+					HeaderRange: source.Range{
+						Start: source.Pos{Line: 1, Column: 1, Byte: 0},
+						End:   source.Pos{Line: 1, Column: 9, Byte: 8},
+					},
+					WithRange: ast.WithRange{
+						Range: source.Range{
+							Start: source.Pos{Line: 1, Column: 1, Byte: 0},
+							End:   source.Pos{Line: 1, Column: 12, Byte: 11},
+						},
+					},
+				},
+			},
+			0,
+		},
 	}
 
 	for _, test := range tests {
