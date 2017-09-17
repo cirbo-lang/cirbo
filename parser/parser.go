@@ -835,6 +835,7 @@ func (p *parser) parseTerminalDecl() (ast.Node, source.Diags) {
 		afterPower
 		afterBidi
 		afterOutput
+		optionalRole
 		end
 	)
 
@@ -858,13 +859,14 @@ Keywords:
 			case "input":
 				terminal.Type = ast.Signal
 				terminal.Dir = ast.Input
-				state = end
+				state = optionalRole
 			case "output":
 				terminal.Type = ast.Signal
 				terminal.Dir = ast.Output
 				state = afterOutput
 			case "bidi":
 				terminal.Type = ast.Signal
+				terminal.Dir = ast.Bidirectional
 				state = afterBidi
 			default:
 				// Should never happen since the above should be exhaustive
@@ -875,7 +877,7 @@ Keywords:
 			switch kw {
 			case "input":
 				terminal.Dir = ast.Input
-				state = end
+				state = optionalRole
 			case "output":
 				terminal.Dir = ast.Output
 				state = afterOutput
@@ -887,10 +889,10 @@ Keywords:
 		case afterBidi:
 			switch kw {
 			case "leader":
-				terminal.Dir = ast.BidiLeader
+				terminal.Role = ast.Leader
 				state = end
 			case "follower":
-				terminal.Dir = ast.BidiFollower
+				terminal.Role = ast.Follower
 				state = end
 			default:
 				// bidi must always be followed by a role keyword
@@ -917,8 +919,25 @@ Keywords:
 			case "tristate":
 				terminal.OutputType = ast.Tristate
 				state = end
+			case "leader":
+				terminal.Role = ast.Leader
+				state = end
+			case "follower":
+				terminal.Role = ast.Follower
+				state = end
 			default:
 				terminal.OutputType = ast.PushPull
+				break Keywords
+			}
+		case optionalRole:
+			switch kw {
+			case "leader":
+				terminal.Role = ast.Leader
+				state = end
+			case "follower":
+				terminal.Role = ast.Follower
+				state = end
+			default:
 				break Keywords
 			}
 		}
@@ -987,7 +1006,7 @@ Keywords:
 				diags = append(diags, source.Diag{
 					Level:   source.Error,
 					Summary: "Invalid terminal declaration",
-					Detail:  fmt.Sprintf("The keyword %q may only be used after the \"bidi\" keyword.", extraKw),
+					Detail:  fmt.Sprintf("The keyword %q must be the final terminal definition keyword.", extraKw),
 					Ranges:  extraKwTok.Range.List(),
 				})
 			case "emitter", "collector", "tristate":

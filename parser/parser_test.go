@@ -1809,7 +1809,8 @@ func TestParseTopLevel(t *testing.T) {
 				&ast.Terminal{
 					Name: "foo",
 					Type: ast.Signal,
-					Dir:  ast.BidiLeader,
+					Dir:  ast.Bidirectional,
+					Role: ast.Leader,
 					WithRange: ast.WithRange{
 						Range: source.Range{
 							Start: source.Pos{Line: 1, Column: 1, Byte: 0},
@@ -1826,11 +1827,30 @@ func TestParseTopLevel(t *testing.T) {
 				&ast.Terminal{
 					Name: "foo",
 					Type: ast.Signal,
-					Dir:  ast.BidiFollower,
+					Dir:  ast.Bidirectional,
+					Role: ast.Follower,
 					WithRange: ast.WithRange{
 						Range: source.Range{
 							Start: source.Pos{Line: 1, Column: 1, Byte: 0},
 							End:   source.Pos{Line: 1, Column: 19, Byte: 18},
+						},
+					},
+				},
+			},
+			0,
+		},
+		{
+			`input follower foo;`,
+			[]ast.Node{
+				&ast.Terminal{
+					Name: "foo",
+					Type: ast.Signal,
+					Dir:  ast.Input,
+					Role: ast.Follower,
+					WithRange: ast.WithRange{
+						Range: source.Range{
+							Start: source.Pos{Line: 1, Column: 1, Byte: 0},
+							End:   source.Pos{Line: 1, Column: 20, Byte: 19},
 						},
 					},
 				},
@@ -1934,23 +1954,6 @@ func TestParseTopLevel(t *testing.T) {
 						Range: source.Range{
 							Start: source.Pos{Line: 1, Column: 1, Byte: 0},
 							End:   source.Pos{Line: 1, Column: 12, Byte: 11},
-						},
-					},
-				},
-			},
-			1, // invalid terminal declaration
-		},
-		{
-			`input follower foo;`,
-			[]ast.Node{
-				&ast.Terminal{
-					Name: "follower",
-					Type: ast.Signal,
-					Dir:  ast.Input,
-					WithRange: ast.WithRange{
-						Range: source.Range{
-							Start: source.Pos{Line: 1, Column: 1, Byte: 0},
-							End:   source.Pos{Line: 1, Column: 15, Byte: 14},
 						},
 					},
 				},
