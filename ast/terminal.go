@@ -51,7 +51,7 @@ const (
 	PushPull      TerminalOutputType = 'P'
 	Tristate      TerminalOutputType = '±'
 	OpenCollector TerminalOutputType = 'C'
-	OpenDrain     TerminalOutputType = 'D'
+	OpenEmitter   TerminalOutputType = 'E'
 )
 
 func (n *Terminal) walkChildNodes(cb internalWalkFunc) {

@@ -902,8 +902,8 @@ Keywords:
 			}
 		case afterOutput:
 			switch kw {
-			case "drain":
-				terminal.OutputType = ast.OpenDrain
+			case "emitter":
+				terminal.OutputType = ast.OpenEmitter
 				state = end
 			case "collector":
 				terminal.OutputType = ast.OpenCollector
@@ -933,7 +933,7 @@ Keywords:
 	var extraKw string
 	var extraKwTok Token
 	switch nextKw {
-	case "terminal", "power", "input", "output", "bidi", "leader", "follower", "drain", "collector", "tristate":
+	case "terminal", "power", "input", "output", "bidi", "leader", "follower", "emitter", "collector", "tristate":
 		extraKw = nextKw
 		extraKwTok = p.Peek()
 	}
@@ -984,7 +984,7 @@ Keywords:
 					Detail:  fmt.Sprintf("The keyword %q may only be used after the \"bidi\" keyword.", extraKw),
 					Ranges:  extraKwTok.Range.List(),
 				})
-			case "drain", "collector", "tristate":
+			case "emitter", "collector", "tristate":
 				diags = append(diags, source.Diag{
 					Level:   source.Error,
 					Summary: "Invalid terminal declaration",

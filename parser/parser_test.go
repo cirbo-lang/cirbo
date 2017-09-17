@@ -1560,17 +1560,17 @@ func TestParseTopLevel(t *testing.T) {
 			0,
 		},
 		{
-			`output drain foo;`,
+			`output emitter foo;`,
 			[]ast.Node{
 				&ast.Terminal{
 					Name:       "foo",
 					Type:       ast.Signal,
 					Dir:        ast.Output,
-					OutputType: ast.OpenDrain,
+					OutputType: ast.OpenEmitter,
 					WithRange: ast.WithRange{
 						Range: source.Range{
 							Start: source.Pos{Line: 1, Column: 1, Byte: 0},
-							End:   source.Pos{Line: 1, Column: 18, Byte: 17},
+							End:   source.Pos{Line: 1, Column: 20, Byte: 19},
 						},
 					},
 				},
