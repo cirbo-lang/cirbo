@@ -15,6 +15,6 @@ type Device struct {
 }
 
 func (n *Device) walkChildNodes(cb internalWalkFunc) {
-	// TODO: Implement child nodes
-	panic("walkChildNodes not implemented for Device")
+	cb(n.Params)
+	cb(n.Body)
 }

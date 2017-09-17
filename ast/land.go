@@ -14,6 +14,6 @@ type Land struct {
 }
 
 func (n *Land) walkChildNodes(cb internalWalkFunc) {
-	// TODO: Implement child nodes
-	panic("walkChildNodes not implemented for Land")
+	cb(n.Params)
+	cb(n.Body)
 }
