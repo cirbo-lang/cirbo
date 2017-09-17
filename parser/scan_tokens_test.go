@@ -180,6 +180,48 @@ func TestScanTokens(t *testing.T) {
 				},
 			},
 		},
+		{
+			"D+",
+			[]Token{
+				{
+					Type:  TokenIdent,
+					Bytes: []byte("D+"),
+					Range: source.Range{
+						Start: source.Pos{Byte: 0, Line: 1, Column: 1},
+						End:   source.Pos{Byte: 2, Line: 1, Column: 3},
+					},
+				},
+				{
+					Type:  TokenEOF,
+					Bytes: []byte{},
+					Range: source.Range{
+						Start: source.Pos{Byte: 2, Line: 1, Column: 3},
+						End:   source.Pos{Byte: 2, Line: 1, Column: 3},
+					},
+				},
+			},
+		},
+		{
+			"D-",
+			[]Token{
+				{
+					Type:  TokenIdent,
+					Bytes: []byte("D-"),
+					Range: source.Range{
+						Start: source.Pos{Byte: 0, Line: 1, Column: 1},
+						End:   source.Pos{Byte: 2, Line: 1, Column: 3},
+					},
+				},
+				{
+					Type:  TokenEOF,
+					Bytes: []byte{},
+					Range: source.Range{
+						Start: source.Pos{Byte: 2, Line: 1, Column: 3},
+						End:   source.Pos{Byte: 2, Line: 1, Column: 3},
+					},
+				},
+			},
+		},
 
 		{
 			`1234`,

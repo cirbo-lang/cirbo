@@ -34,7 +34,7 @@ func scanTokens(data []byte, filename string, start source.Pos, mode scanMode) [
         NumberLitContinue = (digit|'.'|('e'|'E') ('+'|'-')? digit);
         NumberLit = digit ("" | (NumberLitContinue - '.') | (NumberLitContinue* (NumberLitContinue - '.')));
         StringLit = '"' (AnyUTF8 - ('"' | '\\' | '\r' | '\n') | '\\' AnyUTF8)+ '"';
-        Ident = (('+' | '-') digit+ 'V' digit*) | ('~'? ID_Start ('~'? ID_Continue)*) | ("`" (AnyUTF8 - "`")+ "`");
+        Ident = (('+' | '-') digit+ 'V' digit*) | ('~'? ID_Start ('~'? ID_Continue)* ('+' | '-')?) | ("`" (AnyUTF8 - "`")+ "`");
 
         # Symbols that just represent themselves are handled as a single rule.
         SelfToken = "{" | "}" | "[" | "]" | "(" | ")" | "." | "," | "*" | "/" | "+" | "-" | '%' | "=" | "<" | ">" | "!" | "?" | ":" | "&" | "|" | "^" | ";";
