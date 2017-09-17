@@ -1399,6 +1399,91 @@ func TestParseTopLevel(t *testing.T) {
 		},
 
 		{
+			`board foo {}`,
+			[]ast.Node{
+				&ast.Board{
+					Name: "foo",
+					Body: &ast.StatementBlock{
+						WithRange: ast.WithRange{
+							Range: source.Range{
+								Start: source.Pos{Line: 1, Column: 11, Byte: 10},
+								End:   source.Pos{Line: 1, Column: 13, Byte: 12},
+							},
+						},
+					},
+
+					HeaderRange: source.Range{
+						Start: source.Pos{Line: 1, Column: 1, Byte: 0},
+						End:   source.Pos{Line: 1, Column: 10, Byte: 9},
+					},
+					WithRange: ast.WithRange{
+						Range: source.Range{
+							Start: source.Pos{Line: 1, Column: 1, Byte: 0},
+							End:   source.Pos{Line: 1, Column: 13, Byte: 12},
+						},
+					},
+				},
+			},
+			0,
+		},
+		{
+			`board foo() {}`,
+			[]ast.Node{
+				&ast.Board{
+					Name: "foo",
+					Body: &ast.StatementBlock{
+						WithRange: ast.WithRange{
+							Range: source.Range{
+								Start: source.Pos{Line: 1, Column: 13, Byte: 12},
+								End:   source.Pos{Line: 1, Column: 15, Byte: 14},
+							},
+						},
+					},
+
+					HeaderRange: source.Range{
+						Start: source.Pos{Line: 1, Column: 1, Byte: 0},
+						End:   source.Pos{Line: 1, Column: 10, Byte: 9},
+					},
+					WithRange: ast.WithRange{
+						Range: source.Range{
+							Start: source.Pos{Line: 1, Column: 1, Byte: 0},
+							End:   source.Pos{Line: 1, Column: 15, Byte: 14},
+						},
+					},
+				},
+			},
+			0,
+		},
+		{
+			`board foo(bar) {}`,
+			[]ast.Node{
+				&ast.Board{
+					Name: "foo",
+					Body: &ast.StatementBlock{
+						WithRange: ast.WithRange{
+							Range: source.Range{
+								Start: source.Pos{Line: 1, Column: 16, Byte: 15},
+								End:   source.Pos{Line: 1, Column: 18, Byte: 17},
+							},
+						},
+					},
+
+					HeaderRange: source.Range{
+						Start: source.Pos{Line: 1, Column: 1, Byte: 0},
+						End:   source.Pos{Line: 1, Column: 15, Byte: 14},
+					},
+					WithRange: ast.WithRange{
+						Range: source.Range{
+							Start: source.Pos{Line: 1, Column: 1, Byte: 0},
+							End:   source.Pos{Line: 1, Column: 18, Byte: 17},
+						},
+					},
+				},
+			},
+			1, // no parameter list is allowed
+		},
+
+		{
 			`device foo {}`,
 			[]ast.Node{
 				&ast.Device{

@@ -350,6 +350,9 @@ Statements:
 		case "import":
 			node, nodeDiags = p.parseImport()
 
+		case "board":
+			node, nodeDiags = p.parseBoard()
+
 		case "circuit":
 			node, nodeDiags = p.parseCircuit()
 
@@ -1093,6 +1096,35 @@ func (p *parser) parseNamedObjectBlock() (name string, params *ast.Arguments, bo
 
 	return
 
+}
+
+func (p *parser) parseBoard() (ast.Node, source.Diags) {
+	kw := p.PeekKeyword()
+	if kw != "board" {
+		// Should never happen because caller should've peeked ahead here
+		panic("parseBoard called with peeker not pointing at board keyword")
+	}
+
+	name, params, body, headerRange, fullRange, diags := p.parseNamedObjectBlock()
+
+	if len(params.Positional) != 0 && !diags.HasErrors() {
+		diags = append(diags, source.Diag{
+			Level:   source.Error,
+			Summary: "Board may not have parameters",
+			Detail:  "A \"board\" block does not accept parameters, so no parameter list is allowed.",
+			Ranges:  params.SourceRange().List(),
+		})
+	}
+
+	return &ast.Board{
+		Name: name,
+		Body: body,
+
+		HeaderRange: headerRange,
+		WithRange: ast.WithRange{
+			Range: fullRange,
+		},
+	}, diags
 }
 
 func (p *parser) parseCircuit() (ast.Node, source.Diags) {
