@@ -11,6 +11,8 @@ type Terminal struct {
 
 type TerminalType rune
 
+//go:generate stringer -type=TerminalType
+
 const (
 	Passive TerminalType = 0
 	Signal  TerminalType = 'S'
@@ -18,6 +20,8 @@ const (
 )
 
 type TerminalDir rune
+
+//go:generate stringer -type=TerminalDir
 
 const (
 	Undirected TerminalDir = 0
@@ -34,6 +38,8 @@ const (
 )
 
 type TerminalOutputType rune
+
+//go:generate stringer -type=TerminalOutputType
 
 const (
 	NoOutput      TerminalOutputType = 0
@@ -65,6 +71,8 @@ const (
 // This is why it is terminals, rather than devices themselves, that have
 // roles specified.
 type TerminalRole rune
+
+//go:generate stringer -type=TerminalRole
 
 const (
 	NoRole TerminalRole = 0
