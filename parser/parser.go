@@ -356,6 +356,9 @@ Statements:
 		case "designator":
 			node, nodeDiags = p.parseDesignator()
 
+		case "attr":
+			node, nodeDiags = p.parseAttr()
+
 		case "board":
 			node, nodeDiags = p.parseBoard()
 
@@ -912,6 +915,101 @@ func (p *parser) parseDesignator() (ast.Node, source.Diags) {
 	designator.Range = source.RangeBetween(kw.Range, semicolon.Range)
 
 	return designator, diags
+}
+
+func (p *parser) parseAttr() (ast.Node, source.Diags) {
+	kw := p.Read()
+	if kw.Type != TokenIdent {
+		// Should never happen because caller should've peeked ahead here
+		panic("parseAttr called with peeker not pointing at ident")
+	}
+
+	var diags source.Diags
+	var attr = &ast.Attr{
+		WithRange: ast.WithRange{
+			Range: kw.Range,
+		},
+	}
+
+	if p.Peek().Type != TokenIdent {
+		if !p.recovering {
+			diags = append(diags, source.Diag{
+				Level:   source.Error,
+				Summary: "Invalid attribute name",
+				Detail:  "The \"attr\" keyword must be followed by an identifier naming the attribute.",
+				Ranges:  []source.Range{p.PeekRange()},
+			})
+		}
+
+		attr.Type = &ast.Invalid{
+			WithRange: ast.WithRange{
+				Range: p.PeekRange(),
+			},
+		}
+
+		p.recoverAfterSemicolon()
+		return attr, diags
+	}
+
+	nameTok := p.Read()
+	attr.Name = p.decodeIdentifierBytes(nameTok.Bytes)
+
+	if p.Peek().Type == TokenAssign {
+		p.Read() // eat assignment "="
+		var exprDiags source.Diags
+		attr.Value, exprDiags = p.parseExpr()
+		diags = append(diags, exprDiags...)
+		attr.Range = source.RangeBetween(kw.Range, attr.Value.SourceRange())
+		if diags.HasErrors() {
+			p.recoverAfterSemicolon()
+			return attr, diags
+		}
+	} else if p.Peek().Type == TokenSemicolon {
+		if !p.recovering {
+			diags = append(diags, source.Diag{
+				Level:   source.Error,
+				Summary: "Invalid attribute definition",
+				Detail:  "An attribute must either have an explicit type or be assigned a default value using \"=\".",
+				Ranges:  []source.Range{p.PeekRange()},
+			})
+		}
+		semicolon := p.Read() // eat semicolon
+		attr.Type = &ast.Invalid{
+			WithRange: ast.WithRange{
+				Range: p.PeekRange(),
+			},
+		}
+		attr.Range = source.RangeBetween(kw.Range, semicolon.Range)
+		p.setRecovering()
+		return attr, diags
+	} else {
+		var exprDiags source.Diags
+		attr.Type, exprDiags = p.parseExpr()
+		diags = append(diags, exprDiags...)
+		attr.Range = source.RangeBetween(kw.Range, attr.Type.SourceRange())
+		if diags.HasErrors() {
+			p.recoverAfterSemicolon()
+			return attr, diags
+		}
+	}
+
+	if p.Peek().Type != TokenSemicolon {
+		if !p.recovering {
+			diags = append(diags, source.Diag{
+				Level:   source.Error,
+				Summary: "Unterminated statement",
+				Detail:  "This \"attr\" statement must be terminated by a semicolon.",
+				Ranges:  attr.Range.List(),
+			})
+		}
+		p.recoverAfterSemicolon()
+		return nil, diags
+	}
+
+	semicolon := p.Read()
+	attr.Range = source.RangeBetween(kw.Range, semicolon.Range)
+
+	return attr, diags
 }
 
 func (p *parser) keywordCanStartTerminalDecl(kw string) bool {

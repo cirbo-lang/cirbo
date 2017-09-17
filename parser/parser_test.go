@@ -632,6 +632,81 @@ func TestParseTopLevel(t *testing.T) {
 		},
 
 		{
+			`attr value resistance;`,
+			[]ast.Node{
+				&ast.Attr{
+					Name: "value",
+					Type: &ast.Variable{
+						Name: "resistance",
+
+						WithRange: ast.WithRange{
+							Range: source.Range{
+								Start: source.Pos{Line: 1, Column: 12, Byte: 11},
+								End:   source.Pos{Line: 1, Column: 22, Byte: 21},
+							},
+						},
+					},
+					WithRange: ast.WithRange{
+						Range: source.Range{
+							Start: source.Pos{Line: 1, Column: 1, Byte: 0},
+							End:   source.Pos{Line: 1, Column: 23, Byte: 22},
+						},
+					},
+				},
+			},
+			0,
+		},
+		{
+			`attr value = 1ohm;`,
+			[]ast.Node{
+				&ast.Attr{
+					Name: "value",
+					Value: &ast.NumberLit{
+						Value: mustParseBigFloat("1"),
+						Unit:  "ohm",
+
+						WithRange: ast.WithRange{
+							Range: source.Range{
+								Start: source.Pos{Line: 1, Column: 14, Byte: 13},
+								End:   source.Pos{Line: 1, Column: 18, Byte: 17},
+							},
+						},
+					},
+					WithRange: ast.WithRange{
+						Range: source.Range{
+							Start: source.Pos{Line: 1, Column: 1, Byte: 0},
+							End:   source.Pos{Line: 1, Column: 19, Byte: 18},
+						},
+					},
+				},
+			},
+			0,
+		},
+		{
+			`attr value;`,
+			[]ast.Node{
+				&ast.Attr{
+					Name: "value",
+					Type: &ast.Invalid{
+						WithRange: ast.WithRange{
+							Range: source.Range{
+								Start: source.Pos{Line: 1, Column: 12, Byte: 11},
+								End:   source.Pos{Line: 1, Column: 12, Byte: 11},
+							},
+						},
+					},
+					WithRange: ast.WithRange{
+						Range: source.Range{
+							Start: source.Pos{Line: 1, Column: 1, Byte: 0},
+							End:   source.Pos{Line: 1, Column: 12, Byte: 11},
+						},
+					},
+				},
+			},
+			1, // invalid attribute definition (missing type or value)
+		},
+
+		{
 			`a = true;`,
 			[]ast.Node{
 				&ast.Assign{
