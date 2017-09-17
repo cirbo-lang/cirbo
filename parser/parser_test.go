@@ -1558,6 +1558,129 @@ func TestParseTopLevel(t *testing.T) {
 		},
 
 		{
+			`pinout foo to bar {}`,
+			[]ast.Node{
+				&ast.Pinout{
+					Name: "foo",
+					Land: &ast.Variable{
+						Name: "bar",
+
+						WithRange: ast.WithRange{
+							Range: source.Range{
+								Start: source.Pos{Line: 1, Column: 15, Byte: 14},
+								End:   source.Pos{Line: 1, Column: 18, Byte: 17},
+							},
+						},
+					},
+					Body: &ast.StatementBlock{
+						WithRange: ast.WithRange{
+							Range: source.Range{
+								Start: source.Pos{Line: 1, Column: 19, Byte: 18},
+								End:   source.Pos{Line: 1, Column: 21, Byte: 20},
+							},
+						},
+					},
+
+					HeaderRange: source.Range{
+						Start: source.Pos{Line: 1, Column: 1, Byte: 0},
+						End:   source.Pos{Line: 1, Column: 18, Byte: 17},
+					},
+					WithRange: ast.WithRange{
+						Range: source.Range{
+							Start: source.Pos{Line: 1, Column: 1, Byte: 0},
+							End:   source.Pos{Line: 1, Column: 21, Byte: 20},
+						},
+					},
+				},
+			},
+			0,
+		},
+		{
+			`pinout foo from baz to bar {}`,
+			[]ast.Node{
+				&ast.Pinout{
+					Name: "foo",
+					Device: &ast.Variable{
+						Name: "baz",
+
+						WithRange: ast.WithRange{
+							Range: source.Range{
+								Start: source.Pos{Line: 1, Column: 17, Byte: 16},
+								End:   source.Pos{Line: 1, Column: 20, Byte: 19},
+							},
+						},
+					},
+					Land: &ast.Variable{
+						Name: "bar",
+
+						WithRange: ast.WithRange{
+							Range: source.Range{
+								Start: source.Pos{Line: 1, Column: 24, Byte: 23},
+								End:   source.Pos{Line: 1, Column: 27, Byte: 26},
+							},
+						},
+					},
+					Body: &ast.StatementBlock{
+						WithRange: ast.WithRange{
+							Range: source.Range{
+								Start: source.Pos{Line: 1, Column: 28, Byte: 27},
+								End:   source.Pos{Line: 1, Column: 30, Byte: 29},
+							},
+						},
+					},
+
+					HeaderRange: source.Range{
+						Start: source.Pos{Line: 1, Column: 1, Byte: 0},
+						End:   source.Pos{Line: 1, Column: 27, Byte: 26},
+					},
+					WithRange: ast.WithRange{
+						Range: source.Range{
+							Start: source.Pos{Line: 1, Column: 1, Byte: 0},
+							End:   source.Pos{Line: 1, Column: 30, Byte: 29},
+						},
+					},
+				},
+			},
+			0,
+		},
+		{
+			`pinout foo {}`,
+			[]ast.Node{
+				&ast.Pinout{
+					Name: "foo",
+					Land: &ast.Invalid{
+						WithRange: ast.WithRange{
+							Range: source.Range{
+								Start: source.Pos{Line: 1, Column: 7, Byte: 6},
+								End:   source.Pos{Line: 1, Column: 7, Byte: 6},
+							},
+						},
+					},
+					Body: &ast.StatementBlock{
+						WithRange: ast.WithRange{
+							Range: source.Range{
+								Start: source.Pos{Line: 1, Column: 12, Byte: 11},
+								End:   source.Pos{Line: 1, Column: 14, Byte: 13},
+							},
+						},
+					},
+
+					HeaderRange: source.Range{
+						Start: source.Pos{Line: 1, Column: 1, Byte: 0},
+						End:   source.Pos{Line: 1, Column: 11, Byte: 10},
+					},
+					WithRange: ast.WithRange{
+						Range: source.Range{
+							Start: source.Pos{Line: 1, Column: 1, Byte: 0},
+							End:   source.Pos{Line: 1, Column: 14, Byte: 13},
+						},
+					},
+				},
+			},
+			1, // missing "to" clause
+		},
+
+		{
 			`terminal foo;`,
 			[]ast.Node{
 				&ast.Terminal{

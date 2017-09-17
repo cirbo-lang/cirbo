@@ -362,6 +362,9 @@ Statements:
 		case "land":
 			node, nodeDiags = p.parseLand()
 
+		case "pinout":
+			node, nodeDiags = p.parsePinout()
+
 		default:
 
 			if p.keywordCanStartTerminalDecl(nextKw) {
@@ -1188,6 +1191,112 @@ func (p *parser) parseLand() (ast.Node, source.Diags) {
 			Range: fullRange,
 		},
 	}, diags
+}
+
+func (p *parser) parsePinout() (ast.Node, source.Diags) {
+	kw := p.PeekKeyword()
+	if kw != "pinout" {
+		// Should never happen because caller should've peeked ahead here
+		panic("parsePinout called with peeker not pointing at pinout keyword")
+	}
+
+	kwTok := p.Read() // eat keyword
+
+	var diags source.Diags
+	pinout := &ast.Pinout{
+		Land: &ast.Invalid{
+			WithRange: ast.WithRange{
+				Range: source.Range{
+					Start: kwTok.Range.End,
+					End:   kwTok.Range.End,
+				},
+			},
+		},
+		Body: &ast.StatementBlock{
+			WithRange: ast.WithRange{
+				Range: source.Range{
+					Start: kwTok.Range.End,
+					End:   kwTok.Range.End,
+				},
+			},
+		},
+
+		HeaderRange: kwTok.Range,
+		WithRange: ast.WithRange{
+			Range: kwTok.Range,
+		},
+	}
+
+	if p.Peek().Type != TokenIdent {
+		if !p.recovering {
+			switch p.Peek().Type {
+			case TokenOBrace:
+				diags = append(diags, source.Diag{
+					Level:   source.Error,
+					Summary: fmt.Sprintf("Missing %s name", kw),
+					Detail:  fmt.Sprintf("The %q keyword must be followed by a name for this %s.", kw, kw),
+					Ranges:  []source.Range{p.PeekRange()},
+				})
+			default:
+				diags = append(diags, source.Diag{
+					Level:   source.Error,
+					Summary: fmt.Sprintf("Invalid %s name", kw),
+					Detail:  fmt.Sprintf("The name of this %s must be an identifier.", kw),
+					Ranges:  []source.Range{p.PeekRange()},
+				})
+			}
+		}
+		pinout.WithRange.Range = source.RangeBetween(kwTok.Range, p.PeekRange())
+		p.recoverAfterNextBlock()
+		return pinout, diags
+	}
+
+	nameTok := p.Read()
+	pinout.Name = p.decodeIdentifierBytes(nameTok.Bytes)
+	pinout.HeaderRange = source.RangeBetween(kwTok.Range, nameTok.Range)
+
+	if p.PeekKeyword() == "from" {
+		p.Read() // eat "from" keyword
+		var exprDiags source.Diags
+		pinout.Device, exprDiags = p.parseExpr()
+		diags = append(diags, exprDiags...)
+		pinout.HeaderRange = source.RangeBetween(kwTok.Range, pinout.Device.SourceRange())
+		pinout.WithRange.Range = pinout.HeaderRange
+		if diags.HasErrors() {
+			p.recoverAfterNextBlock()
+			return pinout, diags
+		}
+	}
+
+	if p.PeekKeyword() == "to" {
+		p.Read() // eat "to" keyword
+		var exprDiags source.Diags
+		pinout.Land, exprDiags = p.parseExpr()
+		diags = append(diags, exprDiags...)
+		pinout.HeaderRange = source.RangeBetween(kwTok.Range, pinout.Land.SourceRange())
+		pinout.WithRange.Range = pinout.HeaderRange
+		if diags.HasErrors() {
+			p.recoverAfterNextBlock()
+			return pinout, diags
+		}
+	} else {
+		if !p.recovering {
+			diags = append(diags, source.Diag{
+				Level:   source.Error,
+				Summary: "Missing \"to\" clause",
+				Detail:  "Pinout definition must include \"to\" keyword followed by a land expression.",
+				Ranges:  pinout.HeaderRange.List(),
+			})
+		}
+		p.setRecovering()
+	}
+
+	var bodyDiags source.Diags
+	pinout.Body, bodyDiags = p.parseStmtBlock()
+	diags = append(diags, bodyDiags...)
+	pinout.WithRange.Range = source.RangeBetween(pinout.HeaderRange, pinout.Body.SourceRange())
+
+	return pinout, diags
 }
 
 func (p *parser) parseExpr() (ast.Node, source.Diags) {
