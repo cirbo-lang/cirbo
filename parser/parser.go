@@ -353,6 +353,9 @@ Statements:
 		case "export":
 			node, nodeDiags = p.parseExport()
 
+		case "designator":
+			node, nodeDiags = p.parseDesignator()
+
 		case "board":
 			node, nodeDiags = p.parseBoard()
 
@@ -869,6 +872,46 @@ func (p *parser) parseExport() (ast.Node, source.Diags) {
 	export.Range = source.RangeBetween(kw.Range, semicolon.Range)
 
 	return export, diags
+}
+
+func (p *parser) parseDesignator() (ast.Node, source.Diags) {
+	kw := p.Read()
+	if kw.Type != TokenIdent {
+		// Should never happen because caller should've peeked ahead here
+		panic("parseDesignator called with peeker not pointing at ident")
+	}
+
+	var diags source.Diags
+	var designator = &ast.Designator{
+		WithRange: ast.WithRange{
+			Range: kw.Range,
+		},
+	}
+
+	designator.Value, diags = p.parseExpr()
+	designator.Range = source.RangeBetween(kw.Range, designator.Value.SourceRange())
+	if diags.HasErrors() {
+		p.recoverAfterSemicolon()
+		return designator, diags
+	}
+
+	if p.Peek().Type != TokenSemicolon {
+		if !p.recovering {
+			diags = append(diags, source.Diag{
+				Level:   source.Error,
+				Summary: "Unterminated statement",
+				Detail:  "This designator statement must be terminated by a semicolon.",
+				Ranges:  source.RangeBetween(kw.Range, p.Peek().Range).List(),
+			})
+		}
+		p.recoverAfterSemicolon()
+		return nil, diags
+	}
+
+	semicolon := p.Read()
+	designator.Range = source.RangeBetween(kw.Range, semicolon.Range)
+
+	return designator, diags
 }
 
 func (p *parser) keywordCanStartTerminalDecl(kw string) bool {

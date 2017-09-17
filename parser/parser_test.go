@@ -607,6 +607,31 @@ func TestParseTopLevel(t *testing.T) {
 		},
 
 		{
+			`designator "R";`,
+			[]ast.Node{
+				&ast.Designator{
+					Value: &ast.StringLit{
+						Value: "R",
+
+						WithRange: ast.WithRange{
+							Range: source.Range{
+								Start: source.Pos{Line: 1, Column: 12, Byte: 11},
+								End:   source.Pos{Line: 1, Column: 15, Byte: 14},
+							},
+						},
+					},
+					WithRange: ast.WithRange{
+						Range: source.Range{
+							Start: source.Pos{Line: 1, Column: 1, Byte: 0},
+							End:   source.Pos{Line: 1, Column: 16, Byte: 15},
+						},
+					},
+				},
+			},
+			0,
+		},
+
+		{
 			`a = true;`,
 			[]ast.Node{
 				&ast.Assign{
