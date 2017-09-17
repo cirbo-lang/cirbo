@@ -2,9 +2,10 @@ package ast
 
 type Export struct {
 	WithRange
-	Expr Node
+	Value Node
+	Name  string
 }
 
 func (n *Export) walkChildNodes(cb internalWalkFunc) {
-	cb(n.Expr)
+	cb(n.Value)
 }

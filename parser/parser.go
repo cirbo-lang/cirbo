@@ -350,6 +350,9 @@ Statements:
 		case "import":
 			node, nodeDiags = p.parseImport()
 
+		case "export":
+			node, nodeDiags = p.parseExport()
+
 		case "board":
 			node, nodeDiags = p.parseBoard()
 
@@ -806,6 +809,66 @@ func (p *parser) parseImport() (ast.Node, source.Diags) {
 			Range: source.RangeBetween(kw.Range, semicolon.Range),
 		},
 	}, diags
+}
+
+func (p *parser) parseExport() (ast.Node, source.Diags) {
+	kw := p.Read()
+	if kw.Type != TokenIdent {
+		// Should never happen because caller should've peeked ahead here
+		panic("parseExport called with peeker not pointing at ident")
+	}
+
+	var diags source.Diags
+	var export = &ast.Export{
+		WithRange: ast.WithRange{
+			Range: kw.Range,
+		},
+	}
+
+	export.Value, diags = p.parseExpr()
+	export.Range = source.RangeBetween(kw.Range, export.Value.SourceRange())
+	if diags.HasErrors() {
+		p.recoverAfterSemicolon()
+		return export, diags
+	}
+
+	if p.PeekKeyword() == "as" {
+		p.Read() // eat the "as" keyword
+		if p.Peek().Type != TokenIdent {
+			if !p.recovering {
+				diags = append(diags, source.Diag{
+					Level:   source.Error,
+					Summary: "Invalid export name",
+					Detail:  "The name for an export must be an identifier.",
+					Ranges:  []source.Range{p.PeekRange()},
+				})
+			}
+			p.recoverAfterSemicolon()
+			return export, diags
+		}
+
+		nameTok := p.Read()
+		export.Name = p.decodeIdentifierBytes(nameTok.Bytes)
+		export.Range = source.RangeBetween(kw.Range, nameTok.Range)
+	}
+
+	if p.Peek().Type != TokenSemicolon {
+		if !p.recovering {
+			diags = append(diags, source.Diag{
+				Level:   source.Error,
+				Summary: "Unterminated statement",
+				Detail:  "This export statement must be terminated by a semicolon.",
+				Ranges:  source.RangeBetween(kw.Range, p.Peek().Range).List(),
+			})
+		}
+		p.recoverAfterSemicolon()
+		return nil, diags
+	}
+
+	semicolon := p.Read()
+	export.Range = source.RangeBetween(kw.Range, semicolon.Range)
+
+	return export, diags
 }
 
 func (p *parser) keywordCanStartTerminalDecl(kw string) bool {

@@ -531,6 +531,82 @@ func TestParseTopLevel(t *testing.T) {
 		},
 
 		{
+			`export "baz";`,
+			[]ast.Node{
+				&ast.Export{
+					Value: &ast.StringLit{
+						Value: "baz",
+
+						WithRange: ast.WithRange{
+							Range: source.Range{
+								Start: source.Pos{Line: 1, Column: 8, Byte: 7},
+								End:   source.Pos{Line: 1, Column: 13, Byte: 12},
+							},
+						},
+					},
+					Name: "",
+					WithRange: ast.WithRange{
+						Range: source.Range{
+							Start: source.Pos{Line: 1, Column: 1, Byte: 0},
+							End:   source.Pos{Line: 1, Column: 14, Byte: 13},
+						},
+					},
+				},
+			},
+			0,
+		},
+		{
+			`export false;`,
+			[]ast.Node{
+				&ast.Export{
+					Value: &ast.BooleanLit{
+						Value: false,
+
+						WithRange: ast.WithRange{
+							Range: source.Range{
+								Start: source.Pos{Line: 1, Column: 8, Byte: 7},
+								End:   source.Pos{Line: 1, Column: 13, Byte: 12},
+							},
+						},
+					},
+					Name: "",
+					WithRange: ast.WithRange{
+						Range: source.Range{
+							Start: source.Pos{Line: 1, Column: 1, Byte: 0},
+							End:   source.Pos{Line: 1, Column: 14, Byte: 13},
+						},
+					},
+				},
+			},
+			0,
+		},
+		{
+			`export "baz" as thing;`,
+			[]ast.Node{
+				&ast.Export{
+					Value: &ast.StringLit{
+						Value: "baz",
+
+						WithRange: ast.WithRange{
+							Range: source.Range{
+								Start: source.Pos{Line: 1, Column: 8, Byte: 7},
+								End:   source.Pos{Line: 1, Column: 13, Byte: 12},
+							},
+						},
+					},
+					Name: "thing",
+					WithRange: ast.WithRange{
+						Range: source.Range{
+							Start: source.Pos{Line: 1, Column: 1, Byte: 0},
+							End:   source.Pos{Line: 1, Column: 23, Byte: 22},
+						},
+					},
+				},
+			},
+			0,
+		},
+
+		{
 			`a = true;`,
 			[]ast.Node{
 				&ast.Assign{
