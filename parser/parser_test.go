@@ -1858,6 +1858,43 @@ func TestParseTopLevel(t *testing.T) {
 			0,
 		},
 		{
+			`output leader foo;`,
+			[]ast.Node{
+				&ast.Terminal{
+					Name: "foo",
+					Type: ast.Signal,
+					Dir:  ast.Output,
+					Role: ast.Leader,
+					WithRange: ast.WithRange{
+						Range: source.Range{
+							Start: source.Pos{Line: 1, Column: 1, Byte: 0},
+							End:   source.Pos{Line: 1, Column: 19, Byte: 18},
+						},
+					},
+				},
+			},
+			0,
+		},
+		{
+			`output tristate leader foo;`,
+			[]ast.Node{
+				&ast.Terminal{
+					Name:       "foo",
+					Type:       ast.Signal,
+					Dir:        ast.Output,
+					Role:       ast.Leader,
+					OutputType: ast.Tristate,
+					WithRange: ast.WithRange{
+						Range: source.Range{
+							Start: source.Pos{Line: 1, Column: 1, Byte: 0},
+							End:   source.Pos{Line: 1, Column: 28, Byte: 27},
+						},
+					},
+				},
+			},
+			0,
+		},
+		{
 			`bidi foo;`,
 			[]ast.Node{
 				&ast.Terminal{

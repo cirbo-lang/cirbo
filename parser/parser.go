@@ -912,13 +912,13 @@ Keywords:
 			switch kw {
 			case "emitter":
 				terminal.OutputType = ast.OpenEmitter
-				state = end
+				state = optionalRole
 			case "collector":
 				terminal.OutputType = ast.OpenCollector
-				state = end
+				state = optionalRole
 			case "tristate":
 				terminal.OutputType = ast.Tristate
-				state = end
+				state = optionalRole
 			case "leader":
 				terminal.Role = ast.Leader
 				state = end
