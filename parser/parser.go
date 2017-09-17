@@ -361,6 +361,11 @@ Statements:
 
 		default:
 
+			if p.keywordCanStartTerminalDecl(nextKw) {
+				node, nodeDiags = p.parseTerminalDecl()
+				break
+			}
+
 			if p.Peek().Type == TokenSemicolon {
 				p.Read()
 				continue Statements
@@ -795,6 +800,222 @@ func (p *parser) parseImport() (ast.Node, source.Diags) {
 			Range: source.RangeBetween(kw.Range, semicolon.Range),
 		},
 	}, diags
+}
+
+func (p *parser) keywordCanStartTerminalDecl(kw string) bool {
+	switch kw {
+	case "terminal", "power", "input", "output", "bidi":
+		return true
+	default:
+		return false
+	}
+}
+
+func (p *parser) parseTerminalDecl() (ast.Node, source.Diags) {
+	kw := p.PeekKeyword()
+	if !p.keywordCanStartTerminalDecl(kw) {
+		// Indicates a bug in the caller
+		panic("parseTerminalDecl called with peeker not pointing at valid keyword")
+	}
+
+	first := p.Peek()
+	last := first
+	terminal := &ast.Terminal{}
+	var diags source.Diags
+
+	type DeclState int
+	const (
+		begin DeclState = iota
+		afterPower
+		afterBidi
+		afterOutput
+		end
+	)
+
+	state := begin
+
+Keywords:
+	for state != end {
+		kw = p.PeekKeyword()
+
+		switch state {
+		case begin:
+			switch kw {
+			case "terminal":
+				terminal.Type = ast.Passive
+				terminal.Dir = ast.Undirected
+				state = end
+			case "power":
+				terminal.Type = ast.Power
+				terminal.Dir = ast.Undirected
+				state = afterPower
+			case "input":
+				terminal.Type = ast.Signal
+				terminal.Dir = ast.Input
+				state = end
+			case "output":
+				terminal.Type = ast.Signal
+				terminal.Dir = ast.Output
+				state = afterOutput
+			case "bidi":
+				terminal.Type = ast.Signal
+				state = afterBidi
+			default:
+				// Should never happen since the above should be exhaustive
+				// of all the start keywords.
+				panic("invalid initial keyword in terminal declaration")
+			}
+		case afterPower:
+			switch kw {
+			case "input":
+				terminal.Dir = ast.Input
+				state = end
+			case "output":
+				terminal.Dir = ast.Output
+				state = afterOutput
+			case "bidi":
+				state = afterBidi
+			default:
+				break Keywords
+			}
+		case afterBidi:
+			switch kw {
+			case "leader":
+				terminal.Dir = ast.BidiLeader
+				state = end
+			case "follower":
+				terminal.Dir = ast.BidiFollower
+				state = end
+			default:
+				// bidi must always be followed by a role keyword
+				diags = append(diags, source.Diag{
+					Level:   source.Error,
+					Summary: "Invalid bi-directional terminal role",
+					Detail:  "The keyword \"bidi\" must be followed by either \"leader\" or \"follower\" to define the terminal's role relative to other terminals on its net.",
+					Ranges:  p.PeekRange().List(),
+				})
+				p.setRecovering()
+
+				// Placeholder value
+				terminal.Dir = ast.Undirected
+				break Keywords
+			}
+		case afterOutput:
+			switch kw {
+			case "drain":
+				terminal.OutputType = ast.OpenDrain
+				state = end
+			case "collector":
+				terminal.OutputType = ast.OpenCollector
+				state = end
+			case "tristate":
+				terminal.OutputType = ast.Tristate
+				state = end
+			default:
+				terminal.OutputType = ast.PushPull
+				break Keywords
+			}
+		}
+
+		// If we get down here without breaking out early, we consume a keyword.
+		last = p.Read()
+	}
+
+	// The range so far: all of the keywords we visited in the state machine above
+	terminal.WithRange.Range = source.RangeBetween(first.Range, last.Range)
+
+	// If the next thing could potentially be an extraneous terminal type
+	// keyword then we'll make a note of it and produce a different error
+	// message below if the statement doesn't close as we expect.
+	// (This is just to get a more helpful error message if the user
+	// uses an inappropriate combination of keywords.)
+	nextKw := p.PeekKeyword()
+	var extraKw string
+	var extraKwTok Token
+	switch nextKw {
+	case "terminal", "power", "input", "output", "bidi", "leader", "follower", "drain", "collector", "tristate":
+		extraKw = nextKw
+		extraKwTok = p.Peek()
+	}
+
+	if p.Peek().Type != TokenIdent {
+		if !p.recovering {
+			diags = append(diags, source.Diag{
+				Level:   source.Error,
+				Summary: "Missing or invalid terminal name",
+				Detail:  "A terminal declaration must conclude with an identifer that names the terminal.",
+				Ranges:  p.PeekRange().List(),
+			})
+			p.setRecovering()
+		}
+		p.recoverAfterSemicolon()
+		return terminal, diags
+	}
+
+	nameTok := p.Read()
+	terminal.Name = p.decodeIdentifierBytes(nameTok.Bytes)
+	terminal.WithRange.Range = source.RangeBetween(first.Range, nameTok.Range)
+
+	if p.Peek().Type != TokenSemicolon {
+		if !p.recovering {
+			// If the identifier we read above smelled like it could be an
+			// extraneous decl keyword then we'll assume the user tried for
+			// an invalid combination of keywords and produce a different
+			// error message as a result.
+			switch extraKw {
+			case "terminal":
+				diags = append(diags, source.Diag{
+					Level:   source.Error,
+					Summary: "Invalid terminal declaration",
+					Detail:  "The keyword \"terminal\" may not be used in conjunction with other terminal definition keywords.",
+					Ranges:  extraKwTok.Range.List(),
+				})
+			case "power":
+				diags = append(diags, source.Diag{
+					Level:   source.Error,
+					Summary: "Invalid terminal declaration",
+					Detail:  "The keyword \"power\" must always be the first keyword in a terminal definition.",
+					Ranges:  extraKwTok.Range.List(),
+				})
+			case "leader", "follower":
+				diags = append(diags, source.Diag{
+					Level:   source.Error,
+					Summary: "Invalid terminal declaration",
+					Detail:  fmt.Sprintf("The keyword %q may only be used after the \"bidi\" keyword.", extraKw),
+					Ranges:  extraKwTok.Range.List(),
+				})
+			case "drain", "collector", "tristate":
+				diags = append(diags, source.Diag{
+					Level:   source.Error,
+					Summary: "Invalid terminal declaration",
+					Detail:  fmt.Sprintf("The keyword %q must appear either as the first keyword of a terminal definition or immediately after \"power\".", extraKw),
+					Ranges:  extraKwTok.Range.List(),
+				})
+			case "input", "output", "bidi":
+				diags = append(diags, source.Diag{
+					Level:   source.Error,
+					Summary: "Invalid terminal declaration",
+					Detail:  fmt.Sprintf("The keyword %q may only be used after the \"output\" keyword.", extraKw),
+					Ranges:  extraKwTok.Range.List(),
+				})
+			default:
+				diags = append(diags, source.Diag{
+					Level:   source.Error,
+					Summary: "Unterminated statement",
+					Detail:  "This terminal declaration must be terminated by a semicolon.",
+					Ranges:  terminal.Range.List(),
+				})
+			}
+			p.setRecovering()
+		}
+		p.recoverAfterSemicolon()
+		return terminal, diags
+	}
+
+	close := p.Read() // eat semicolon
+	terminal.WithRange.Range = source.RangeBetween(first.Range, close.Range)
+
+	return terminal, diags
 }
 
 func (p *parser) parseNamedObjectBlock() (name string, params *ast.Arguments, body *ast.StatementBlock, headerRange source.Range, fullRange source.Range, diags source.Diags) {

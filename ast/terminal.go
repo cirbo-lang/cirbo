@@ -48,6 +48,7 @@ type TerminalOutputType rune
 
 const (
 	NoOutput      TerminalOutputType = 0
+	PushPull      TerminalOutputType = 'P'
 	Tristate      TerminalOutputType = '±'
 	OpenCollector TerminalOutputType = 'C'
 	OpenDrain     TerminalOutputType = 'D'

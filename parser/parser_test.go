@@ -1471,6 +1471,301 @@ func TestParseTopLevel(t *testing.T) {
 			},
 			0,
 		},
+
+		{
+			`terminal foo;`,
+			[]ast.Node{
+				&ast.Terminal{
+					Name: "foo",
+					Type: ast.Passive,
+					Dir:  ast.Undirected,
+					WithRange: ast.WithRange{
+						Range: source.Range{
+							Start: source.Pos{Line: 1, Column: 1, Byte: 0},
+							End:   source.Pos{Line: 1, Column: 14, Byte: 13},
+						},
+					},
+				},
+			},
+			0,
+		},
+		{
+			`power foo;`,
+			[]ast.Node{
+				&ast.Terminal{
+					Name: "foo",
+					Type: ast.Power,
+					Dir:  ast.Undirected,
+					WithRange: ast.WithRange{
+						Range: source.Range{
+							Start: source.Pos{Line: 1, Column: 1, Byte: 0},
+							End:   source.Pos{Line: 1, Column: 11, Byte: 10},
+						},
+					},
+				},
+			},
+			0,
+		},
+		{
+			`input foo;`,
+			[]ast.Node{
+				&ast.Terminal{
+					Name: "foo",
+					Type: ast.Signal,
+					Dir:  ast.Input,
+					WithRange: ast.WithRange{
+						Range: source.Range{
+							Start: source.Pos{Line: 1, Column: 1, Byte: 0},
+							End:   source.Pos{Line: 1, Column: 11, Byte: 10},
+						},
+					},
+				},
+			},
+			0,
+		},
+		{
+			`output foo;`,
+			[]ast.Node{
+				&ast.Terminal{
+					Name:       "foo",
+					Type:       ast.Signal,
+					Dir:        ast.Output,
+					OutputType: ast.PushPull,
+					WithRange: ast.WithRange{
+						Range: source.Range{
+							Start: source.Pos{Line: 1, Column: 1, Byte: 0},
+							End:   source.Pos{Line: 1, Column: 12, Byte: 11},
+						},
+					},
+				},
+			},
+			0,
+		},
+		{
+			`output tristate foo;`,
+			[]ast.Node{
+				&ast.Terminal{
+					Name:       "foo",
+					Type:       ast.Signal,
+					Dir:        ast.Output,
+					OutputType: ast.Tristate,
+					WithRange: ast.WithRange{
+						Range: source.Range{
+							Start: source.Pos{Line: 1, Column: 1, Byte: 0},
+							End:   source.Pos{Line: 1, Column: 21, Byte: 20},
+						},
+					},
+				},
+			},
+			0,
+		},
+		{
+			`output drain foo;`,
+			[]ast.Node{
+				&ast.Terminal{
+					Name:       "foo",
+					Type:       ast.Signal,
+					Dir:        ast.Output,
+					OutputType: ast.OpenDrain,
+					WithRange: ast.WithRange{
+						Range: source.Range{
+							Start: source.Pos{Line: 1, Column: 1, Byte: 0},
+							End:   source.Pos{Line: 1, Column: 18, Byte: 17},
+						},
+					},
+				},
+			},
+			0,
+		},
+		{
+			`output collector foo;`,
+			[]ast.Node{
+				&ast.Terminal{
+					Name:       "foo",
+					Type:       ast.Signal,
+					Dir:        ast.Output,
+					OutputType: ast.OpenCollector,
+					WithRange: ast.WithRange{
+						Range: source.Range{
+							Start: source.Pos{Line: 1, Column: 1, Byte: 0},
+							End:   source.Pos{Line: 1, Column: 22, Byte: 21},
+						},
+					},
+				},
+			},
+			0,
+		},
+		{
+			`bidi leader foo;`,
+			[]ast.Node{
+				&ast.Terminal{
+					Name: "foo",
+					Type: ast.Signal,
+					Dir:  ast.BidiLeader,
+					WithRange: ast.WithRange{
+						Range: source.Range{
+							Start: source.Pos{Line: 1, Column: 1, Byte: 0},
+							End:   source.Pos{Line: 1, Column: 17, Byte: 16},
+						},
+					},
+				},
+			},
+			0,
+		},
+		{
+			`bidi follower foo;`,
+			[]ast.Node{
+				&ast.Terminal{
+					Name: "foo",
+					Type: ast.Signal,
+					Dir:  ast.BidiFollower,
+					WithRange: ast.WithRange{
+						Range: source.Range{
+							Start: source.Pos{Line: 1, Column: 1, Byte: 0},
+							End:   source.Pos{Line: 1, Column: 19, Byte: 18},
+						},
+					},
+				},
+			},
+			0,
+		},
+		{
+			`bidi foo;`,
+			[]ast.Node{
+				&ast.Terminal{
+					Name: "foo",
+					Type: ast.Signal,
+					Dir:  ast.Undirected,
+					WithRange: ast.WithRange{
+						Range: source.Range{
+							Start: source.Pos{Line: 1, Column: 1, Byte: 0},
+							End:   source.Pos{Line: 1, Column: 10, Byte: 9},
+						},
+					},
+				},
+			},
+			1, // missing bidirectional terminal role
+		},
+		{
+			`power input foo;`,
+			[]ast.Node{
+				&ast.Terminal{
+					Name: "foo",
+					Type: ast.Power,
+					Dir:  ast.Input,
+					WithRange: ast.WithRange{
+						Range: source.Range{
+							Start: source.Pos{Line: 1, Column: 1, Byte: 0},
+							End:   source.Pos{Line: 1, Column: 17, Byte: 16},
+						},
+					},
+				},
+			},
+			0,
+		},
+		{
+			`power output foo;`,
+			[]ast.Node{
+				&ast.Terminal{
+					Name:       "foo",
+					Type:       ast.Power,
+					Dir:        ast.Output,
+					OutputType: ast.PushPull,
+					WithRange: ast.WithRange{
+						Range: source.Range{
+							Start: source.Pos{Line: 1, Column: 1, Byte: 0},
+							End:   source.Pos{Line: 1, Column: 18, Byte: 17},
+						},
+					},
+				},
+			},
+			0,
+		},
+		{
+			`power foo;`,
+			[]ast.Node{
+				&ast.Terminal{
+					Name: "foo",
+					Type: ast.Power,
+					Dir:  ast.Undirected,
+					WithRange: ast.WithRange{
+						Range: source.Range{
+							Start: source.Pos{Line: 1, Column: 1, Byte: 0},
+							End:   source.Pos{Line: 1, Column: 11, Byte: 10},
+						},
+					},
+				},
+			},
+			0,
+		},
+		{
+			`power power foo;`,
+			[]ast.Node{
+				&ast.Terminal{
+					Name: "power",
+					Type: ast.Power,
+					Dir:  ast.Undirected,
+					WithRange: ast.WithRange{
+						Range: source.Range{
+							Start: source.Pos{Line: 1, Column: 1, Byte: 0},
+							End:   source.Pos{Line: 1, Column: 12, Byte: 11},
+						},
+					},
+				},
+			},
+			1, // invalid terminal declaration
+		},
+		{
+			`input power foo;`,
+			[]ast.Node{
+				&ast.Terminal{
+					Name: "power",
+					Type: ast.Signal,
+					Dir:  ast.Input,
+					WithRange: ast.WithRange{
+						Range: source.Range{
+							Start: source.Pos{Line: 1, Column: 1, Byte: 0},
+							End:   source.Pos{Line: 1, Column: 12, Byte: 11},
+						},
+					},
+				},
+			},
+			1, // invalid terminal declaration
+		},
+		{
+			`input follower foo;`,
+			[]ast.Node{
+				&ast.Terminal{
+					Name: "follower",
+					Type: ast.Signal,
+					Dir:  ast.Input,
+					WithRange: ast.WithRange{
+						Range: source.Range{
+							Start: source.Pos{Line: 1, Column: 1, Byte: 0},
+							End:   source.Pos{Line: 1, Column: 15, Byte: 14},
+						},
+					},
+				},
+			},
+			1, // invalid terminal declaration
+		},
+		{
+			`input bidi foo;`,
+			[]ast.Node{
+				&ast.Terminal{
+					Name: "bidi",
+					Type: ast.Signal,
+					Dir:  ast.Input,
+					WithRange: ast.WithRange{
+						Range: source.Range{
+							Start: source.Pos{Line: 1, Column: 1, Byte: 0},
+							End:   source.Pos{Line: 1, Column: 11, Byte: 10},
+						},
+					},
+				},
+			},
+			1, // invalid terminal declaration
+		},
 	}
 
 	for _, test := range tests {
