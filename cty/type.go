@@ -1,0 +1,72 @@
+package cty
+
+import (
+	"fmt"
+)
+
+type Type struct {
+	impl typeImpl
+}
+
+// Name returns a name for the receiving type that is suitable for display
+// to cirbo end-users.
+func (t Type) Name() string {
+	return t.impl.Name()
+}
+
+// Same returns true if and only if the given type is the same as the
+// receiver.
+func (t Type) Same(o Type) bool {
+	type Samer interface {
+		Same(a, b Type) bool
+	}
+
+	if s, canSame := t.impl.(Samer); canSame {
+		return s.Same(t, o)
+	}
+
+	// Default implementation works for simple typeImpls; will panic if
+	// the impl does not support ==, so such impls must implement the
+	// Same method from above.
+	return t.impl == o.impl
+}
+
+// GoString returns a representation of the receiving type as Go syntax,
+// suitable for display in tests and other internal debug messages.
+//
+// This result must never be displayed to cirbo end-users.
+func (t Type) GoString() string {
+	if s, isStringer := t.impl.(fmt.GoStringer); isStringer {
+		return s.GoString()
+	}
+	return fmt.Sprintf("cty.%s", t.Name())
+}
+
+// HasArithmetic returns true if and only if the recieving type supports
+// the arithmetic operators.
+func (t Type) HasArithmetic() bool {
+	_, has := t.impl.(typeWithArithmetic)
+	return has
+}
+
+type typeImpl interface {
+	typeSigil() isType
+	Name() string
+}
+
+type isType struct {
+}
+
+func (it isType) typeSigil() isType {
+	return it
+}
+
+// GetAttr is a default implementation of GetAttr that always returns NilValue,
+// indicating that the associated value has no attributes.
+//
+// Override this with another implementation of GetAttr in order to actually
+// provide attributes. For example, embedding staticAttributes allows
+// attributes to be provided as a map.
+func (it isType) GetAttr(name string) Value {
+	return NilValue
+}
