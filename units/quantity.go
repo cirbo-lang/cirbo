@@ -141,6 +141,68 @@ func (q Quantity) WithStandardUnits() Quantity {
 	return q.Convert(u)
 }
 
+// Equal returns true if and only if the receiver is equal to the given
+// quantity.
+//
+// Two quantities can be equal only if their units have the same
+// dimensionality. If the two quantities have different units of the same
+// dimensionality, they will both be converted to standard units before
+// comparison.
+//
+// Unit conversions are done at high precision but the precision is not
+// unlimited, so mismatches may occur when comparing quantities whose values
+// have many significant figures.
+func (q Quantity) Equal(o Quantity) bool {
+	if q.unit.dim != o.unit.dim {
+		return false
+	}
+
+	return q.Compare(o) == 0
+}
+
+// Same returns true if and only if the receiver has the same value _and_
+// the same unit as the given quantity.
+//
+// This method is primarily provided for testing, to verify that some
+// result has the expected unit and value.
+func (q Quantity) Same(o Quantity) bool {
+	if q.unit.dim != o.unit.dim {
+		return false
+	}
+	if !q.unit.SameBaseUnits(o.unit) {
+		return false
+	}
+	return q.Equal(o)
+}
+
+// Compare determines whether the receiver is less than, greater than or
+// equal to the given quantity.
+//
+// Two quantities can be compared only if their units have the same
+// dimensionality. This function will panic if given incommensurable
+// quantities.
+//
+// If the two quantities have different units of the same dimensionality,
+// they will both be converted to standard units before comparison.
+//
+// The result is as follows:
+//
+//     -1 if q < o
+//      0 if q == 0
+//      1 if q > o
+func (q Quantity) Compare(o Quantity) int {
+	if q.unit.dim != o.unit.dim {
+		panic(fmt.Errorf("attempt to compare incommensurable quantities"))
+	}
+
+	if !q.unit.SameBaseUnits(o.unit) {
+		q = q.WithStandardUnits()
+		o = o.WithStandardUnits()
+	}
+
+	return q.value.Cmp(o.value)
+}
+
 // Multiply computes the product of the receiver and the given quantity,
 // multiplying both the value and the units to produce a new quantity.
 //
