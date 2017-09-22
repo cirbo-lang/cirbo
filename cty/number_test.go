@@ -206,7 +206,7 @@ func testNumber(n, u string) Value {
 	}
 
 	q := units.MakeQuantity(num, unit)
-	return NumberVal(q)
+	return QuantityVal(q)
 }
 
 func testNumberU(n string, unit *units.Unit) Value {
@@ -216,5 +216,5 @@ func testNumberU(n string, unit *units.Unit) Value {
 	}
 
 	q := units.MakeQuantity(num, unit)
-	return NumberVal(q)
+	return QuantityVal(q)
 }
