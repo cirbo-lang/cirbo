@@ -71,6 +71,24 @@ var namedNumberTypes = map[string]Type{
 		Time:            -3,
 		ElectricCurrent: -2,
 	}),
+	"Resistivity": Quantity(units.Dimensionality{
+		Mass:            1,
+		Length:          3,
+		Time:            -3,
+		ElectricCurrent: -2,
+	}),
+	"Conductance": Quantity(units.Dimensionality{
+		Mass:            -1,
+		Length:          -2,
+		Time:            3,
+		ElectricCurrent: 2,
+	}),
+	"Conductivity": Quantity(units.Dimensionality{
+		Mass:            -1,
+		Length:          -3,
+		Time:            3,
+		ElectricCurrent: 2,
+	}),
 	"Power": Quantity(units.Dimensionality{
 		Mass:   1,
 		Length: 2,

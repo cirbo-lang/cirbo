@@ -16,6 +16,12 @@ var Area Type
 // Capacitance is a quantity type of dimensionality [I]²[T]⁴[L]⁻²[M]⁻¹.
 var Capacitance Type
 
+// Conductance is a quantity type of dimensionality [I]²[T]³[L]⁻²[M]⁻¹.
+var Conductance Type
+
+// Conductivity is a quantity type of dimensionality [I]²[T]³[L]⁻³[M]⁻¹.
+var Conductivity Type
+
 // Current is a quantity type of dimensionality [I].
 var Current Type
 
@@ -52,6 +58,9 @@ var Power Type
 // Resistance is a quantity type of dimensionality [M][L]²[T]⁻³[I]⁻².
 var Resistance Type
 
+// Resistivity is a quantity type of dimensionality [M][L]³[T]⁻³[I]⁻².
+var Resistivity Type
+
 // Speed is a quantity type of dimensionality [L][T]⁻¹.
 var Speed Type
 
@@ -66,6 +75,8 @@ func init() {
 	AngularSpeed = namedNumberTypes["AngularSpeed"]
 	Area = namedNumberTypes["Area"]
 	Capacitance = namedNumberTypes["Capacitance"]
+	Conductance = namedNumberTypes["Conductance"]
+	Conductivity = namedNumberTypes["Conductivity"]
 	Current = namedNumberTypes["Current"]
 	Force = namedNumberTypes["Force"]
 	Frequency = namedNumberTypes["Frequency"]
@@ -78,6 +89,7 @@ func init() {
 	Number = namedNumberTypes["Number"]
 	Power = namedNumberTypes["Power"]
 	Resistance = namedNumberTypes["Resistance"]
+	Resistivity = namedNumberTypes["Resistivity"]
 	Speed = namedNumberTypes["Speed"]
 	Time = namedNumberTypes["Time"]
 	Voltage = namedNumberTypes["Voltage"]
