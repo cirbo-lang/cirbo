@@ -5,92 +5,67 @@ package cty
 /////////////////
 
 // Angle is a quantity type of dimensionality [angle].
-var Angle Type
+var Angle Type = QuantityByName("Angle")
 
 // AngularSpeed is a quantity type of dimensionality [angle][T]⁻¹.
-var AngularSpeed Type
+var AngularSpeed Type = QuantityByName("AngularSpeed")
 
 // Area is a quantity type of dimensionality [L]².
-var Area Type
+var Area Type = QuantityByName("Area")
 
 // Capacitance is a quantity type of dimensionality [I]²[T]⁴[L]⁻²[M]⁻¹.
-var Capacitance Type
+var Capacitance Type = QuantityByName("Capacitance")
 
 // Conductance is a quantity type of dimensionality [I]²[T]³[L]⁻²[M]⁻¹.
-var Conductance Type
+var Conductance Type = QuantityByName("Conductance")
 
 // Conductivity is a quantity type of dimensionality [I]²[T]³[L]⁻³[M]⁻¹.
-var Conductivity Type
+var Conductivity Type = QuantityByName("Conductivity")
 
 // Current is a quantity type of dimensionality [I].
-var Current Type
+var Current Type = QuantityByName("Current")
 
 // Force is a quantity type of dimensionality [M][L][T]⁻².
-var Force Type
+var Force Type = QuantityByName("Force")
 
 // Frequency is a quantity type of dimensionality [T]⁻¹.
-var Frequency Type
+var Frequency Type = QuantityByName("Frequency")
 
 // Illuminance is a quantity type of dimensionality [J][L]⁻².
-var Illuminance Type
+var Illuminance Type = QuantityByName("Illuminance")
 
 // Inductance is a quantity type of dimensionality [M][L]²[T]⁻²[I]⁻².
-var Inductance Type
+var Inductance Type = QuantityByName("Inductance")
 
 // Length is a quantity type of dimensionality [L].
-var Length Type
+var Length Type = QuantityByName("Length")
 
 // LuminousIntensity is a quantity type of dimensionality [J].
-var LuminousIntensity Type
+var LuminousIntensity Type = QuantityByName("LuminousIntensity")
 
 // Mass is a quantity type of dimensionality [M].
-var Mass Type
+var Mass Type = QuantityByName("Mass")
 
 // Momentum is a quantity type of dimensionality [M][L][T]⁻¹.
-var Momentum Type
+var Momentum Type = QuantityByName("Momentum")
 
 // Number is a quantity type of dimensionality .
-var Number Type
+var Number Type = QuantityByName("Number")
 
 // Power is a quantity type of dimensionality [M][L]²[T]⁻³.
-var Power Type
+var Power Type = QuantityByName("Power")
 
 // Resistance is a quantity type of dimensionality [M][L]²[T]⁻³[I]⁻².
-var Resistance Type
+var Resistance Type = QuantityByName("Resistance")
 
 // Resistivity is a quantity type of dimensionality [M][L]³[T]⁻³[I]⁻².
-var Resistivity Type
+var Resistivity Type = QuantityByName("Resistivity")
 
 // Speed is a quantity type of dimensionality [L][T]⁻¹.
-var Speed Type
+var Speed Type = QuantityByName("Speed")
 
 // Time is a quantity type of dimensionality [T].
-var Time Type
+var Time Type = QuantityByName("Time")
 
 // Voltage is a quantity type of dimensionality [M][L]²[T]⁻³[I]⁻¹.
-var Voltage Type
-
-func init() {
-	Angle = namedNumberTypes["Angle"]
-	AngularSpeed = namedNumberTypes["AngularSpeed"]
-	Area = namedNumberTypes["Area"]
-	Capacitance = namedNumberTypes["Capacitance"]
-	Conductance = namedNumberTypes["Conductance"]
-	Conductivity = namedNumberTypes["Conductivity"]
-	Current = namedNumberTypes["Current"]
-	Force = namedNumberTypes["Force"]
-	Frequency = namedNumberTypes["Frequency"]
-	Illuminance = namedNumberTypes["Illuminance"]
-	Inductance = namedNumberTypes["Inductance"]
-	Length = namedNumberTypes["Length"]
-	LuminousIntensity = namedNumberTypes["LuminousIntensity"]
-	Mass = namedNumberTypes["Mass"]
-	Momentum = namedNumberTypes["Momentum"]
-	Number = namedNumberTypes["Number"]
-	Power = namedNumberTypes["Power"]
-	Resistance = namedNumberTypes["Resistance"]
-	Resistivity = namedNumberTypes["Resistivity"]
-	Speed = namedNumberTypes["Speed"]
-	Time = namedNumberTypes["Time"]
-	Voltage = namedNumberTypes["Voltage"]
-}
+var Voltage Type = QuantityByName("Voltage")
