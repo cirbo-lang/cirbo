@@ -71,6 +71,18 @@ func (t Type) CanProduct(o Type) bool {
 	return t.impl.(typeWithArithmetic).CanProduct(o)
 }
 
+// CanConcat returns true if the given type can concatenate values of the other
+// given type.
+//
+// Always returns false if the receiver doesn't support concatenation at all.
+func (t Type) CanConcat(o Type) bool {
+	concatter, canConcat := t.impl.(typeWithConcat)
+	if !canConcat {
+		return false
+	}
+	return concatter.CanConcat(o)
+}
+
 type typeImpl interface {
 	typeSigil() isType
 	Name() string

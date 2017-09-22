@@ -69,3 +69,16 @@ func (v Value) Divide(o Value) Value {
 
 	return v.ty.impl.(typeWithArithmetic).Divide(v, o)
 }
+
+// Concat concatenates the other given value onto the end of the reciever
+// and returns the result.
+//
+// This function will panic if the receiver type does not support concatenation
+// with the other value's type.
+func (v Value) Concat(o Value) Value {
+	if !v.Type().CanConcat(o.Type()) {
+		panic(fmt.Errorf("attempt to concatenate %#v onto %#v", o.Type(), v.Type()))
+	}
+
+	return v.ty.impl.(typeWithConcat).Concat(v, o)
+}
