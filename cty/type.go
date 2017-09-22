@@ -49,6 +49,28 @@ func (t Type) HasArithmetic() bool {
 	return has
 }
 
+// CanSum returns true if the given type can support the Add and Subtract
+// operations with values of the other given type.
+//
+// Always returns false if the receiver doesn't support arithmetic at all.
+func (t Type) CanSum(o Type) bool {
+	if !t.HasArithmetic() {
+		return false
+	}
+	return t.impl.(typeWithArithmetic).CanSum(o)
+}
+
+// CanProduct returns true if the given type can support the Multiply and Divide
+// operations with values of the other given type.
+//
+// Always returns false if the receiver doesn't support arithmetic at all.
+func (t Type) CanProduct(o Type) bool {
+	if !t.HasArithmetic() {
+		return false
+	}
+	return t.impl.(typeWithArithmetic).CanProduct(o)
+}
+
 type typeImpl interface {
 	typeSigil() isType
 	Name() string

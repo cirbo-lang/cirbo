@@ -24,14 +24,11 @@ func (v Value) SameType(o Value) bool {
 
 // Add returns the sum of the receiver and the given other value.
 //
-// This function will panic if the two values are not of the same type
-// or if the value type does not support arithmetic.
+// This function will panic if the value type does not support arithmetic or
+// cannot add a value of the other type.
 func (v Value) Add(o Value) Value {
-	if !v.SameType(o) {
+	if !v.Type().CanSum(o.Type()) {
 		panic(fmt.Errorf("attempt to add %#v and %#v", v.Type(), o.Type()))
-	}
-	if !v.Type().HasArithmetic() {
-		panic(fmt.Errorf("attempt to add two %#v values", v.Type()))
 	}
 
 	return v.ty.impl.(typeWithArithmetic).Add(v, o)
@@ -39,14 +36,11 @@ func (v Value) Add(o Value) Value {
 
 // Subtract returns the difference between the receiver and the given other value.
 //
-// This function will panic if the two values are not of the same type
-// or if the value type does not support arithmetic.
+// This function will panic if the value type does not support arithmetic or
+// cannot subtract a value of the other type.
 func (v Value) Subtract(o Value) Value {
-	if !v.SameType(o) {
-		panic(fmt.Errorf("attempt to subtract %#v and %#v", v.Type(), o.Type()))
-	}
-	if !v.Type().HasArithmetic() {
-		panic(fmt.Errorf("attempt to subtract two %#v values", v.Type()))
+	if !v.Type().CanSum(o.Type()) {
+		panic(fmt.Errorf("attempt to subtract %#v from %#v", v.Type(), o.Type()))
 	}
 
 	return v.ty.impl.(typeWithArithmetic).Subtract(v, o)
@@ -54,14 +48,11 @@ func (v Value) Subtract(o Value) Value {
 
 // Multiply returns the product of the receiver and the given other value.
 //
-// This function will panic if the two values are not of the same type
-// or if the value type does not support arithmetic.
+// This function will panic if the value type does not support arithmetic or
+// cannot multiply a value of the other type.
 func (v Value) Multiply(o Value) Value {
-	if !v.SameType(o) {
+	if !v.Type().CanProduct(o.Type()) {
 		panic(fmt.Errorf("attempt to multiply %#v and %#v", v.Type(), o.Type()))
-	}
-	if !v.Type().HasArithmetic() {
-		panic(fmt.Errorf("attempt to multiply two %#v values", v.Type()))
 	}
 
 	return v.ty.impl.(typeWithArithmetic).Multiply(v, o)
@@ -69,14 +60,11 @@ func (v Value) Multiply(o Value) Value {
 
 // Divide returns the quotient of the receiver by the given other value.
 //
-// This function will panic if the two values are not of the same type
-// or if the value type does not support arithmetic.
+// This function will panic if the value type does not support arithmetic or
+// cannot divide by a value of the other type.
 func (v Value) Divide(o Value) Value {
-	if !v.SameType(o) {
-		panic(fmt.Errorf("attempt to divide %#v and %#v", v.Type(), o.Type()))
-	}
-	if !v.Type().HasArithmetic() {
-		panic(fmt.Errorf("attempt to divide two %#v values", v.Type()))
+	if !v.Type().CanProduct(o.Type()) {
+		panic(fmt.Errorf("attempt to divide %#v by %#v", v.Type(), o.Type()))
 	}
 
 	return v.ty.impl.(typeWithArithmetic).Divide(v, o)

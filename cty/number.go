@@ -31,6 +31,19 @@ func (i numberImpl) GoString() string {
 	return fmt.Sprintf("cty.Number(%#v)", i.dim)
 }
 
+func (i numberImpl) CanSum(other Type) bool {
+	otherNum, isNumber := other.impl.(numberImpl)
+	if !isNumber {
+		return false
+	}
+	return i.dim == otherNum.dim
+}
+
+func (i numberImpl) CanProduct(other Type) bool {
+	_, isNumber := other.impl.(numberImpl)
+	return isNumber
+}
+
 func (i numberImpl) Add(a, b Value) Value {
 	av := a.v.(units.Quantity)
 	bv := b.v.(units.Quantity)
