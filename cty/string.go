@@ -1,5 +1,9 @@
 package cty
 
+import (
+	"golang.org/x/text/unicode/norm"
+)
+
 type stringImpl struct {
 	isType
 }
@@ -8,7 +12,7 @@ var String Type
 
 func StringVal(s string) Value {
 	return Value{
-		v:  s,
+		v:  norm.NFC.String(s),
 		ty: String,
 	}
 }
