@@ -162,3 +162,22 @@ func (v Value) Concat(o Value) Value {
 
 	return v.ty.impl.(typeWithConcat).Concat(v, o)
 }
+
+func (v Value) GoString() string {
+	_, isQuantity := v.ty.impl.(numberImpl)
+	switch {
+	case v.IsUnknown():
+		return fmt.Sprintf("cty.UnknownVal(%#v)", v.Type())
+	case isQuantity:
+		quantity := v.v.(units.Quantity)
+		return fmt.Sprintf("cty.Quantity(%#v)", quantity)
+	case v == True:
+		return "cty.True"
+	case v == False:
+		return "cty.False"
+	case v.Type().Same(String):
+		return fmt.Sprintf("cty.StringVal(%q)", v.v)
+	default:
+		return fmt.Sprintf("cty.Value{ty: %#v, v: %#v}", v.ty, v.v)
+	}
+}
