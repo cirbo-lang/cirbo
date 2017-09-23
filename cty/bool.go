@@ -29,6 +29,32 @@ func (i boolImpl) Equal(a, b Value) Value {
 	return BoolVal(av == bv)
 }
 
+func (i boolImpl) Not(v Value) Value {
+	if v.IsUnknown() {
+		return v
+	}
+	vv := v.v.(bool)
+	return BoolVal(!vv)
+}
+
+func (i boolImpl) And(a Value, b Value) Value {
+	if a.IsUnknown() || b.IsUnknown() {
+		return UnknownVal(Bool)
+	}
+	av := a.v.(bool)
+	bv := b.v.(bool)
+	return BoolVal(av && bv)
+}
+
+func (i boolImpl) Or(a Value, b Value) Value {
+	if a.IsUnknown() || b.IsUnknown() {
+		return UnknownVal(Bool)
+	}
+	av := a.v.(bool)
+	bv := b.v.(bool)
+	return BoolVal(av || bv)
+}
+
 func init() {
 	Bool = Type{boolImpl{}}
 	True = BoolVal(true)

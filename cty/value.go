@@ -2,6 +2,8 @@ package cty
 
 import (
 	"fmt"
+
+	"github.com/cirbo-lang/cirbo/units"
 )
 
 type Value struct {
@@ -161,6 +163,42 @@ func (v Value) Concat(o Value) Value {
 	}
 
 	return v.ty.impl.(typeWithConcat).Concat(v, o)
+}
+
+// Not returns the inverse of the reciever, which must be of type Bool.
+//
+// If the receiver is not a boolean value, this method will panic.
+func (v Value) Not() Value {
+	if !v.Type().Same(Bool) {
+		panic(fmt.Errorf("attempt to NOT %#v", v.Type()))
+	}
+
+	return v.ty.impl.(boolImpl).Not(v)
+}
+
+// And returns True if the receiver and the other given value are both True,
+// an unknown Bool if either is unknown, or False otherwise.
+//
+// If the either value is not of type Bool, this method will panic.
+func (v Value) And(o Value) Value {
+	if !v.Type().Same(Bool) || !o.Type().Same(Bool) {
+		panic(fmt.Errorf("attempt to AND %#v and %#v", v.Type(), o.Type()))
+	}
+
+	return v.ty.impl.(boolImpl).And(v, o)
+}
+
+// Or returns True if either the receiver or the other given value is True,
+// or if both are true. It returns an unknown Bool if either is unknown.
+// Otherwise, it returns False.
+//
+// If the either value is not of type Bool, this method will panic.
+func (v Value) Or(o Value) Value {
+	if !v.Type().Same(Bool) || !o.Type().Same(Bool) {
+		panic(fmt.Errorf("attempt to OR %#v and %#v", v.Type(), o.Type()))
+	}
+
+	return v.ty.impl.(boolImpl).Or(v, o)
 }
 
 func (v Value) GoString() string {
