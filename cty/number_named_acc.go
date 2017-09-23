@@ -49,7 +49,7 @@ var Mass Type = QuantityByName("Mass")
 // Momentum is a quantity type of dimensionality [M][L][T]⁻¹.
 var Momentum Type = QuantityByName("Momentum")
 
-// Number is a quantity type of dimensionality .
+// Number is the dimensionless quantity type.
 var Number Type = QuantityByName("Number")
 
 // Power is a quantity type of dimensionality [M][L]²[T]⁻³.

@@ -10,6 +10,8 @@ import (
 	"os/exec"
 	"sort"
 
+	"github.com/cirbo-lang/cirbo/units"
+
 	"github.com/cirbo-lang/cirbo/cty"
 )
 
@@ -30,7 +32,11 @@ func main() {
 
 	for _, name := range names {
 		dim := dims[name]
-		fmt.Fprintf(f, "// %s is a quantity type of dimensionality %s.\n", name, dim)
+		if dim == (units.Dimensionality{}) {
+			fmt.Fprintf(f, "// %s is the dimensionless quantity type.\n", name)
+		} else {
+			fmt.Fprintf(f, "// %s is a quantity type of dimensionality %s.\n", name, dim)
+		}
 		fmt.Fprintf(f, "var %s Type = QuantityByName(%q)\n", name, name)
 	}
 }
