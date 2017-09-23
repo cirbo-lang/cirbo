@@ -75,6 +75,19 @@ type Dimensionality struct {
 	LuminousIntensity int
 }
 
+// Multiply returns the product of the receiver and the other given
+// Dimensionality.
+func (d Dimensionality) Multiply(o Dimensionality) Dimensionality {
+	var ret Dimensionality
+	ret.Mass = d.Mass + o.Mass
+	ret.Length = d.Length + o.Length
+	ret.Angle = d.Angle + o.Angle
+	ret.Time = d.Time + o.Time
+	ret.ElectricCurrent = d.ElectricCurrent + o.ElectricCurrent
+	ret.LuminousIntensity = d.LuminousIntensity + o.LuminousIntensity
+	return ret
+}
+
 // Reciprocal returns the multiplicative inverse of the receiver.
 func (d Dimensionality) Reciprocal() Dimensionality {
 	var ret Dimensionality
