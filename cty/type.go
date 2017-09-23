@@ -18,11 +18,11 @@ func (t Type) Name() string {
 // receiver.
 func (t Type) Same(o Type) bool {
 	type Samer interface {
-		Same(a, b Type) bool
+		Same(o Type) bool
 	}
 
 	if s, canSame := t.impl.(Samer); canSame {
-		return s.Same(t, o)
+		return s.Same(o)
 	}
 
 	// Default implementation works for simple typeImpls; will panic if
