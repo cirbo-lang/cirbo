@@ -8,6 +8,63 @@ import (
 	"github.com/cirbo-lang/cirbo/units"
 )
 
+func TestNumberEqual(t *testing.T) {
+	tests := []struct {
+		A, B Value
+		Want Value
+	}{
+		{
+			testNumber("2", ""),
+			testNumber("2", ""),
+			True,
+		},
+		{
+			testNumber("2", ""),
+			testNumber("3", ""),
+			False,
+		},
+		{
+			testNumber("2", ""),
+			testNumber("2", "cm"),
+			False,
+		},
+		{
+			testNumber("20", "mm"),
+			testNumber("2", "cm"),
+			True,
+		},
+		{
+			UnknownVal(Length),
+			testNumber("3", "m"),
+			UnknownVal(Bool),
+		},
+		{
+			testNumber("3", "m"),
+			UnknownVal(Length),
+			UnknownVal(Bool),
+		},
+		{
+			UnknownVal(Length),
+			UnknownVal(Length),
+			UnknownVal(Bool),
+		},
+		{
+			UnknownVal(Area),
+			UnknownVal(Length),
+			False,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(fmt.Sprintf("%#v.Equal(%#v)", test.A, test.B), func(t *testing.T) {
+			got := test.A.Equal(test.B)
+			if !got.Same(test.Want) {
+				t.Errorf("wrong result\ngot:  %#v\nwant: %#v", got, test.Want)
+			}
+		})
+	}
+}
+
 func TestAddNumber(t *testing.T) {
 	tests := []struct {
 		A, B Value
