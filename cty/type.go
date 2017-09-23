@@ -86,6 +86,7 @@ func (t Type) CanConcat(o Type) bool {
 type typeImpl interface {
 	typeSigil() isType
 	Name() string
+	Equal(a, b Value) Value
 }
 
 type isType struct {

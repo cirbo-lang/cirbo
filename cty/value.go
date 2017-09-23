@@ -16,6 +16,74 @@ func (v Value) Type() Type {
 	return v.ty
 }
 
+// Same returns true if and only if the given value and the reciever are
+// identical.
+//
+// Identity is different than equality in that two unknown values are
+// identical if their types are identical, whereas an equality test would
+// return an unknown boolean value.
+//
+// This method is primarily for test assertions. All code implementing the
+// language itself should use Equal and handle unknown values.
+func (v Value) Same(o Value) bool {
+	if !v.SameType(o) {
+		return false
+	}
+
+	if v.v == nil || o.v == nil {
+		return v.v == o.v
+	}
+
+	type Samer interface {
+		ValueSame(a, b Value) bool
+	}
+
+	if s, canSame := v.ty.impl.(Samer); canSame {
+		return s.ValueSame(v, o)
+	}
+
+	eq := v.Equal(o)
+
+	if eq.IsUnknown() {
+		return false
+	}
+	return eq.True()
+}
+
+// Equal returns True if and only if the value and the receiver represent
+// the same value.
+//
+// No two values of different types are ever equal. If either value is
+// unknown then the result itself is an unknown boolean.
+func (v Value) Equal(o Value) Value {
+	if !v.SameType(o) {
+		return False
+	}
+
+	if v.IsUnknown() || o.IsUnknown() {
+		return UnknownVal(Bool)
+	}
+
+	return v.ty.impl.Equal(v, o)
+}
+
+// True returns true if the receiver is True, false if the receiver is False,
+// and panics otherwise.
+//
+// This method converts a known cty.Bool value into a native Go bool value.
+func (v Value) True() bool {
+	switch {
+	case v == True:
+		return true
+	case v == False:
+		return false
+	case !v.IsKnown():
+		panic("True called on unknown value")
+	default:
+		panic("True called on non-boolean value")
+	}
+}
+
 // IsKnown returns true if the receiver is a known value.
 //
 // If false is returned, only the type is known.
