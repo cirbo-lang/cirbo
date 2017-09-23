@@ -2,6 +2,7 @@ package units
 
 import (
 	"bytes"
+	"fmt"
 	"strconv"
 	"strings"
 )
@@ -438,4 +439,13 @@ func (u *Unit) normalize() *Unit {
 		return nu
 	}
 	return u
+}
+
+func (u *Unit) GoString() string {
+	name, hasName := unitName[u]
+	if hasName {
+		return fmt.Sprintf("units.ByName(%q)", name)
+	}
+
+	return fmt.Sprintf("&units.Unit{dim: %#v, base: %#v, scale: %#v}", u.dim, u.base, u.scale)
 }

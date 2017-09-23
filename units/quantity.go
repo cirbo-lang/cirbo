@@ -334,3 +334,11 @@ func (q Quantity) String() string {
 
 	return fmt.Sprintf("%s %s", valStr, unitStr)
 }
+
+func (q Quantity) GoString() string {
+	if q.unit == unitByName[""] {
+		return fmt.Sprintf("units.MakeDimensionless((&big.Float{}).Parse(%q))", q.value.String())
+	}
+
+	return fmt.Sprintf("units.MakeQuantity((&big.Float{}).Parse(%q), %#v)", q.value.String(), q.unit)
+}
