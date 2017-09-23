@@ -18,6 +18,11 @@ func (v Value) Type() Type {
 	return v.ty
 }
 
+// TypeValue returns the type of the receiver as a Value of type TypeType.
+func (v Value) TypeValue() Value {
+	return TypeTypeVal(v.ty)
+}
+
 // Same returns true if and only if the given value and the reciever are
 // identical.
 //
@@ -215,6 +220,8 @@ func (v Value) GoString() string {
 		return "cty.False"
 	case v.Type().Same(String):
 		return fmt.Sprintf("cty.StringVal(%q)", v.v)
+	case v.Type().Same(TypeType):
+		return fmt.Sprintf("cty.TypeTypeVal(%#v)", v.v)
 	default:
 		return fmt.Sprintf("cty.Value{ty: %#v, v: %#v}", v.ty, v.v)
 	}
