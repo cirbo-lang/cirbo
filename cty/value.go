@@ -206,6 +206,17 @@ func (v Value) Or(o Value) Value {
 	return v.ty.impl.(boolImpl).Or(v, o)
 }
 
+// GetAttr returns the value of the attribute with the given name on the
+// receiver, or panics if the receiever has no such attribute.
+func (v Value) GetAttr(name string) Value {
+	withAttrs, has := v.ty.impl.(typeWithAttributes)
+	if !has {
+		panic(fmt.Errorf("attempt to access attribute %q on %#v", name, v.Type()))
+	}
+
+	return withAttrs.GetAttr(v, name)
+}
+
 func (v Value) GoString() string {
 	_, isQuantity := v.ty.impl.(numberImpl)
 	switch {

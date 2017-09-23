@@ -8,6 +8,12 @@ type Type struct {
 	impl typeImpl
 }
 
+// NilType is an invalid type that serves as the zero value of type Type.
+//
+// NilType is not a real type and so is used only to signal the absense of
+// a type when returning from functions.
+var NilType Type
+
 // Name returns a name for the receiving type that is suitable for display
 // to cirbo end-users.
 func (t Type) Name() string {
@@ -81,6 +87,27 @@ func (t Type) CanConcat(o Type) bool {
 		return false
 	}
 	return concatter.CanConcat(o)
+}
+
+// HasAttr returns true if the receiver has an attribute of the given name.
+func (t Type) HasAttr(name string) bool {
+	return t.AttrType(name) != NilType
+}
+
+// AttrType returns the type of the attribute of the given name, or NilType
+// if the receiver has no such attribute.
+func (t Type) AttrType(name string) Type {
+	withAttrs, has := t.impl.(typeWithAttributes)
+	if !has {
+		return NilType
+	}
+
+	uv := withAttrs.GetAttr(UnknownVal(t), name)
+	if uv == NilValue {
+		return NilType
+	}
+
+	return uv.Type()
 }
 
 type typeImpl interface {
