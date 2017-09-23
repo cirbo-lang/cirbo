@@ -16,6 +16,18 @@ func (v Value) Type() Type {
 	return v.ty
 }
 
+// IsKnown returns true if the receiver is a known value.
+//
+// If false is returned, only the type is known.
+func (v Value) IsKnown() bool {
+	return v.v != nil
+}
+
+// IsUnknown is the opposite of IsKnown, for convenience.
+func (v Value) IsUnknown() bool {
+	return v.v == nil
+}
+
 // SameType returns true if and only if the given value has the same type
 // as the reciever.
 func (v Value) SameType(o Value) bool {

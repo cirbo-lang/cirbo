@@ -23,20 +23,33 @@ func TestAddNumber(t *testing.T) {
 			testNumber("3", "m"),
 			testNumber("3.2", "m"),
 		},
+		{
+			UnknownVal(Length),
+			testNumber("3", "m"),
+			UnknownVal(Length),
+		},
+		{
+			UnknownVal(Length),
+			testNumber("3", "m"),
+			UnknownVal(Length),
+		},
+		{
+			testNumber("3", "m"),
+			UnknownVal(Length),
+			UnknownVal(Length),
+		},
+		{
+			UnknownVal(Length),
+			UnknownVal(Length),
+			UnknownVal(Length),
+		},
 	}
 
 	for _, test := range tests {
-		aq := test.A.v.(units.Quantity)
-		bq := test.B.v.(units.Quantity)
-		t.Run(fmt.Sprintf("%s + %s", aq, bq), func(t *testing.T) {
-			gotVal := test.A.Add(test.B)
-			if got, want := gotVal.Type(), test.Want.Type(); !got.Same(want) {
-				t.Fatalf("got %#v value; want %#v", got, want)
-			}
-			got := gotVal.v.(units.Quantity)
-			want := test.Want.v.(units.Quantity)
-			if !got.Same(want) {
-				t.Errorf("wrong result\ngot:  %s\nwant: %s", got, want)
+		t.Run(fmt.Sprintf("%#v.Add(%#v)", test.A, test.B), func(t *testing.T) {
+			got := test.A.Add(test.B)
+			if !got.Same(test.Want) {
+				t.Errorf("wrong result\ngot:  %#v\nwant: %#v", got, test.Want)
 			}
 		})
 	}
@@ -57,20 +70,28 @@ func TestSubtractNumber(t *testing.T) {
 			testNumber("20", "cm"),
 			testNumber("2.8", "m"),
 		},
+		{
+			UnknownVal(Length),
+			testNumber("3", "m"),
+			UnknownVal(Length),
+		},
+		{
+			testNumber("3", "m"),
+			UnknownVal(Length),
+			UnknownVal(Length),
+		},
+		{
+			UnknownVal(Length),
+			UnknownVal(Length),
+			UnknownVal(Length),
+		},
 	}
 
 	for _, test := range tests {
-		aq := test.A.v.(units.Quantity)
-		bq := test.B.v.(units.Quantity)
-		t.Run(fmt.Sprintf("%s - %s", aq, bq), func(t *testing.T) {
-			gotVal := test.A.Subtract(test.B)
-			if got, want := gotVal.Type(), test.Want.Type(); !got.Same(want) {
-				t.Fatalf("got %#v value; want %#v", got, want)
-			}
-			got := gotVal.v.(units.Quantity)
-			want := test.Want.v.(units.Quantity)
-			if !got.Same(want) {
-				t.Errorf("wrong result\ngot:  %s\nwant: %s", got, want)
+		t.Run(fmt.Sprintf("%#v.Subtract(%#v)", test.A, test.B), func(t *testing.T) {
+			got := test.A.Subtract(test.B)
+			if !got.Same(test.Want) {
+				t.Errorf("wrong result\ngot:  %#v\nwant: %#v", got, test.Want)
 			}
 		})
 	}
@@ -116,20 +137,28 @@ func TestMultiplyNumber(t *testing.T) {
 			testNumberU("10", units.Second),
 			testNumber("30", "m"),
 		},
+		{
+			UnknownVal(Current),
+			UnknownVal(Resistance),
+			UnknownVal(Voltage),
+		},
+		{
+			testNumber("15", "A"),
+			UnknownVal(Resistance),
+			UnknownVal(Voltage),
+		},
+		{
+			UnknownVal(Resistance),
+			testNumber("15", "A"),
+			UnknownVal(Voltage),
+		},
 	}
 
 	for _, test := range tests {
-		aq := test.A.v.(units.Quantity)
-		bq := test.B.v.(units.Quantity)
-		t.Run(fmt.Sprintf("%s × %s", aq, bq), func(t *testing.T) {
-			gotVal := test.A.Multiply(test.B)
-			if got, want := gotVal.Type(), test.Want.Type(); !got.Same(want) {
-				t.Fatalf("wrong result type\ngot:  %#v\nwant: %#v", got, want)
-			}
-			got := gotVal.v.(units.Quantity)
-			want := test.Want.v.(units.Quantity)
-			if !got.Same(want) {
-				t.Errorf("wrong result\ngot:  %s\nwant: %s", got, want)
+		t.Run(fmt.Sprintf("%#v.Multiply(%#v)", test.A, test.B), func(t *testing.T) {
+			got := test.A.Multiply(test.B)
+			if !got.Same(test.Want) {
+				t.Errorf("wrong result\ngot:  %#v\nwant: %#v", got, test.Want)
 			}
 		})
 	}
@@ -175,20 +204,23 @@ func TestDivideNumber(t *testing.T) {
 			testNumber("10", "s"),
 			testNumberU("0.3", units.Meter.Multiply(units.Second.ToPower(-1))),
 		},
+		{
+			UnknownVal(Length),
+			UnknownVal(Time),
+			UnknownVal(Speed),
+		},
+		{
+			testNumber("1", "m"),
+			UnknownVal(Time),
+			UnknownVal(Speed),
+		},
 	}
 
 	for _, test := range tests {
-		aq := test.A.v.(units.Quantity)
-		bq := test.B.v.(units.Quantity)
-		t.Run(fmt.Sprintf("%s ÷ %s", aq, bq), func(t *testing.T) {
-			gotVal := test.A.Divide(test.B)
-			if got, want := gotVal.Type(), test.Want.Type(); !got.Same(want) {
-				t.Fatalf("wrong result type\ngot:  %#v\nwant: %#v", got, want)
-			}
-			got := gotVal.v.(units.Quantity)
-			want := test.Want.v.(units.Quantity)
-			if !got.Same(want) {
-				t.Errorf("wrong result\ngot:  %s\nwant: %s", got, want)
+		t.Run(fmt.Sprintf("%#v.Divide(%#v)", test.A, test.B), func(t *testing.T) {
+			got := test.A.Divide(test.B)
+			if !got.Same(test.Want) {
+				t.Errorf("wrong result\ngot:  %#v\nwant: %#v", got, test.Want)
 			}
 		})
 	}

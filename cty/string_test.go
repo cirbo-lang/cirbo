@@ -25,20 +25,18 @@ func TestConcatString(t *testing.T) {
 			StringVal("b"),
 			StringVal("ab"),
 		},
+		{
+			UnknownVal(String),
+			StringVal("b"),
+			UnknownVal(String),
+		},
 	}
 
 	for _, test := range tests {
-		as := test.A.v.(string)
-		bs := test.B.v.(string)
-		t.Run(fmt.Sprintf("%q .. %q", as, bs), func(t *testing.T) {
-			gotVal := test.A.Concat(test.B)
-			if got, want := gotVal.Type(), test.Want.Type(); !got.Same(want) {
-				t.Fatalf("got %#v value; want %#v", got, want)
-			}
-			got := gotVal.v.(string)
-			want := test.Want.v.(string)
-			if got != want {
-				t.Errorf("wrong result\ngot:  %s\nwant: %s", got, want)
+		t.Run(fmt.Sprintf("%#v.Concat(%#v)", test.A, test.B), func(t *testing.T) {
+			got := test.A.Concat(test.B)
+			if !got.Same(test.Want) {
+				t.Errorf("wrong result\ngot:  %#v\nwant: %#v", got, test.Want)
 			}
 		})
 	}

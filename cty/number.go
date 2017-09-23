@@ -43,6 +43,12 @@ func (i numberImpl) GoString() string {
 	return fmt.Sprintf("cty.Quantity(%#v)", i.dim)
 }
 
+func (i numberImpl) Equal(a, b Value) Value {
+	av := a.v.(units.Quantity)
+	bv := b.v.(units.Quantity)
+	return BoolVal(av.Equal(bv))
+}
+
 func (i numberImpl) CanSum(other Type) bool {
 	otherNum, isNumber := other.impl.(numberImpl)
 	if !isNumber {
@@ -57,24 +63,42 @@ func (i numberImpl) CanProduct(other Type) bool {
 }
 
 func (i numberImpl) Add(a, b Value) Value {
+	if a.IsUnknown() || b.IsUnknown() {
+		return UnknownVal(a.Type())
+	}
+
 	av := a.v.(units.Quantity)
 	bv := b.v.(units.Quantity)
 	return QuantityVal(av.Add(bv))
 }
 
 func (i numberImpl) Subtract(a, b Value) Value {
+	if a.IsUnknown() || b.IsUnknown() {
+		return UnknownVal(a.Type())
+	}
+
 	av := a.v.(units.Quantity)
 	bv := b.v.(units.Quantity)
 	return QuantityVal(av.Subtract(bv))
 }
 
 func (i numberImpl) Multiply(a, b Value) Value {
+	if a.IsUnknown() || b.IsUnknown() {
+		retTy := Quantity(a.ty.impl.(numberImpl).dim.Multiply(b.ty.impl.(numberImpl).dim))
+		return UnknownVal(retTy)
+	}
+
 	av := a.v.(units.Quantity)
 	bv := b.v.(units.Quantity)
 	return QuantityVal(av.Multiply(bv))
 }
 
 func (i numberImpl) Divide(a, b Value) Value {
+	if a.IsUnknown() || b.IsUnknown() {
+		retTy := Quantity(a.ty.impl.(numberImpl).dim.Multiply(b.ty.impl.(numberImpl).dim.Reciprocal()))
+		return UnknownVal(retTy)
+	}
+
 	av := a.v.(units.Quantity)
 	bv := b.v.(units.Quantity)
 	return QuantityVal(av.Divide(bv))
