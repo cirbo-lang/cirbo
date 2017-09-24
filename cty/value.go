@@ -257,6 +257,20 @@ func (v Value) Call(args CallArgs) (Value, source.Diags) {
 	return callImpl.Call(v, args)
 }
 
+// UnwrapType returns the Type encapsulated in the receiver if it is a known
+// value of type TypeType.
+//
+// If the receiver is unknown or is of some other type then this method will
+// panic.
+func (v Value) UnwrapType() Type {
+	_, isType := v.ty.impl.(typeTypeImpl)
+	if !isType {
+		panic(fmt.Errorf("attempt to unwrap type from %#v", v.Type()))
+	}
+
+	return v.v.(Type)
+}
+
 func (v Value) GoString() string {
 	_, isQuantity := v.ty.impl.(numberImpl)
 	switch {
