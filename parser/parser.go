@@ -11,6 +11,7 @@ import (
 
 	"github.com/apparentlymart/go-textseg/textseg"
 	"github.com/cirbo-lang/cirbo/ast"
+	"github.com/cirbo-lang/cirbo/cbo"
 	"github.com/cirbo-lang/cirbo/source"
 	"golang.org/x/tools/godoc/vfs"
 )
@@ -1053,24 +1054,24 @@ Keywords:
 		case begin:
 			switch kw {
 			case "terminal":
-				terminal.Type = ast.Passive
-				terminal.Dir = ast.Undirected
+				terminal.Type = cbo.Passive
+				terminal.Dir = cbo.Undirected
 				state = end
 			case "power":
-				terminal.Type = ast.Power
-				terminal.Dir = ast.Undirected
+				terminal.Type = cbo.Power
+				terminal.Dir = cbo.Undirected
 				state = afterPower
 			case "input":
-				terminal.Type = ast.Signal
-				terminal.Dir = ast.Input
+				terminal.Type = cbo.Signal
+				terminal.Dir = cbo.Input
 				state = optionalRole
 			case "output":
-				terminal.Type = ast.Signal
-				terminal.Dir = ast.Output
+				terminal.Type = cbo.Signal
+				terminal.Dir = cbo.Output
 				state = afterOutput
 			case "bidi":
-				terminal.Type = ast.Signal
-				terminal.Dir = ast.Bidirectional
+				terminal.Type = cbo.Signal
+				terminal.Dir = cbo.Bidirectional
 				state = afterBidi
 			default:
 				// Should never happen since the above should be exhaustive
@@ -1080,10 +1081,10 @@ Keywords:
 		case afterPower:
 			switch kw {
 			case "input":
-				terminal.Dir = ast.Input
+				terminal.Dir = cbo.Input
 				state = optionalRole
 			case "output":
-				terminal.Dir = ast.Output
+				terminal.Dir = cbo.Output
 				state = afterOutput
 			case "bidi":
 				state = afterBidi
@@ -1093,10 +1094,10 @@ Keywords:
 		case afterBidi:
 			switch kw {
 			case "leader":
-				terminal.Role = ast.Leader
+				terminal.Role = cbo.Leader
 				state = end
 			case "follower":
-				terminal.Role = ast.Follower
+				terminal.Role = cbo.Follower
 				state = end
 			default:
 				// bidi must always be followed by a role keyword
@@ -1109,37 +1110,37 @@ Keywords:
 				p.setRecovering()
 
 				// Placeholder value
-				terminal.Dir = ast.Undirected
+				terminal.Dir = cbo.Undirected
 				break Keywords
 			}
 		case afterOutput:
 			switch kw {
 			case "emitter":
-				terminal.OutputType = ast.OpenEmitter
+				terminal.OutputType = cbo.OpenEmitter
 				state = optionalRole
 			case "collector":
-				terminal.OutputType = ast.OpenCollector
+				terminal.OutputType = cbo.OpenCollector
 				state = optionalRole
 			case "tristate":
-				terminal.OutputType = ast.Tristate
+				terminal.OutputType = cbo.Tristate
 				state = optionalRole
 			case "leader":
-				terminal.Role = ast.Leader
+				terminal.Role = cbo.Leader
 				state = end
 			case "follower":
-				terminal.Role = ast.Follower
+				terminal.Role = cbo.Follower
 				state = end
 			default:
-				terminal.OutputType = ast.PushPull
+				terminal.OutputType = cbo.PushPull
 				break Keywords
 			}
 		case optionalRole:
 			switch kw {
 			case "leader":
-				terminal.Role = ast.Leader
+				terminal.Role = cbo.Leader
 				state = end
 			case "follower":
-				terminal.Role = ast.Follower
+				terminal.Role = cbo.Follower
 				state = end
 			default:
 				break Keywords

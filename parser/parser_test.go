@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/cirbo-lang/cirbo/ast"
+	"github.com/cirbo-lang/cirbo/cbo"
 	"github.com/cirbo-lang/cirbo/source"
 	"github.com/kylelemons/godebug/pretty"
 	"golang.org/x/tools/godoc/vfs/mapfs"
@@ -1861,8 +1862,8 @@ func TestParseTopLevel(t *testing.T) {
 			[]ast.Node{
 				&ast.Terminal{
 					Name: "foo",
-					Type: ast.Passive,
-					Dir:  ast.Undirected,
+					Type: cbo.Passive,
+					Dir:  cbo.Undirected,
 					WithRange: ast.WithRange{
 						Range: source.Range{
 							Start: source.Pos{Line: 1, Column: 1, Byte: 0},
@@ -1878,8 +1879,8 @@ func TestParseTopLevel(t *testing.T) {
 			[]ast.Node{
 				&ast.Terminal{
 					Name: "foo",
-					Type: ast.Power,
-					Dir:  ast.Undirected,
+					Type: cbo.Power,
+					Dir:  cbo.Undirected,
 					WithRange: ast.WithRange{
 						Range: source.Range{
 							Start: source.Pos{Line: 1, Column: 1, Byte: 0},
@@ -1895,8 +1896,8 @@ func TestParseTopLevel(t *testing.T) {
 			[]ast.Node{
 				&ast.Terminal{
 					Name: "foo",
-					Type: ast.Signal,
-					Dir:  ast.Input,
+					Type: cbo.Signal,
+					Dir:  cbo.Input,
 					WithRange: ast.WithRange{
 						Range: source.Range{
 							Start: source.Pos{Line: 1, Column: 1, Byte: 0},
@@ -1912,9 +1913,9 @@ func TestParseTopLevel(t *testing.T) {
 			[]ast.Node{
 				&ast.Terminal{
 					Name:       "foo",
-					Type:       ast.Signal,
-					Dir:        ast.Output,
-					OutputType: ast.PushPull,
+					Type:       cbo.Signal,
+					Dir:        cbo.Output,
+					OutputType: cbo.PushPull,
 					WithRange: ast.WithRange{
 						Range: source.Range{
 							Start: source.Pos{Line: 1, Column: 1, Byte: 0},
@@ -1930,9 +1931,9 @@ func TestParseTopLevel(t *testing.T) {
 			[]ast.Node{
 				&ast.Terminal{
 					Name:       "foo",
-					Type:       ast.Signal,
-					Dir:        ast.Output,
-					OutputType: ast.Tristate,
+					Type:       cbo.Signal,
+					Dir:        cbo.Output,
+					OutputType: cbo.Tristate,
 					WithRange: ast.WithRange{
 						Range: source.Range{
 							Start: source.Pos{Line: 1, Column: 1, Byte: 0},
@@ -1948,9 +1949,9 @@ func TestParseTopLevel(t *testing.T) {
 			[]ast.Node{
 				&ast.Terminal{
 					Name:       "foo",
-					Type:       ast.Signal,
-					Dir:        ast.Output,
-					OutputType: ast.OpenEmitter,
+					Type:       cbo.Signal,
+					Dir:        cbo.Output,
+					OutputType: cbo.OpenEmitter,
 					WithRange: ast.WithRange{
 						Range: source.Range{
 							Start: source.Pos{Line: 1, Column: 1, Byte: 0},
@@ -1966,9 +1967,9 @@ func TestParseTopLevel(t *testing.T) {
 			[]ast.Node{
 				&ast.Terminal{
 					Name:       "foo",
-					Type:       ast.Signal,
-					Dir:        ast.Output,
-					OutputType: ast.OpenCollector,
+					Type:       cbo.Signal,
+					Dir:        cbo.Output,
+					OutputType: cbo.OpenCollector,
 					WithRange: ast.WithRange{
 						Range: source.Range{
 							Start: source.Pos{Line: 1, Column: 1, Byte: 0},
@@ -1984,9 +1985,9 @@ func TestParseTopLevel(t *testing.T) {
 			[]ast.Node{
 				&ast.Terminal{
 					Name: "foo",
-					Type: ast.Signal,
-					Dir:  ast.Bidirectional,
-					Role: ast.Leader,
+					Type: cbo.Signal,
+					Dir:  cbo.Bidirectional,
+					Role: cbo.Leader,
 					WithRange: ast.WithRange{
 						Range: source.Range{
 							Start: source.Pos{Line: 1, Column: 1, Byte: 0},
@@ -2002,9 +2003,9 @@ func TestParseTopLevel(t *testing.T) {
 			[]ast.Node{
 				&ast.Terminal{
 					Name: "foo",
-					Type: ast.Signal,
-					Dir:  ast.Bidirectional,
-					Role: ast.Follower,
+					Type: cbo.Signal,
+					Dir:  cbo.Bidirectional,
+					Role: cbo.Follower,
 					WithRange: ast.WithRange{
 						Range: source.Range{
 							Start: source.Pos{Line: 1, Column: 1, Byte: 0},
@@ -2020,9 +2021,9 @@ func TestParseTopLevel(t *testing.T) {
 			[]ast.Node{
 				&ast.Terminal{
 					Name: "foo",
-					Type: ast.Signal,
-					Dir:  ast.Input,
-					Role: ast.Follower,
+					Type: cbo.Signal,
+					Dir:  cbo.Input,
+					Role: cbo.Follower,
 					WithRange: ast.WithRange{
 						Range: source.Range{
 							Start: source.Pos{Line: 1, Column: 1, Byte: 0},
@@ -2038,9 +2039,9 @@ func TestParseTopLevel(t *testing.T) {
 			[]ast.Node{
 				&ast.Terminal{
 					Name: "foo",
-					Type: ast.Signal,
-					Dir:  ast.Output,
-					Role: ast.Leader,
+					Type: cbo.Signal,
+					Dir:  cbo.Output,
+					Role: cbo.Leader,
 					WithRange: ast.WithRange{
 						Range: source.Range{
 							Start: source.Pos{Line: 1, Column: 1, Byte: 0},
@@ -2056,10 +2057,10 @@ func TestParseTopLevel(t *testing.T) {
 			[]ast.Node{
 				&ast.Terminal{
 					Name:       "foo",
-					Type:       ast.Signal,
-					Dir:        ast.Output,
-					Role:       ast.Leader,
-					OutputType: ast.Tristate,
+					Type:       cbo.Signal,
+					Dir:        cbo.Output,
+					Role:       cbo.Leader,
+					OutputType: cbo.Tristate,
 					WithRange: ast.WithRange{
 						Range: source.Range{
 							Start: source.Pos{Line: 1, Column: 1, Byte: 0},
@@ -2075,8 +2076,8 @@ func TestParseTopLevel(t *testing.T) {
 			[]ast.Node{
 				&ast.Terminal{
 					Name: "foo",
-					Type: ast.Signal,
-					Dir:  ast.Undirected,
+					Type: cbo.Signal,
+					Dir:  cbo.Undirected,
 					WithRange: ast.WithRange{
 						Range: source.Range{
 							Start: source.Pos{Line: 1, Column: 1, Byte: 0},
@@ -2092,8 +2093,8 @@ func TestParseTopLevel(t *testing.T) {
 			[]ast.Node{
 				&ast.Terminal{
 					Name: "foo",
-					Type: ast.Power,
-					Dir:  ast.Input,
+					Type: cbo.Power,
+					Dir:  cbo.Input,
 					WithRange: ast.WithRange{
 						Range: source.Range{
 							Start: source.Pos{Line: 1, Column: 1, Byte: 0},
@@ -2109,9 +2110,9 @@ func TestParseTopLevel(t *testing.T) {
 			[]ast.Node{
 				&ast.Terminal{
 					Name:       "foo",
-					Type:       ast.Power,
-					Dir:        ast.Output,
-					OutputType: ast.PushPull,
+					Type:       cbo.Power,
+					Dir:        cbo.Output,
+					OutputType: cbo.PushPull,
 					WithRange: ast.WithRange{
 						Range: source.Range{
 							Start: source.Pos{Line: 1, Column: 1, Byte: 0},
@@ -2127,8 +2128,8 @@ func TestParseTopLevel(t *testing.T) {
 			[]ast.Node{
 				&ast.Terminal{
 					Name: "foo",
-					Type: ast.Power,
-					Dir:  ast.Undirected,
+					Type: cbo.Power,
+					Dir:  cbo.Undirected,
 					WithRange: ast.WithRange{
 						Range: source.Range{
 							Start: source.Pos{Line: 1, Column: 1, Byte: 0},
@@ -2144,8 +2145,8 @@ func TestParseTopLevel(t *testing.T) {
 			[]ast.Node{
 				&ast.Terminal{
 					Name: "power",
-					Type: ast.Power,
-					Dir:  ast.Undirected,
+					Type: cbo.Power,
+					Dir:  cbo.Undirected,
 					WithRange: ast.WithRange{
 						Range: source.Range{
 							Start: source.Pos{Line: 1, Column: 1, Byte: 0},
@@ -2161,8 +2162,8 @@ func TestParseTopLevel(t *testing.T) {
 			[]ast.Node{
 				&ast.Terminal{
 					Name: "power",
-					Type: ast.Signal,
-					Dir:  ast.Input,
+					Type: cbo.Signal,
+					Dir:  cbo.Input,
 					WithRange: ast.WithRange{
 						Range: source.Range{
 							Start: source.Pos{Line: 1, Column: 1, Byte: 0},
@@ -2178,8 +2179,8 @@ func TestParseTopLevel(t *testing.T) {
 			[]ast.Node{
 				&ast.Terminal{
 					Name: "bidi",
-					Type: ast.Signal,
-					Dir:  ast.Input,
+					Type: cbo.Signal,
+					Dir:  cbo.Input,
 					WithRange: ast.WithRange{
 						Range: source.Range{
 							Start: source.Pos{Line: 1, Column: 1, Byte: 0},
