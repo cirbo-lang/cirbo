@@ -3,6 +3,7 @@ package cty
 import (
 	"fmt"
 
+	"github.com/cirbo-lang/cirbo/source"
 	"github.com/cirbo-lang/cirbo/units"
 )
 
@@ -215,6 +216,45 @@ func (v Value) GetAttr(name string) Value {
 	}
 
 	return withAttrs.GetAttr(v, name)
+}
+
+// Call invokes the receiver, or panics if it is not callable.
+//
+// The given arguments must conform to the call signature of the receiver's
+// type, or the result is undefined.
+//
+// posVarArgs and namedVarArgs must be nil when calling callables whose
+// signatures don't permit the respective kind of variadic argument.
+func (v Value) Call(args CallArgs) (Value, source.Diags) {
+	callImpl, isCallable := v.ty.impl.(typeCallable)
+	if !isCallable {
+		panic(fmt.Errorf("attempt to call %#v", v.Type()))
+	}
+
+	sig := callImpl.CallSignature()
+
+	// If the callee or any of the arguments are unknown then the result is
+	// always itself unknown.
+	if v.IsUnknown() {
+		return UnknownVal(sig.Result), nil
+	}
+	for _, arg := range args.Explicit {
+		if arg.IsUnknown() {
+			return UnknownVal(sig.Result), nil
+		}
+	}
+	for _, arg := range args.PosVariadic {
+		if arg.IsUnknown() {
+			return UnknownVal(sig.Result), nil
+		}
+	}
+	for _, arg := range args.NamedVariadic {
+		if arg.IsUnknown() {
+			return UnknownVal(sig.Result), nil
+		}
+	}
+
+	return callImpl.Call(v, args)
 }
 
 func (v Value) GoString() string {

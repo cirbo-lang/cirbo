@@ -110,6 +110,17 @@ func (t Type) AttrType(name string) Type {
 	return uv.Type()
 }
 
+// CallSignature returns the expected signature for calls to values of the
+// recieving type, or nil if the type cannot be called at all.
+func (t Type) CallSignature() *CallSignature {
+	callImpl, isCallable := t.impl.(typeCallable)
+	if !isCallable {
+		return nil
+	}
+
+	return callImpl.CallSignature()
+}
+
 type typeImpl interface {
 	typeSigil() isType
 	Name() string
