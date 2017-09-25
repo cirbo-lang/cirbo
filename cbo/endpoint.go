@@ -2,12 +2,21 @@ package cbo
 
 // An Endpoint is a low-level object representing a participant in a net.
 type Endpoint struct {
-	Name       string
-	Net        *Net
-	Type       TerminalType
-	Dir        TerminalDir
-	Role       TerminalRole
-	OutputType TerminalOutputType
+	Name string
+	Net  *Net
+	ERC  ERCMode
+
+	// Passthrough, if non-nil, is a set of endpoints that "pass through"
+	// ERC characteristics.
+	//
+	// This is used for devices like resistors where the ERC direction
+	// and output mode "pass through" for rules-checking purposes. It is also
+	// used with terminals, once connected, to ensure that the outer net
+	// is compatible with the inner net.
+	//
+	// When set, the endpoint's own ERC is ignored and one is instead inferred
+	// by combining the ERC modes arriving on "the other side".
+	Passthrough EndpointSet
 }
 
 // An EndpointSet is a set of endpoints.

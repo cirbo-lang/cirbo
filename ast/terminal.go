@@ -7,10 +7,10 @@ import (
 type Terminal struct {
 	WithRange
 	Name       string
-	Type       cbo.TerminalType
-	Dir        cbo.TerminalDir
+	Type       cbo.ERCType
+	Dir        cbo.ERCDir
 	Role       cbo.TerminalRole
-	OutputType cbo.TerminalOutputType
+	OutputType cbo.ERCOutputType
 }
 
 func (n *Terminal) walkChildNodes(cb internalWalkFunc) {

@@ -22,10 +22,8 @@ type Terminal struct {
 	LowerBound int
 	UpperBound int
 
-	Type       TerminalType
-	Dir        TerminalDir
-	Role       TerminalRole
-	OutputType TerminalOutputType
+	Role TerminalRole
+	ERC  ERCMode
 }
 
 func (t *Terminal) NewInstance() *TerminalInstance {
@@ -34,26 +32,14 @@ func (t *Terminal) NewInstance() *TerminalInstance {
 	inside := make([]*Endpoint, endpointCt)
 	for i := range outside {
 		outside[i] = &Endpoint{
-			Name:       t.Name,
-			Net:        nil, // none yet
-			Type:       t.Type,
-			Dir:        t.Dir,
-			Role:       t.Role,
-			OutputType: t.OutputType,
+			Name: t.Name,
+			Net:  nil, // none yet; to be assigned when we start making connections
+			ERC:  t.ERC,
 		}
 		inside[i] = &Endpoint{
 			Name: t.Name,
-			Net:  nil, // none yet
-			Type: t.Type,
-			Dir:  t.Dir.Inverse(),
-			Role: t.Role.Inverse(),
-
-			// If the terminal is an input then we can't automatically infer
-			// the output type of its "inside" because that depends on what
-			// ultimately gets connected to our "outside", so we'll leave it
-			// unspecified for now and resolve this once we're "flattening"
-			// the overall design into a single circuit.
-			OutputType: NoOutput,
+			Net:  nil,             // none yet; to be assigned when we start making connections
+			ERC:  t.ERC.Inverse(), // for input terminals, this produces an output of unknown type
 		}
 	}
 	return &TerminalInstance{
@@ -68,46 +54,6 @@ type TerminalInstance struct {
 	Outside  []*Endpoint
 	Inside   []*Endpoint
 }
-
-type TerminalType rune
-
-//go:generate stringer -type=TerminalType
-
-const (
-	Passive TerminalType = 0
-	Signal  TerminalType = 'S'
-	Power   TerminalType = 'P'
-)
-
-type TerminalDir rune
-
-//go:generate stringer -type=TerminalDir
-
-const (
-	Undirected TerminalDir = 0
-	Input      TerminalDir = 'I'
-	Output     TerminalDir = 'O'
-
-	// Bidirectional is a terminal direction that indicates that a terminal
-	// operates both as an input and and output.
-	//
-	// Bidirectional terminals must always have their role set to either
-	// Leader or Follower. NoRole is not a permitted role for bidirectional
-	// terminals.
-	Bidirectional TerminalDir = 'B'
-)
-
-type TerminalOutputType rune
-
-//go:generate stringer -type=TerminalOutputType
-
-const (
-	NoOutput      TerminalOutputType = 0
-	PushPull      TerminalOutputType = 'P'
-	Tristate      TerminalOutputType = '±'
-	OpenCollector TerminalOutputType = 'C'
-	OpenEmitter   TerminalOutputType = 'E'
-)
 
 // TerminalRole is an enumeration describing different roles a terminal can
 // play from the standpoint of logical system structure.
@@ -163,19 +109,6 @@ const (
 	// Leader should take precedence in deciding a role.
 	Follower TerminalRole = 'F'
 )
-
-func (d TerminalDir) Inverse() TerminalDir {
-	switch d {
-	case Input:
-		return Output
-	case Output:
-		return Input
-	case Bidirectional:
-		return Bidirectional
-	default:
-		return Undirected
-	}
-}
 
 func (r TerminalRole) Inverse() TerminalRole {
 	switch r {
