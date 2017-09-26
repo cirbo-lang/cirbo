@@ -1,0 +1,83 @@
+scopeName: source.cirbo
+fileTypes:
+  - cb
+  - cbm
+foldingStartMarker: "^.*\\w+\\*\\{\\s*$"
+foldingStopMarker: "\\s*}"
+patterns:
+  - include: "#main"
+repository:
+  main:
+    patterns:
+      - name: constant.numeric.cirbo
+        match: "\\d+(\\.\\d*)?([eE][-+]\\d+)?\\s*(%|kg|g|lb|st|m|mm|cm|km|mil|in|ft|yd|deg|rad|turn|s|ms|us|A|mA|cd|ohm|kohm|Mohm|V|mV|kV|Hz|kHz|MHz|N|W|mW|kW|MW|GW|F|mF|uF|H|uH|lx)?"
+      - name: constant.string.cirbo
+        match: '(")(\\\\"|[^"])*(")'
+        captures:
+          '1':
+            name: punctuation.definition.string.begin
+          '2':
+            patterns:
+              - name: constant.character.escape
+                match: '\\\\(n|r|t|"|\\\\|u\\h{4}|U\\h{8})'
+              - name: invalid.illegal
+                match: '\\\\.'
+          '3':
+            name: punctuation.definition.string.end
+      - name: keyword.control.import.cirbo
+        match: "import|export"
+      - name: keyword.other.cirbo
+        match: "circuit|board|device"
+      - name: variable.cirbo
+        match: "([-+]\\d+V\\d*|~?\\p{ID_Start}[~\\p{ID_Continue}]*|`[^`]+`)"
+      - name: comment.line.cirbo
+        match: "//.*"
+      - name: comment.block.cirbo
+        match: "/\\* \\*/"
+      - name: punctuation.terminator
+        match: ";"
+      - name: punctuation.separator
+        match: "[:,]"
+      - name: punctuation.accessor
+        match: "\\."
+      - name: keyword.operator.assignment
+        match: "="
+      - name: keyword.operator
+        match: "(==|!=|<=?|>=?|--|\\|--|--\\|)"
+      - name: keyword.operator.logical
+        match: "(&&|\\|\\||!)"
+      - name: keyword.operator.arithmetic
+        match: "([-+*/]|\\.\\.)"
+      - name: meta.braces
+        begin: '({)'
+        end: '(})'
+        beginCaptures:
+          '1':
+            name: punctuation.section.braces.begin
+        endCaptures:
+          '1':
+            name: punctuation.section.braces.end
+        patterns:
+          - include: "#main"
+      - name: meta.parens
+        begin: "(\\()"
+        end: "(\\))"
+        beginCaptures:
+          '1':
+            name: punctuation.section.parens.begin
+        endCaptures:
+          '1':
+            name: punctuation.section.parens.end
+        patterns:
+          - include: "#main"
+      - name: meta.brackets
+        begin: "(\\[)"
+        end: "(\\])"
+        beginCaptures:
+          '1':
+            name: punctuation.section.brackets.begin
+        endCaptures:
+          '1':
+            name: punctuation.section.brackets.end
+        patterns:
+          - include: "#main"
