@@ -34,6 +34,25 @@ const (
 	// Leader or Follower. NoRole is not a permitted role for bidirectional
 	// terminals.
 	Bidirectional ERCDir = 'B'
+
+	// ERCDir is also overloaded to communicate a number of special terminal
+	// types that act as flags to customize behavior in the rules checker.
+	// These cannot be set directly in the language, but some standard library
+	// functions (implemented in Go) produce terminals with these directions
+	// to help the user explain unusual situations to the checker.
+
+	// MultiOutputSinkFlag is a special "direction" that represents an endpoint
+	// that can be driven by multiple outputs, where that would usually be
+	// an error. A net with an endpoint of this direction must otherwise have
+	// only outputs.
+	MultiOutputSinkFlag ERCDir = 'Ⓜ'
+
+	// NoConnectFlag is a special "direction" that represents that another
+	// endpoint is intentionally not connected, where that would usually be an
+	// error. A net with an endpoint of this direction must have exactly two
+	// endpoints, one of which is this flag and the other is the endpoint that
+	// is intentionally not connected.
+	NoConnectFlag ERCDir = 'Ⓝ'
 )
 
 type ERCOutputType rune

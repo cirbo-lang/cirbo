@@ -9,6 +9,7 @@ const (
 	_ERCDir_name_1 = "Bidirectional"
 	_ERCDir_name_2 = "Input"
 	_ERCDir_name_3 = "Output"
+	_ERCDir_name_4 = "MultiOutputSinkFlagNoConnectFlag"
 )
 
 var (
@@ -16,6 +17,7 @@ var (
 	_ERCDir_index_1 = [...]uint8{0, 13}
 	_ERCDir_index_2 = [...]uint8{0, 5}
 	_ERCDir_index_3 = [...]uint8{0, 6}
+	_ERCDir_index_4 = [...]uint8{0, 19, 32}
 )
 
 func (i ERCDir) String() string {
@@ -28,6 +30,9 @@ func (i ERCDir) String() string {
 		return _ERCDir_name_2
 	case i == 79:
 		return _ERCDir_name_3
+	case 9410 <= i && i <= 9411:
+		i -= 9410
+		return _ERCDir_name_4[_ERCDir_index_4[i]:_ERCDir_index_4[i+1]]
 	default:
 		return fmt.Sprintf("ERCDir(%d)", i)
 	}
