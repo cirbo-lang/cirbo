@@ -36,14 +36,29 @@ func (es Errors) Error() string {
 	return es[0].Error()
 }
 
-// ErrorNoDriver is an error returned when a particular net has no output
-// endpoints connected.
-type ErrorNoDriver struct {
-	Driving []*cbo.Endpoint
+// ErrorNoOutput is an error returned when a particular net has input endpoints
+// but no output endpoints.
+//
+// This can be overridden with an ERC-only component that has a placeholder
+// output endpoint.
+type ErrorNoOutput struct {
+	Inputs []*cbo.Endpoint
+}
+
+// ErrorNoInput is an error returned when a particular net has outputs
+// (possibly in conflict, signalled by a separate error) but no inputs.
+//
+// This can be overridden with an ERC-only component that has a placeholder
+// input endpoint.
+type ErrorNoInput struct {
+	Outputs []*cbo.Endpoint
 }
 
 // ErrorSignalAsPower is an error returned when a signal output is driving
 // a power input.
+//
+// This can be overridden with an ERC-only component that has a signal input
+// on one side and a power output on the other.
 type ErrorSignalAsPower struct {
 	Driver  *cbo.Endpoint
 	Driving []*cbo.Endpoint
@@ -52,6 +67,23 @@ type ErrorSignalAsPower struct {
 // ErrorOutputConflict is an error returned when incompatible outputs are
 // mixed on a net. For example, if both a PushPull and an Open collector/drain
 // are present on the same net, or if two PushPull outputs are present.
+//
+// A special endpoint of direction MultiOutputSinkFlag can be connected to
+// a net that otherwise contains only outputs, to override this flag. It is
+// intended to be used with an ERC-only "device" that has a MultiOutputSinkFlag
+// terminal on one side and a normal output on the other, thus indicating that
+// several outputs should be considered as one output for the net on the
+// "normal" side of the device.
 type ErrorOutputConflict struct {
-	Drivers []*cbo.Endpoint
+	Outputs []*cbo.Endpoint
+}
+
+// ErrorUnconnected is an error returned when a net contains only one
+// endpoint.
+//
+// A special endpoint of direction NoConnectFlag can be connected to a
+// single-endpoint net to override this flag with no change to the final
+// component network
+type ErrorUnconnected struct {
+	Endpoint *cbo.Endpoint
 }
