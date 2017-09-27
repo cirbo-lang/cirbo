@@ -1,5 +1,9 @@
 package cbo
 
+import (
+	"sort"
+)
+
 // An Endpoint is a low-level object representing a participant in a net.
 type Endpoint struct {
 	Name string
@@ -23,8 +27,24 @@ type Endpoint struct {
 type EndpointSet map[*Endpoint]struct{}
 
 func (s EndpointSet) Has(e *Endpoint) bool {
+	if s == nil {
+		return false
+	}
 	_, has := s[e]
 	return has
+}
+
+// Names returns the names for all of the endpoints in the set, sorted
+// lexicographically.
+//
+// This is primarily a test-assertion utility.
+func (s EndpointSet) Names() []string {
+	var ret []string
+	for endpoint := range s {
+		ret = append(ret, endpoint.Name)
+	}
+	sort.Strings(ret)
+	return ret
 }
 
 func (s EndpointSet) Add(e *Endpoint) {
@@ -32,10 +52,17 @@ func (s EndpointSet) Add(e *Endpoint) {
 }
 
 func (s EndpointSet) Remove(e *Endpoint) {
+	if s == nil {
+		return
+	}
 	delete(s, e)
 }
 
 func (s EndpointSet) List() []*Endpoint {
+	if s == nil {
+		return nil
+	}
+
 	ret := make([]*Endpoint, 0, len(s))
 	for e := range s {
 		ret = append(ret, e)
