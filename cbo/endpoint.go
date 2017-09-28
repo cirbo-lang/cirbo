@@ -26,12 +26,31 @@ type Endpoint struct {
 // An EndpointSet is a set of endpoints.
 type EndpointSet map[*Endpoint]struct{}
 
+func NewEndpointSet(es ...*Endpoint) EndpointSet {
+	s := make(EndpointSet, len(es))
+	for _, e := range es {
+		s.Add(e)
+	}
+	return s
+}
+
 func (s EndpointSet) Has(e *Endpoint) bool {
 	if s == nil {
 		return false
 	}
 	_, has := s[e]
 	return has
+}
+
+// AnyOne returns one of the endpoints in the set, or nil if the set is empty.
+//
+// For a set with more than one element the result is un-defined, so this
+// method should generally be used only with one-element sets.
+func (s EndpointSet) AnyOne() *Endpoint {
+	for endpoint := range s {
+		return endpoint
+	}
+	return nil
 }
 
 // Names returns the names for all of the endpoints in the set, sorted

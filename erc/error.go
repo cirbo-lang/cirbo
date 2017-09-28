@@ -2,6 +2,7 @@ package erc
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/cirbo-lang/cirbo/cbo"
 )
@@ -42,7 +43,9 @@ func (es Errors) Error() string {
 // This can be overridden with an ERC-only component that has a placeholder
 // output endpoint.
 type ErrorNoOutput struct {
-	Inputs []*cbo.Endpoint
+	isError
+	Inputs   cbo.EndpointSet
+	Passives cbo.EndpointSet
 }
 
 // ErrorNoInput is an error returned when a particular net has outputs
@@ -51,7 +54,9 @@ type ErrorNoOutput struct {
 // This can be overridden with an ERC-only component that has a placeholder
 // input endpoint.
 type ErrorNoInput struct {
-	Outputs []*cbo.Endpoint
+	isError
+	Outputs  cbo.EndpointSet
+	Passives cbo.EndpointSet
 }
 
 // ErrorSignalAsPower is an error returned when a signal output is driving
@@ -60,8 +65,9 @@ type ErrorNoInput struct {
 // This can be overridden with an ERC-only component that has a signal input
 // on one side and a power output on the other.
 type ErrorSignalAsPower struct {
-	Driver  *cbo.Endpoint
-	Driving []*cbo.Endpoint
+	isError
+	Drivers cbo.EndpointSet
+	Driving cbo.EndpointSet
 }
 
 // ErrorOutputConflict is an error returned when incompatible outputs are
@@ -75,7 +81,8 @@ type ErrorSignalAsPower struct {
 // several outputs should be considered as one output for the net on the
 // "normal" side of the device.
 type ErrorOutputConflict struct {
-	Outputs []*cbo.Endpoint
+	isError
+	Outputs cbo.EndpointSet
 }
 
 // ErrorUnconnected is an error returned when a net contains only one
@@ -85,5 +92,58 @@ type ErrorOutputConflict struct {
 // single-endpoint net to override this flag with no change to the final
 // component network
 type ErrorUnconnected struct {
+	isError
 	Endpoint *cbo.Endpoint
+}
+
+// ErrorNoConnectConnected is an error returned when a net has a no-connect
+// flag but it also has two or more other endpoints that effectively conflict
+// with the indication that the net is unconnected.
+type ErrorNoConnectConnected struct {
+	isError
+	Endpoints cbo.EndpointSet
+	Flags     cbo.EndpointSet
+}
+
+func (e ErrorNoOutput) Error() string {
+	return fmt.Sprintf(
+		"Input(s) %s are not driven by any output",
+		strings.Join(e.Inputs.Names(), ", "),
+	)
+}
+
+func (e ErrorNoInput) Error() string {
+	return fmt.Sprintf(
+		"Output(s) %s are not driving any input",
+		strings.Join(e.Outputs.Names(), ", "),
+	)
+}
+
+func (e ErrorSignalAsPower) Error() string {
+	return fmt.Sprintf(
+		"Signal output(s) %s driving power input(s) %s",
+		strings.Join(e.Drivers.Names(), ", "),
+		strings.Join(e.Driving.Names(), ", "),
+	)
+}
+
+func (e ErrorOutputConflict) Error() string {
+	return fmt.Sprintf(
+		"Incompatible outputs %s are driving each other",
+		strings.Join(e.Outputs.Names(), ", "),
+	)
+}
+
+func (e ErrorUnconnected) Error() string {
+	return fmt.Sprintf(
+		"%s is not connected to anything",
+		e.Endpoint.Name,
+	)
+}
+
+func (e ErrorNoConnectConnected) Error() string {
+	return fmt.Sprintf(
+		"%s are flagged as no-connect but yet connected to each other",
+		strings.Join(e.Endpoints.Names(), ", "),
+	)
 }

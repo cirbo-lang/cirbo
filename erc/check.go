@@ -12,7 +12,65 @@ import (
 func CheckNet(endpoints cbo.EndpointSet) Errors {
 	var errs Errors
 
-	//classes := classify(endpoints)
+	if len(endpoints) == 1 {
+		errs = append(errs, ErrorUnconnected{
+			Endpoint: endpoints.AnyOne(),
+		})
+		// This error overrides all the others, since saying "no inputs" or
+		// "no outputs" is redundant with saying "nothing connected at all".
+		return errs
+	}
+
+	classes := classify(endpoints)
+
+	if len(classes.NoConnectFlags) > 0 {
+		if len(endpoints) > (len(classes.NoConnectFlags) + 1) {
+			errs = append(errs, ErrorNoConnectConnected{
+				Endpoints: endpoints.Subtract(classes.NoConnectFlags),
+				Flags:     classes.NoConnectFlags,
+			})
+		}
+		// This error overrides all the others, since it is explicitly
+		// saying that we don't want to connect two things together.
+		return errs
+	}
+
+	if len(classes.Outputs) > 0 && len(classes.Inputs) == 0 && len(classes.Bidis) == 0 && len(classes.MultiOutputFlags) == 0 {
+		errs = append(errs, ErrorNoInput{
+			Outputs: classes.Outputs,
+		})
+	}
+
+	if len(classes.Inputs) > 0 && len(classes.Outputs) == 0 && len(classes.Bidis) == 0 {
+		errs = append(errs, ErrorNoOutput{
+			Inputs: classes.Inputs,
+		})
+	}
+
+	if len(classes.SignalOutputs) > 0 && len(classes.PowerInputs) > 0 {
+		errs = append(errs, ErrorSignalAsPower{
+			Drivers: classes.SignalOutputs,
+			Driving: classes.PowerInputs,
+		})
+	}
+
+	if len(classes.Outputs) > 0 && (len(classes.MultiOutputFlags) == 0 || len(classes.Inputs) > 0) {
+		outClasses := classifyOutputs(classes.Outputs)
+
+		if len(outClasses.PushPull) > 1 {
+			errs = append(errs, ErrorOutputConflict{
+				Outputs: outClasses.PushPull,
+			})
+		} else if len(outClasses.PushPull) > 0 && (len(outClasses.OpenCollector) > 0 || len(outClasses.OpenEmitter) > 0) {
+			errs = append(errs, ErrorOutputConflict{
+				Outputs: outClasses.PushPull.Union(outClasses.OpenCollector.Union(outClasses.OpenEmitter)),
+			})
+		} else if len(outClasses.OpenCollector) > 0 && len(outClasses.OpenEmitter) > 0 {
+			errs = append(errs, ErrorOutputConflict{
+				Outputs: outClasses.OpenCollector.Union(outClasses.OpenEmitter),
+			})
+		}
+	}
 
 	return errs
 }
@@ -84,6 +142,41 @@ func classify(endpoints cbo.EndpointSet) classifications {
 			if e.ERC.Dir == cbo.Input {
 				ret.PowerInputs.Add(e)
 			}
+		}
+	}
+
+	return ret
+}
+
+type outputClassifications struct {
+	PushPull      cbo.EndpointSet
+	Tristate      cbo.EndpointSet
+	OpenCollector cbo.EndpointSet
+	OpenEmitter   cbo.EndpointSet
+}
+
+func classifyOutputs(endpoints cbo.EndpointSet) outputClassifications {
+	var ret outputClassifications
+	ret.PushPull = make(cbo.EndpointSet)
+	ret.Tristate = make(cbo.EndpointSet)
+	ret.OpenCollector = make(cbo.EndpointSet)
+	ret.OpenEmitter = make(cbo.EndpointSet)
+
+	for e := range endpoints {
+		if e.ERC.Dir != cbo.Output && e.ERC.Dir != cbo.Bidirectional {
+			// We only care about endpoints that can be outputs
+			continue
+		}
+
+		switch e.ERC.OutputType {
+		case cbo.PushPull:
+			ret.PushPull.Add(e)
+		case cbo.Tristate:
+			ret.Tristate.Add(e)
+		case cbo.OpenCollector:
+			ret.OpenCollector.Add(e)
+		case cbo.OpenEmitter:
+			ret.OpenEmitter.Add(e)
 		}
 	}
 
