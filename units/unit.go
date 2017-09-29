@@ -394,6 +394,9 @@ func (u *Unit) String() string {
 	if name, hasName := unitName[u]; hasName {
 		return name
 	}
+	if name, hasName := unitName[u.Reciprocal()]; hasName {
+		return fmt.Sprintf("%s⁻¹", name)
+	}
 
 	// If the unit doesn't have a name then we'll construct one from its
 	// base units, using its dimensionality entries.

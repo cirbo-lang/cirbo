@@ -115,11 +115,25 @@ func TestUnitReciprocal(t *testing.T) {
 		},
 		{
 			unitByName["V"],
-			"A s³ kg⁻¹ m⁻²",
+			"V⁻¹",
 		},
 		{
 			unitByName["lx"],
-			"m² cd⁻¹",
+			"lx⁻¹",
+		},
+		{
+			&Unit{
+				Dimensionality{Mass: -1, Length: -2, Time: 2, ElectricCurrent: 3, LuminousIntensity: 1},
+				baseUnits{
+					Mass:              kilogram,
+					Length:            meter,
+					Time:              second,
+					ElectricCurrent:   ampere,
+					LuminousIntensity: candela,
+				},
+				0,
+			},
+			"kg m² cd⁻¹ s⁻² A⁻³",
 		},
 	}
 
@@ -163,6 +177,14 @@ func TestUnitString(t *testing.T) {
 		{
 			unitByName["kohm"],
 			"kohm",
+		},
+		{
+			unitByName["s"],
+			"s",
+		},
+		{
+			unitByName["Hz"],
+			"Hz",
 		},
 		{
 			&Unit{

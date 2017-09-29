@@ -380,6 +380,11 @@ func TestQuantityDivide(t *testing.T) {
 			"2 ohm", // unit must normalize to ohm
 		},
 		{
+			MakeQuantity(bfp("2"), unitByName["A"]),
+			MakeQuantity(bfp("2"), unitByName["V"]),
+			"1 ohm⁻¹", // unit must normalize to inverse ohm
+		},
+		{
 			MakeQuantity(bfp("4"), unitByName["W"]),
 			MakeQuantity(bfp("2"), unitByName["A"]),
 			"2 V", // unit must normalize to volt
