@@ -69,3 +69,24 @@ func (s EndpointSet) List() []*Endpoint {
 	}
 	return ret
 }
+
+func (s EndpointSet) Union(o EndpointSet) EndpointSet {
+	ret := make(EndpointSet, len(s)+len(o))
+	for e := range s {
+		ret[e] = struct{}{}
+	}
+	for e := range o {
+		ret[e] = struct{}{}
+	}
+	return ret
+}
+
+func (s EndpointSet) Subtract(o EndpointSet) EndpointSet {
+	ret := make(EndpointSet, len(s))
+	for e := range s {
+		if !o.Has(e) {
+			ret[e] = struct{}{}
+		}
+	}
+	return ret
+}
