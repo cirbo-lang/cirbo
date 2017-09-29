@@ -357,17 +357,17 @@ func TestQuantityDivide(t *testing.T) {
 		{
 			MakeQuantity(bfp("2"), unitByName["A"]),
 			MakeQuantity(bfp("2"), unitByName["ohm"]),
-			"1 kg⁻¹ m⁻² A³ s³",
+			"1 A³ s³ kg⁻¹ m⁻²",
 		},
 		{
 			MakeQuantity(bfp("2"), unitByName["A"]),
 			MakeQuantity(bfp("2"), unitByName["kohm"]),
-			"0.001 kg⁻¹ m⁻² A³ s³",
+			"0.001 A³ s³ kg⁻¹ m⁻²",
 		},
 		{
 			MakeQuantity(bfp("2"), unitByName["mA"]),
 			MakeQuantity(bfp("2"), unitByName["kohm"]),
-			"1e-06 kg⁻¹ m⁻² A³ s³",
+			"1e-06 A³ s³ kg⁻¹ m⁻²",
 		},
 		{
 			MakeQuantity(bfp("4"), unitByName["m"]),

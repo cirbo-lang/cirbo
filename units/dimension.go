@@ -16,9 +16,9 @@ const (
 	Mass
 	Length
 	Angle
-	Time
 	ElectricCurrent
 	LuminousIntensity
+	Time
 )
 
 var powerReplacer = strings.NewReplacer(
@@ -126,7 +126,6 @@ func (d Dimensionality) String() string {
 
 	e := d.dimEntries()
 
-	sort.Stable(e)
 	for _, ei := range e {
 		b.WriteString(ei.Dimension.String())
 		if ei.Power != 1 {
@@ -157,6 +156,7 @@ func (d Dimensionality) dimEntries() dimEntries {
 	if d.Time != 0 {
 		e = append(e, dimEntry{Time, d.Time})
 	}
+	sort.Stable(e)
 	return e
 }
 
@@ -173,6 +173,14 @@ func (e dimEntries) Len() int {
 
 func (e dimEntries) Less(i, j int) bool {
 	if e[i].Power != e[j].Power {
+		// Sort unit powers before all others
+		if e[i].Power == 1 {
+			return true
+		}
+		if e[j].Power == 1 {
+			return false
+		}
+
 		// Sort negative powers after positive powers
 		if e[i].Power < 0 && e[j].Power >= 0 {
 			return false
@@ -181,7 +189,15 @@ func (e dimEntries) Less(i, j int) bool {
 			return true
 		}
 
-		return e[i].Power < e[j].Power
+		api := e[i].Power
+		apj := e[j].Power
+		if api < 0 {
+			api = -api
+		}
+		if apj < 0 {
+			apj = -apj
+		}
+		return api < apj
 	}
 
 	return int(e[i].Dimension) < int(e[j].Dimension)
