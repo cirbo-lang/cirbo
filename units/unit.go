@@ -137,23 +137,23 @@ var unitByName map[string]*Unit = map[string]*Unit{
 		0,
 	},
 	"mW": &Unit{
-		Dimensionality{Time: -1},
-		baseUnits{Time: second},
+		Dimensionality{Mass: 1, Length: 2, Time: -3},
+		baseUnits{Mass: kilogram, Length: meter, Time: second},
 		-1000,
 	},
 	"kW": &Unit{
-		Dimensionality{Time: -1},
-		baseUnits{Time: second},
+		Dimensionality{Mass: 1, Length: 2, Time: -3},
+		baseUnits{Mass: kilogram, Length: meter, Time: second},
 		1000,
 	},
 	"MW": &Unit{
-		Dimensionality{Time: -1},
-		baseUnits{Time: second},
+		Dimensionality{Mass: 1, Length: 2, Time: -3},
+		baseUnits{Mass: kilogram, Length: meter, Time: second},
 		1000000,
 	},
 	"GW": &Unit{
-		Dimensionality{Time: -1},
-		baseUnits{Time: second},
+		Dimensionality{Mass: 1, Length: 2, Time: -3},
+		baseUnits{Mass: kilogram, Length: meter, Time: second},
 		1000000000,
 	},
 
