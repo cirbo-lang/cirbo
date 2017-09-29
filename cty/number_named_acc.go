@@ -16,6 +16,9 @@ var Area Type = QuantityByName("Area")
 // Capacitance is a quantity type of dimensionality [I]²[T]⁴[L]⁻²[M]⁻¹.
 var Capacitance Type = QuantityByName("Capacitance")
 
+// Charge is a quantity type of dimensionality [T][I].
+var Charge Type = QuantityByName("Charge")
+
 // Conductance is a quantity type of dimensionality [I]²[T]³[L]⁻²[M]⁻¹.
 var Conductance Type = QuantityByName("Conductance")
 

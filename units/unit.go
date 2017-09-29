@@ -174,6 +174,13 @@ var unitByName map[string]*Unit = map[string]*Unit{
 		-1000000,
 	},
 
+	// Electric Charge Units
+	"C": &Unit{
+		Dimensionality{Time: 1, ElectricCurrent: 1},
+		baseUnits{Time: second, ElectricCurrent: ampere},
+		0,
+	},
+
 	// Electrical Inductance Units
 	"H": &Unit{
 		Dimensionality{Mass: 1, Length: 2, Time: -2, ElectricCurrent: -2},

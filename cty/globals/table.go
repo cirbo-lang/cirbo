@@ -16,6 +16,7 @@ func Table() map[string]cty.Value {
 		"Area":              Area,
 		"Bool":              Bool,
 		"Capacitance":       Capacitance,
+		"Charge":            Charge,
 		"Conductance":       Conductance,
 		"Conductivity":      Conductivity,
 		"Current":           Current,

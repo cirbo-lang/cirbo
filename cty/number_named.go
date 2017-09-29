@@ -106,6 +106,10 @@ var namedNumberTypes = map[string]Type{
 		Time:            -2,
 		ElectricCurrent: -2,
 	}),
+	"Charge": Quantity(units.Dimensionality{
+		Time:            1,
+		ElectricCurrent: 1,
+	}),
 	"Illuminance": Quantity(units.Dimensionality{
 		Length:            -2,
 		LuminousIntensity: 1,
