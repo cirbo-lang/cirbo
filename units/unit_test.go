@@ -115,7 +115,7 @@ func TestUnitReciprocal(t *testing.T) {
 		},
 		{
 			unitByName["V"],
-			"kg⁻¹ m⁻² s³ A",
+			"kg⁻¹ m⁻² A s³",
 		},
 		{
 			unitByName["lx"],

@@ -148,14 +148,14 @@ func (d Dimensionality) dimEntries() dimEntries {
 	if d.Angle != 0 {
 		e = append(e, dimEntry{Angle, d.Angle})
 	}
-	if d.Time != 0 {
-		e = append(e, dimEntry{Time, d.Time})
-	}
 	if d.ElectricCurrent != 0 {
 		e = append(e, dimEntry{ElectricCurrent, d.ElectricCurrent})
 	}
 	if d.LuminousIntensity != 0 {
 		e = append(e, dimEntry{LuminousIntensity, d.LuminousIntensity})
+	}
+	if d.Time != 0 {
+		e = append(e, dimEntry{Time, d.Time})
 	}
 	return e
 }
