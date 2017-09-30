@@ -33,6 +33,19 @@ type Pos struct {
 
 var StartPos = Pos{Line: 1, Column: 1}
 
+var NilPos = Pos{}
+
+func (p Pos) GoString() string {
+	switch p {
+	case StartPos:
+		return "source.StartPos"
+	case NilPos:
+		return "source.NilPos"
+	default:
+		return fmt.Sprintf("source.Pos{%d, %d, %d}", p.Line, p.Column, p.Byte)
+	}
+}
+
 // Range represents a span of characters between two positions in a source
 // file.
 //
@@ -48,6 +61,8 @@ type Range struct {
 	// and End is exclusive.
 	Start, End Pos
 }
+
+var NilRange = Range{}
 
 // RangeBetween returns a new range that spans from the beginning of the
 // start range to the end of the end range.
@@ -87,6 +102,13 @@ func (r Range) String() string {
 			r.End.Line, r.End.Column,
 		)
 	}
+}
+
+func (r Range) GoString() string {
+	if r == NilRange {
+		return "source.NilRange"
+	}
+	return fmt.Sprintf("source.Range{%q, %#v, %#v}", r.Filename, r.Start, r.End)
 }
 
 // List returns the receiver wrapped in a single-element slice.
