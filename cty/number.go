@@ -2,6 +2,7 @@ package cty
 
 import (
 	"fmt"
+	"math/big"
 
 	"github.com/cirbo-lang/cirbo/units"
 )
@@ -11,6 +12,12 @@ type numberImpl struct {
 	isType
 	dim units.Dimensionality
 }
+
+// Zero is a value of type Number that represents zero
+var Zero Value
+
+// One is a value of type Number that represents one
+var One Value
 
 func Quantity(dim units.Dimensionality) Type {
 	return Type{numberImpl{dim: dim}}
@@ -102,4 +109,17 @@ func (i numberImpl) Divide(a, b Value) Value {
 	av := a.v.(units.Quantity)
 	bv := b.v.(units.Quantity)
 	return QuantityVal(av.Divide(bv))
+}
+
+func init() {
+	Zero = QuantityVal(
+		units.MakeDimensionless(
+			(&big.Float{}).SetInt64(0),
+		),
+	)
+	One = QuantityVal(
+		units.MakeDimensionless(
+			(&big.Float{}).SetInt64(1),
+		),
+	)
 }

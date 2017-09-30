@@ -280,8 +280,15 @@ func (v Value) GoString() string {
 		}
 		return fmt.Sprintf("cty.UnknownVal(%#v)", v.Type())
 	case isQuantity:
-		quantity := v.v.(units.Quantity)
-		return fmt.Sprintf("cty.Quantity(%#v)", quantity)
+		switch v {
+		case Zero:
+			return "cty.Zero"
+		case One:
+			return "cty.One"
+		default:
+			quantity := v.v.(units.Quantity)
+			return fmt.Sprintf("cty.Quantity(%#v)", quantity)
+		}
 	case v == True:
 		return "cty.True"
 	case v == False:
