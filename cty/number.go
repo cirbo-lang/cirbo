@@ -30,6 +30,22 @@ func QuantityVal(q units.Quantity) Value {
 	}
 }
 
+func NumberValInt(v int64) Value {
+	return QuantityVal(
+		units.MakeDimensionless(
+			(&big.Float{}).SetInt64(v),
+		),
+	)
+}
+
+func NumberValFloat(v float64) Value {
+	return QuantityVal(
+		units.MakeDimensionless(
+			(&big.Float{}).SetFloat64(v),
+		),
+	)
+}
+
 func (i numberImpl) Name() string {
 	name := numberTypeNames[i.dim]
 	if name != "" {

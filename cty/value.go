@@ -2,6 +2,7 @@ package cty
 
 import (
 	"fmt"
+	"math/big"
 
 	"github.com/cirbo-lang/cirbo/source"
 	"github.com/cirbo-lang/cirbo/units"
@@ -287,6 +288,14 @@ func (v Value) GoString() string {
 			return "cty.One"
 		default:
 			quantity := v.v.(units.Quantity)
+			if quantity.Unit().Dimensionality() == (units.Dimensionality{}) {
+				if iv, acc := quantity.Value().Int64(); acc == big.Exact {
+					return fmt.Sprintf("cty.NumberValInt(%d)", iv)
+				}
+				if fv, acc := quantity.Value().Float64(); acc == big.Exact {
+					return fmt.Sprintf("cty.NumberValFloat(%f)", fv)
+				}
+			}
 			return fmt.Sprintf("cty.Quantity(%#v)", quantity)
 		}
 	case v == True:
