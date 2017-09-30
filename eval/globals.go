@@ -33,6 +33,7 @@ func init() {
 	for name, val := range vals {
 		sym := &Symbol{
 			scope: globalScope,
+			name:  name,
 		}
 		globalScope.symbols[name] = sym
 		globalContext.values[sym] = val

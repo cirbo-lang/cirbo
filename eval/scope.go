@@ -16,6 +16,7 @@ type Scope struct {
 //
 // A value for each symbol is defined in an associated Context.
 type Symbol struct {
+	name  string
 	scope *Scope
 }
 
@@ -43,6 +44,7 @@ func (s *Scope) Declare(name string) *Symbol {
 		panic(fmt.Errorf("attempt to re-declare %q in %#v", name, s))
 	}
 	sym := &Symbol{
+		name:  name,
 		scope: s,
 	}
 	s.symbols[name] = sym
