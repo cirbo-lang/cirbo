@@ -66,3 +66,15 @@ func (ctx *Context) Value(sym *Symbol) cty.Value {
 
 	return cty.NilValue
 }
+
+// AllValues returns a map describing the values of all of all of the symbols
+// defined in the given scope, using their definition names.
+//
+// If any of the symbols are not yet defined, they will map to NilValue.
+func (ctx *Context) AllValues(s *Scope) map[string]cty.Value {
+	ret := make(map[string]cty.Value, len(s.symbols))
+	for name, symbol := range s.symbols {
+		ret[name] = ctx.Value(symbol)
+	}
+	return ret
+}
