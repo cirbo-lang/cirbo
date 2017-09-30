@@ -275,6 +275,9 @@ func (v Value) GoString() string {
 	_, isQuantity := v.ty.impl.(numberImpl)
 	switch {
 	case v.IsUnknown():
+		if _, isUnkType := v.ty.impl.(unknownTypeImpl); isUnkType {
+			return "cty.PlaceholderVal"
+		}
 		return fmt.Sprintf("cty.UnknownVal(%#v)", v.Type())
 	case isQuantity:
 		quantity := v.v.(units.Quantity)
