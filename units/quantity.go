@@ -22,12 +22,36 @@ func MakeQuantity(value *big.Float, unit *Unit) Quantity {
 	}
 }
 
+// MakeQuantityInt is a convenience wrapper around MakeQuantity that accepts
+// an int64 and converts it to a big.Float.
+func MakeQuantityInt(value int64, unit *Unit) Quantity {
+	return MakeQuantity((&big.Float{}).SetInt64(value), unit)
+}
+
+// MakeQuantityFloat is a convenience wrapper around MakeQuantity that accepts
+// a float64 and converts it to a big.Float.
+func MakeQuantityFloat(value float64, unit *Unit) Quantity {
+	return MakeQuantity((&big.Float{}).SetFloat64(value), unit)
+}
+
 // MakeDimensionless initializes a dimensionless Quantity with the given value
 func MakeDimensionless(value *big.Float) Quantity {
 	return Quantity{
 		value: value,
 		unit:  dimless,
 	}
+}
+
+// MakeDimensionlessInt is a convenience wrapper around MakeDimensionless,
+// similar to MakeQuantityInt.
+func MakeDimensionlessInt(value int64) Quantity {
+	return MakeQuantityInt(value, nil)
+}
+
+// MakeDimensionlessFloat is a convenience wrapper around MakeDimensionless,
+// similar to MakeQuantityFloat.
+func MakeDimensionlessFloat(value float64) Quantity {
+	return MakeQuantityFloat(value, nil)
 }
 
 // Value returns the value of the receiving quantity.
@@ -336,6 +360,22 @@ func (q Quantity) String() string {
 }
 
 func (q Quantity) GoString() string {
+	if iv, acc := q.value.Int64(); acc == big.Exact {
+		if q.unit == unitByName[""] {
+			return fmt.Sprintf("units.MakeDimensionlessInt(%d)", iv)
+		}
+
+		return fmt.Sprintf("units.MakeQuantityInt(%d, %#v)", iv, q.unit)
+	}
+
+	if fv, acc := q.value.Float64(); acc == big.Exact {
+		if q.unit == unitByName[""] {
+			return fmt.Sprintf("units.MakeDimensionlessFloat(%f)", fv)
+		}
+
+		return fmt.Sprintf("units.MakeQuantityFloat(%f, %#v)", fv, q.unit)
+	}
+
 	if q.unit == unitByName[""] {
 		return fmt.Sprintf("units.MakeDimensionless((&big.Float{}).Parse(%q))", q.value.String())
 	}
