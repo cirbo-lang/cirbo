@@ -80,3 +80,123 @@ func (e *literalExpr) value(ctx *Context, targetSym *Symbol) (cty.Value, source.
 func (e *literalExpr) GoString() string {
 	return fmt.Sprintf("eval.LiteralExpr(%#v, %#v)", e.val, e.rng.sourceRange())
 }
+
+type binaryOpExpr struct {
+	lhs Expr
+	rhs Expr
+	op  operator
+	rng
+}
+
+func makeBinaryOpExpr(lhs, rhs Expr, op operator, rng source.Range) Expr {
+	return &binaryOpExpr{
+		lhs: lhs,
+		rhs: rhs,
+		op:  op,
+		rng: srcRange(rng),
+	}
+}
+
+func AddExpr(lhs, rhs Expr, rng source.Range) Expr {
+	return makeBinaryOpExpr(lhs, rhs, opAdd, rng)
+}
+
+func SubtractExpr(lhs, rhs Expr, rng source.Range) Expr {
+	return makeBinaryOpExpr(lhs, rhs, opSubtract, rng)
+}
+
+func MultiplyExpr(lhs, rhs Expr, rng source.Range) Expr {
+	return makeBinaryOpExpr(lhs, rhs, opMultiply, rng)
+}
+
+func DivideExpr(lhs, rhs Expr, rng source.Range) Expr {
+	return makeBinaryOpExpr(lhs, rhs, opDivide, rng)
+}
+
+func ModuloExpr(lhs, rhs Expr, rng source.Range) Expr {
+	return makeBinaryOpExpr(lhs, rhs, opModulo, rng)
+}
+
+func ExponentExpr(lhs, rhs Expr, rng source.Range) Expr {
+	return makeBinaryOpExpr(lhs, rhs, opExponent, rng)
+}
+
+func ConcatExpr(lhs, rhs Expr, rng source.Range) Expr {
+	return makeBinaryOpExpr(lhs, rhs, opConcat, rng)
+}
+
+func EqualExpr(lhs, rhs Expr, rng source.Range) Expr {
+	return makeBinaryOpExpr(lhs, rhs, opEqual, rng)
+}
+
+func NotEqualExpr(lhs, rhs Expr, rng source.Range) Expr {
+	return makeBinaryOpExpr(lhs, rhs, opNotEqual, rng)
+}
+
+func LessThanExpr(lhs, rhs Expr, rng source.Range) Expr {
+	return makeBinaryOpExpr(lhs, rhs, opLessThan, rng)
+}
+
+func LessThanOrEqualExpr(lhs, rhs Expr, rng source.Range) Expr {
+	return makeBinaryOpExpr(lhs, rhs, opLessThanOrEqual, rng)
+}
+
+func GreaterThanExpr(lhs, rhs Expr, rng source.Range) Expr {
+	return makeBinaryOpExpr(lhs, rhs, opGreaterThan, rng)
+}
+
+func GreaterThanOrEqualExpr(lhs, rhs Expr, rng source.Range) Expr {
+	return makeBinaryOpExpr(lhs, rhs, opGreaterThanOrEqual, rng)
+}
+
+func AndExpr(lhs, rhs Expr, rng source.Range) Expr {
+	return makeBinaryOpExpr(lhs, rhs, opAnd, rng)
+}
+
+func OrExpr(lhs, rhs Expr, rng source.Range) Expr {
+	return makeBinaryOpExpr(lhs, rhs, opOr, rng)
+}
+
+func (e *binaryOpExpr) value(ctx *Context, targetSym *Symbol) (cty.Value, source.Diags) {
+	return e.op.evalBinary(ctx, e.lhs, e.rhs, e.sourceRange())
+}
+
+func (e *binaryOpExpr) eachChild(cb walkCb) {
+	cb(e.lhs)
+	cb(e.rhs)
+}
+
+func (e *binaryOpExpr) GoString() string {
+	name := e.op.String()[2:]
+	return fmt.Sprintf("eval.%sExpr(%#v, %#v, %#v)", name, e.lhs, e.rhs, e.sourceRange())
+}
+
+type unaryOpExpr struct {
+	val Expr
+	op  operator
+	rng
+}
+
+func makeUnaryOpExpr(val Expr, op operator, rng source.Range) Expr {
+	return &unaryOpExpr{
+		val: val,
+		op:  op,
+		rng: srcRange(rng),
+	}
+}
+
+func NegateExpr(val Expr, rng source.Range) Expr {
+	return makeUnaryOpExpr(val, opNegate, rng)
+}
+
+func NotExpr(val Expr, rng source.Range) Expr {
+	return makeUnaryOpExpr(val, opNot, rng)
+}
+
+func (e *unaryOpExpr) value(ctx *Context, targetSym *Symbol) (cty.Value, source.Diags) {
+	return e.op.evalUnary(ctx, e.val, e.sourceRange())
+}
+
+func (e *unaryOpExpr) eachChild(cb walkCb) {
+	cb(e.val)
+}
