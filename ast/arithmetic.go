@@ -15,6 +15,8 @@ type ArithmeticUnary struct {
 
 type ArithmeticOp rune
 
+//go:generate stringer -type=ArithmeticOp
+
 const (
 	Equal              ArithmeticOp = '='
 	NotEqual           ArithmeticOp = '≠'
