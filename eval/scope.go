@@ -102,3 +102,19 @@ func (s *Scope) AllNames() []string {
 
 	return ret
 }
+
+// DeclaredName returns the name that was used at the declaration of the
+// receiving symbol.
+//
+// Symbol names are not globally unique since child scopes can shadow
+// declarations in parent scopes; while this result can be useful to
+// talk about scopes to the user, care must be taken to give enough context
+// to avoid creating further confusion.
+func (sym *Symbol) DeclaredName() string {
+	return sym.name
+}
+
+// Scope returns the scope that the receiving symbol belongs to.
+func (sym *Symbol) Scope() *Scope {
+	return sym.scope
+}
