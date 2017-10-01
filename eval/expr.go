@@ -230,3 +230,25 @@ func (e *callExpr) eachChild(cb walkCb) {
 		cb(expr)
 	}
 }
+
+type attrExpr struct {
+	obj  Expr
+	name string
+	rng
+}
+
+func AttrExpr(obj Expr, name string, rng source.Range) Expr {
+	return &attrExpr{
+		obj:  obj,
+		name: name,
+		rng:  srcRange(rng),
+	}
+}
+
+func (e *attrExpr) value(ctx *Context, targetSym *Symbol) (cty.Value, source.Diags) {
+	panic("attrExpr.value not yet implemented")
+}
+
+func (e *attrExpr) eachChild(cb walkCb) {
+	cb(e.obj)
+}
