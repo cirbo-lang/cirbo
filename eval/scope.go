@@ -2,6 +2,7 @@ package eval
 
 import (
 	"fmt"
+	"sort"
 )
 
 // Scope represents a symbol table for evaluation. Each symbol appearing in
@@ -74,4 +75,30 @@ func (s *Scope) Get(name string) *Symbol {
 		current = current.parent
 	}
 	return nil
+}
+
+// AllNames returns a slice of all of the names declared in the receiver and
+// all of its ancestor scopes.
+//
+// This is primarily intended for giving feedback to the user in error messages
+// about references to undeclared symbols. It is returned sorted first by
+// scope in order of "closeness" (receiver first, global scope last) and then
+// by name lexicographically within each scope.
+//
+// Due to the sorting strategy, the same name may appear multiple times in the
+// list if it is declared in multiple different scopes.
+func (s *Scope) AllNames() []string {
+	if s == nil {
+		return nil
+	}
+
+	inherited := s.parent.AllNames()
+	ret := make([]string, 0, len(s.symbols)+len(inherited))
+	for name := range s.symbols {
+		ret = append(ret, name)
+	}
+	sort.Strings(ret)
+	ret = append(ret, inherited...)
+
+	return ret
 }
