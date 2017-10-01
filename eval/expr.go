@@ -275,3 +275,31 @@ func (e *indexExpr) eachChild(cb walkCb) {
 	cb(e.coll)
 	cb(e.index)
 }
+
+type passthroughExpr struct {
+	expr Expr
+	rng
+}
+
+func PassthroughExpr(expr Expr, rng source.Range) Expr {
+	return &passthroughExpr{
+		expr: expr,
+		rng:  srcRange(rng),
+	}
+}
+
+func (e *passthroughExpr) value(ctx *Context, targetSym *Symbol) (cty.Value, source.Diags) {
+	// This is the one situation where we _do_ pass through a targetSym
+	// value, since we want PassthroughExpr to act like it isn't there at all.
+	// (It's only there to represent parethesized exprs so we can draw ranges
+	// properly around them in the event of errors.)
+	return e.expr.value(ctx, targetSym)
+}
+
+func (e *passthroughExpr) eachChild(cb walkCb) {
+	cb(e.expr)
+}
+
+func (e *passthroughExpr) GoString() string {
+	return fmt.Sprintf("eval.PassthroughExpr(%#v)", e.expr)
+}
