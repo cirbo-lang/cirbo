@@ -3,6 +3,7 @@ package units
 import (
 	"bytes"
 	"fmt"
+	"sort"
 	"strconv"
 	"strings"
 )
@@ -31,6 +32,23 @@ type Unit struct {
 //     metersSquared := units.ByName("m").ToPower(2)
 func ByName(n string) *Unit {
 	return unitByName[n]
+}
+
+// AllNames returns a slice of all of the names that correspond to known units,
+// excluding the dimensionless unit represented by the empty string.
+//
+// This is primarily intended to help produce good error messages if a user
+// provides an invalid unit name.
+func AllNames() []string {
+	ret := make([]string, 0, len(unitByName))
+	for n := range unitByName {
+		if n == "" {
+			continue
+		}
+		ret = append(ret, n)
+	}
+	sort.Strings(ret)
+	return ret
 }
 
 var dimless = &Unit{Dimensionality{}, baseUnits{}, 0}
