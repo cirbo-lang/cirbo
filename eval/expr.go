@@ -252,3 +252,26 @@ func (e *attrExpr) value(ctx *Context, targetSym *Symbol) (cty.Value, source.Dia
 func (e *attrExpr) eachChild(cb walkCb) {
 	cb(e.obj)
 }
+
+type indexExpr struct {
+	coll  Expr
+	index Expr
+	rng
+}
+
+func IndexExpr(coll, index Expr, rng source.Range) Expr {
+	return &indexExpr{
+		coll:  coll,
+		index: index,
+		rng:   srcRange(rng),
+	}
+}
+
+func (e *indexExpr) value(ctx *Context, targetSym *Symbol) (cty.Value, source.Diags) {
+	panic("indexExpr.value not yet implemented")
+}
+
+func (e *indexExpr) eachChild(cb walkCb) {
+	cb(e.coll)
+	cb(e.index)
+}
