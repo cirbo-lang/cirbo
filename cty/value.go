@@ -296,7 +296,7 @@ func (v Value) GoString() string {
 					return fmt.Sprintf("cty.NumberValFloat(%f)", fv)
 				}
 			}
-			return fmt.Sprintf("cty.Quantity(%#v)", quantity)
+			return fmt.Sprintf("cty.QuantityVal(%#v)", quantity)
 		}
 	case v == True:
 		return "cty.True"
