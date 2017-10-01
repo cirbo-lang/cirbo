@@ -4,18 +4,16 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/cirbo-lang/cirbo/units"
-
-	"github.com/cirbo-lang/cirbo/source"
-
 	"github.com/cirbo-lang/cirbo/cty"
+	"github.com/cirbo-lang/cirbo/source"
+	"github.com/cirbo-lang/cirbo/units"
 )
 
 func TestExprImpls(t *testing.T) {
 	// All of the testing here actually happens at compile time. We dress it
 	// up like run-time tests just because that makes this test visible in
 	// the test results when we pass.
-	tests := []Expr{
+	tests := []exprImpl{
 		(*binaryOpExpr)(nil),
 		(*callExpr)(nil),
 		(*literalExpr)(nil),
@@ -36,7 +34,7 @@ func TestSymbolExpr(t *testing.T) {
 	ctx := (*Context)(nil).NewChild()
 
 	sym := scope.Declare("foo")
-	ctx.Define(sym, cty.True)
+	ctx.DefineLiteral(sym, cty.True)
 	undef := scope.Declare("undefined")
 
 	tests := []struct {

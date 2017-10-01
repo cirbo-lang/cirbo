@@ -30,7 +30,7 @@ func TestRequiredSymbols(t *testing.T) {
 		source.NilRange,
 	)
 
-	got := RequiredSymbols(expr, scope2)
+	got := expr.RequiredSymbols(scope2)
 	want := NewSymbolSet(symScope2Only, symBothScopes2)
 
 	if !got.Equal(want) {
@@ -63,7 +63,7 @@ func TestSymbolReferences(t *testing.T) {
 		source.NilRange,
 	)
 
-	got := SymbolReferences(expr, symbol1)
+	got := expr.SymbolReferences(symbol1)
 	want := NewExprSet(symExpr1a, symExpr1b)
 
 	if !got.Equal(want) {

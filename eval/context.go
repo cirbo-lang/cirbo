@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/cirbo-lang/cirbo/cty"
+	"github.com/cirbo-lang/cirbo/source"
 )
 
 // Context represents the current values for a set of symbols used during
@@ -25,14 +26,30 @@ func (ctx *Context) NewChild() *Context {
 	}
 }
 
-// Define records a value for the given symbol in the receiver.
+// Define evaluates the given expression in the receiving context and
+// then defines the given symbol (in the same context) with the result.
+//
+// As a convenience, the result of the expression is returned along with
+// any diagnostics produced during the evaluation.
+//
+// It is invalid to re-define a symbol, so this function will panic if the
+// given symbol already has a definition in the given context.
+//
+// This method will also panic if the receiver is the immutable global context.
+func (ctx *Context) Define(sym *Symbol, expr Expr) (cty.Value, source.Diags) {
+	v, diags := expr.value(ctx, sym)
+	ctx.DefineLiteral(sym, v)
+	return v, diags
+}
+
+// DefineLiteral records a literal value for the given symbol in the receiver.
 //
 // This method will panic if the given symbol is already defined in the
 // receiver. This does not apply if it is defined only in parent contexts.
 // Use Defined to determine if a given symbol is already defined.
 //
 // This method will also panic if the receiver is the immutable global context.
-func (ctx *Context) Define(sym *Symbol, val cty.Value) {
+func (ctx *Context) DefineLiteral(sym *Symbol, val cty.Value) {
 	if ctx == globalContext {
 		panic(fmt.Errorf("attempt to define %#v as %#v in the immutable global scope", sym, val))
 	}

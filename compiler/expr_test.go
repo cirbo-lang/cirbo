@@ -131,9 +131,9 @@ func TestCompileExpr(t *testing.T) {
 	scope1.Declare("notDefined")
 
 	ctx := eval.GlobalContext().NewChild()
-	ctx.Define(fooSym, cty.StringVal("foo"))
-	ctx.Define(barSym, cty.StringVal("bar"))
-	ctx.Define(upperSym, cty.FunctionVal(cty.FunctionImpl{
+	ctx.DefineLiteral(fooSym, cty.StringVal("foo"))
+	ctx.DefineLiteral(barSym, cty.StringVal("bar"))
+	ctx.DefineLiteral(upperSym, cty.FunctionVal(cty.FunctionImpl{
 		Signature: &cty.CallSignature{
 			Parameters: map[string]cty.CallParameter{
 				"str": {
@@ -160,7 +160,7 @@ func TestCompileExpr(t *testing.T) {
 			expr, compileDiags := CompileExpr(node, scope2)
 			diags = append(diags, compileDiags...)
 
-			val, evalDiags := eval.Value(expr, ctx)
+			val, evalDiags := expr.Value(ctx)
 			diags = append(diags, evalDiags...)
 
 			if len(diags) != test.Diags {

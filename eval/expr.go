@@ -7,7 +7,29 @@ import (
 	"github.com/cirbo-lang/cirbo/source"
 )
 
-type Expr interface {
+type Expr struct {
+	e exprImpl
+}
+
+func (e Expr) value(ctx *Context, targetSym *Symbol) (cty.Value, source.Diags) {
+	return e.e.value(ctx, targetSym)
+}
+
+func (e Expr) eachChild(cb walkCb) {
+	e.e.eachChild(cb)
+}
+
+func (e Expr) sourceRange() source.Range {
+	return e.e.sourceRange()
+}
+
+// NilExpr is an invalid expression that serves as the zero value of Expr.
+//
+// NilExpr indicates the absense of an expression and is not itself a valid
+// expression. Any methods called on it will panic.
+var NilExpr Expr
+
+type exprImpl interface {
 	// value evaluates the expression in the given context.
 	//
 	// If the result is being used directly as the definition of a symbol
@@ -32,10 +54,10 @@ type symbolExpr struct {
 }
 
 func SymbolExpr(sym *Symbol, rng source.Range) Expr {
-	return &symbolExpr{
+	return Expr{&symbolExpr{
 		sym: sym,
 		rng: srcRange(rng),
-	}
+	}}
 }
 
 func (e *symbolExpr) value(ctx *Context, targetSym *Symbol) (cty.Value, source.Diags) {
@@ -67,10 +89,10 @@ type literalExpr struct {
 }
 
 func LiteralExpr(val cty.Value, rng source.Range) Expr {
-	return &literalExpr{
+	return Expr{&literalExpr{
 		val: val,
 		rng: srcRange(rng),
-	}
+	}}
 }
 
 func (e *literalExpr) value(ctx *Context, targetSym *Symbol) (cty.Value, source.Diags) {
@@ -89,12 +111,12 @@ type binaryOpExpr struct {
 }
 
 func makeBinaryOpExpr(lhs, rhs Expr, op operator, rng source.Range) Expr {
-	return &binaryOpExpr{
+	return Expr{&binaryOpExpr{
 		lhs: lhs,
 		rhs: rhs,
 		op:  op,
 		rng: srcRange(rng),
-	}
+	}}
 }
 
 func AddExpr(lhs, rhs Expr, rng source.Range) Expr {
@@ -178,11 +200,11 @@ type unaryOpExpr struct {
 }
 
 func makeUnaryOpExpr(val Expr, op operator, rng source.Range) Expr {
-	return &unaryOpExpr{
+	return Expr{&unaryOpExpr{
 		val: val,
 		op:  op,
 		rng: srcRange(rng),
-	}
+	}}
 }
 
 func NegateExpr(val Expr, rng source.Range) Expr {
@@ -209,12 +231,12 @@ type callExpr struct {
 }
 
 func CallExpr(callee Expr, posArgs []Expr, namedArgs map[string]Expr, rng source.Range) Expr {
-	return &callExpr{
+	return Expr{&callExpr{
 		callee:    callee,
 		posArgs:   posArgs,
 		namedArgs: namedArgs,
 		rng:       srcRange(rng),
-	}
+	}}
 }
 
 func (e *callExpr) value(ctx *Context, targetSym *Symbol) (cty.Value, source.Diags) {
@@ -238,11 +260,11 @@ type attrExpr struct {
 }
 
 func AttrExpr(obj Expr, name string, rng source.Range) Expr {
-	return &attrExpr{
+	return Expr{&attrExpr{
 		obj:  obj,
 		name: name,
 		rng:  srcRange(rng),
-	}
+	}}
 }
 
 func (e *attrExpr) value(ctx *Context, targetSym *Symbol) (cty.Value, source.Diags) {
@@ -260,11 +282,11 @@ type indexExpr struct {
 }
 
 func IndexExpr(coll, index Expr, rng source.Range) Expr {
-	return &indexExpr{
+	return Expr{&indexExpr{
 		coll:  coll,
 		index: index,
 		rng:   srcRange(rng),
-	}
+	}}
 }
 
 func (e *indexExpr) value(ctx *Context, targetSym *Symbol) (cty.Value, source.Diags) {
@@ -282,10 +304,10 @@ type passthroughExpr struct {
 }
 
 func PassthroughExpr(expr Expr, rng source.Range) Expr {
-	return &passthroughExpr{
+	return Expr{&passthroughExpr{
 		expr: expr,
 		rng:  srcRange(rng),
-	}
+	}}
 }
 
 func (e *passthroughExpr) value(ctx *Context, targetSym *Symbol) (cty.Value, source.Diags) {

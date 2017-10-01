@@ -6,12 +6,12 @@ package eval
 // This can be used to understand the dependency relationships between different
 // symbol definitions, and thus to process definitions in a suitable order
 // to ensure that all prerequisites are satisfied.
-func RequiredSymbols(expr Expr, scope *Scope) SymbolSet {
+func (expr Expr) RequiredSymbols(scope *Scope) SymbolSet {
 	ret := make(SymbolSet)
 
 	var cb walkCb
 	cb = func(oe Expr) {
-		if se, ok := oe.(*symbolExpr); ok {
+		if se, ok := oe.e.(*symbolExpr); ok {
 			if se.sym.scope == scope {
 				ret.Add(se.sym)
 			}
@@ -28,12 +28,12 @@ func RequiredSymbols(expr Expr, scope *Scope) SymbolSet {
 //
 // The primary reason to use this function is to obtain the source
 // locations of invalid references.
-func SymbolReferences(expr Expr, sym *Symbol) ExprSet {
+func (expr Expr) SymbolReferences(sym *Symbol) ExprSet {
 	ret := make(ExprSet)
 
 	var cb walkCb
 	cb = func(oe Expr) {
-		if se, ok := oe.(*symbolExpr); ok {
+		if se, ok := oe.e.(*symbolExpr); ok {
 			if se.sym == sym {
 				ret.Add(oe)
 			}
