@@ -17,6 +17,7 @@ func TestExprImpls(t *testing.T) {
 	// the test results when we pass.
 	tests := []Expr{
 		(*binaryOpExpr)(nil),
+		(*callExpr)(nil),
 		(*literalExpr)(nil),
 		(*symbolExpr)(nil),
 	}

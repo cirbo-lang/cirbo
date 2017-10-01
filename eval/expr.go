@@ -200,3 +200,33 @@ func (e *unaryOpExpr) value(ctx *Context, targetSym *Symbol) (cty.Value, source.
 func (e *unaryOpExpr) eachChild(cb walkCb) {
 	cb(e.val)
 }
+
+type callExpr struct {
+	callee    Expr
+	posArgs   []Expr
+	namedArgs map[string]Expr
+	rng
+}
+
+func CallExpr(callee Expr, posArgs []Expr, namedArgs map[string]Expr, rng source.Range) Expr {
+	return &callExpr{
+		callee:    callee,
+		posArgs:   posArgs,
+		namedArgs: namedArgs,
+		rng:       srcRange(rng),
+	}
+}
+
+func (e *callExpr) value(ctx *Context, targetSym *Symbol) (cty.Value, source.Diags) {
+	panic("callExpr.value not yet implemented")
+}
+
+func (e *callExpr) eachChild(cb walkCb) {
+	cb(e.callee)
+	for _, expr := range e.posArgs {
+		cb(expr)
+	}
+	for _, expr := range e.namedArgs {
+		cb(expr)
+	}
+}
