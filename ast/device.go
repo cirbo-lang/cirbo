@@ -18,3 +18,7 @@ func (n *Device) walkChildNodes(cb internalWalkFunc) {
 	cb(n.Params)
 	cb(n.Body)
 }
+
+func (n *Device) DeclRange() source.Range {
+	return n.HeaderRange
+}

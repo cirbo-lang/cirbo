@@ -25,3 +25,7 @@ func (n *Pinout) walkChildNodes(cb internalWalkFunc) {
 	}
 	cb(n.Body)
 }
+
+func (n *Pinout) DeclRange() source.Range {
+	return n.HeaderRange
+}

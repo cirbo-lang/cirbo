@@ -17,3 +17,7 @@ func (n *Land) walkChildNodes(cb internalWalkFunc) {
 	cb(n.Params)
 	cb(n.Body)
 }
+
+func (n *Land) DeclRange() source.Range {
+	return n.HeaderRange
+}
