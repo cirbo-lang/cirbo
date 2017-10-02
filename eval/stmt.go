@@ -17,6 +17,7 @@ var NilStmt Stmt
 type stmtImpl interface {
 	definedSymbol() *Symbol
 	requiredSymbols(scope *Scope) SymbolSet
+	sourceRange() source.Range
 }
 
 type assignStmt struct {
@@ -39,4 +40,23 @@ func (s *assignStmt) definedSymbol() *Symbol {
 
 func (s *assignStmt) requiredSymbols(scope *Scope) SymbolSet {
 	return s.expr.RequiredSymbols(scope)
+}
+
+type importStmt struct {
+	ppath string
+	sym   *Symbol
+	rng
+	nonExprStmt
+}
+
+func ImportStmt(ppath string, sym *Symbol, rng source.Range) Stmt {
+	return Stmt{&importStmt{
+		ppath: ppath,
+		sym:   sym,
+		rng:   srcRange(rng),
+	}}
+}
+
+func (s *importStmt) definedSymbol() *Symbol {
+	return s.sym
 }

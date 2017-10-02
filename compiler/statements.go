@@ -58,6 +58,9 @@ func compileStatement(node ast.Node, scope *eval.Scope) (eval.Stmt, source.Diags
 		expr, diags := CompileExpr(tn.Value, scope)
 		sym := scope.Get(tn.Name)
 		return eval.AssignStmt(sym, expr, tn.SourceRange()), diags
+	case *ast.Import:
+		sym := scope.Get(tn.SymbolName())
+		return eval.ImportStmt(tn.Package, sym, tn.SourceRange()), nil
 	default:
 		panic(fmt.Errorf("%#v cannot be compiled to a statement", node))
 	}
