@@ -46,7 +46,7 @@ func compileStatements(nodes []ast.Node, parentScope *eval.Scope) (eval.StmtBloc
 		stmts = append(stmts, stmt)
 	}
 
-	block, blockDiags := eval.MakeStmtBlock(stmts)
+	block, blockDiags := eval.MakeStmtBlock(scope, stmts)
 	diags = append(diags, blockDiags...)
 
 	return block, diags
