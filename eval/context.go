@@ -95,3 +95,9 @@ func (ctx *Context) AllValues(s *Scope) map[string]cty.Value {
 	}
 	return ret
 }
+
+// Parent returns the receiver's parent context, or nil if the receiver is the
+// global context.
+func (ctx *Context) Parent() *Context {
+	return ctx.parent
+}

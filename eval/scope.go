@@ -77,6 +77,12 @@ func (s *Scope) Get(name string) *Symbol {
 	return nil
 }
 
+// Parent returns the receiver's parent scope, or nil if the receiver is the
+// global scope.
+func (s *Scope) Parent() *Scope {
+	return s.parent
+}
+
 // AllNames returns a slice of all of the names declared in the receiver and
 // all of its ancestor scopes.
 //
