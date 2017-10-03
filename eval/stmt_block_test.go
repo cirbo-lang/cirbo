@@ -2,6 +2,9 @@ package eval
 
 import (
 	"testing"
+
+	"github.com/cirbo-lang/cirbo/cty"
+	"github.com/cirbo-lang/cirbo/source"
 )
 
 func TestNewStmtBlock(t *testing.T) {
@@ -155,4 +158,9 @@ func (s *mockStmt) definedSymbol() *Symbol {
 
 func (s *mockStmt) requiredSymbols(*Scope) SymbolSet {
 	return s.requires
+}
+
+func (s *mockStmt) execute(exec *StmtBlockExecute, result *StmtBlockResult) source.Diags {
+	exec.Context.DefineLiteral(s.defines, cty.PlaceholderVal)
+	return nil
 }

@@ -1,10 +1,12 @@
 package eval
 
 import (
+	"github.com/cirbo-lang/cirbo/cty"
 	"github.com/cirbo-lang/cirbo/source"
 )
 
 type StmtBlock struct {
+	scope *Scope
 	stmts []Stmt
 }
 
@@ -105,6 +107,72 @@ func MakeStmtBlock(scope *Scope, stmts []Stmt) (StmtBlock, source.Diags) {
 	}
 
 	return StmtBlock{
+		scope: scope,
 		stmts: stmts,
 	}, diags
+}
+
+func (sb StmtBlock) ModulesImported() []string {
+	return sb.ModulesImportedAppend(nil)
+}
+
+func (sb StmtBlock) ModulesImportedAppend(ppaths []string) []string {
+	for _, stmt := range sb.stmts {
+		if imp, isImp := stmt.s.(*importStmt); isImp {
+			ppaths = append(ppaths, imp.ppath)
+		}
+	}
+	return ppaths
+}
+
+func (sb StmtBlock) AttributesRequired() map[string]*Symbol {
+	// TODO: This needs to also indicate the required value type of each
+	// attribute, so a caller can properly construct a call signature
+	// and type-check call arguments.
+	ret := map[string]*Symbol{}
+	for _, stmt := range sb.stmts {
+		if attr, isAttr := stmt.s.(*attrStmt); isAttr {
+			ret[attr.sym.DeclaredName()] = attr.sym
+		}
+	}
+	return ret
+}
+
+func (sb StmtBlock) Execute(exec StmtBlockExecute) (*StmtBlockResult, source.Diags) {
+	// Make a new child context to work in. (We get "exec" by value here, so
+	// we can mutate it without upsetting the caller.)
+	exec.Context = exec.Context.NewChild()
+
+	result := StmtBlockResult{}
+	var diags source.Diags
+
+	result.Context = exec.Context
+
+	for _, stmt := range sb.stmts {
+		stmtDiags := stmt.s.execute(&exec, &result)
+		diags = append(diags, stmtDiags...)
+	}
+
+	result.Values = result.Context.AllValues(sb.scope)
+
+	return &result, diags
+}
+
+type StmtBlockExecute struct {
+	Context *Context
+	Modules map[string]cty.Value
+	Attrs   map[*Symbol]cty.Value
+}
+
+type StmtBlockResult struct {
+	// Context is the context that was created to evaluate the block.
+	// It is provided only so that NewChild may be called on it for child
+	// blocks; it should not be modified once returned.
+	Context *Context
+
+	// Values gives the local values that were defined during execution.
+	// These values are created from the perspective of the "inside" of the
+	// block and so should not generally be exposed to expressions outside of
+	// the block.
+	Values map[string]cty.Value
 }

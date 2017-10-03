@@ -61,6 +61,31 @@ func compileStatement(node ast.Node, scope *eval.Scope) (eval.Stmt, source.Diags
 	case *ast.Import:
 		sym := scope.Get(tn.SymbolName())
 		return eval.ImportStmt(tn.Package, sym, tn.SourceRange()), nil
+	case *ast.Attr:
+		sym := scope.Get(tn.Name)
+
+		// attr statements are special in that they always compile in the
+		// parent scope. This prevents an attribute's default value or type
+		// from depending on something within the body, which would prevent
+		// us from successfully identifying the required types before
+		// execution.
+		scope = scope.Parent()
+		if scope == nil {
+			// should never happen
+			panic("attempt to compile attr statement in the global scope")
+		}
+
+		switch {
+		case tn.Value != nil:
+			defVal, diags := CompileExpr(tn.Value, scope)
+			return eval.AttrStmtDefault(sym, defVal, tn.SourceRange()), diags
+		case tn.Type != nil:
+			typeExpr, diags := CompileExpr(tn.Type, scope)
+			return eval.AttrStmt(sym, typeExpr, tn.SourceRange()), diags
+		default:
+			// should never happen
+			panic("invalid *ast.Attr: neither Value nor Type is set")
+		}
 	default:
 		panic(fmt.Errorf("%#v cannot be compiled to a statement", node))
 	}
