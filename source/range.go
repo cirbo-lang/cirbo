@@ -116,5 +116,8 @@ func (r Range) GoString() string {
 // This is provided as a convenience for building Diag structures which
 // can have zero or more ranges, but often only one.
 func (r Range) List() []Range {
+	if r == NilRange {
+		return nil
+	}
 	return []Range{r}
 }
