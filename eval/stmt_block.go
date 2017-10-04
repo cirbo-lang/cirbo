@@ -227,6 +227,11 @@ type StmtBlockResult struct {
 	// blocks; it should not be modified once returned.
 	Context *Context
 
+	// Scope is the scope that was created for the block during its
+	// compilation. This object is shared between all executions of the same
+	// block, and so should not be modified.
+	Scope *Scope
+
 	// Values gives the local values that were defined during execution.
 	// These values are created from the perspective of the "inside" of the
 	// block and so should not generally be exposed to expressions outside of
