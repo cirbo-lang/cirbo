@@ -150,6 +150,10 @@ func (s *attrStmt) execute(exec *StmtBlockExecute, result *StmtBlockResult) sour
 		tyVal, exprDiags := s.valueType.Value(exec.Context)
 		diags = append(diags, exprDiags...)
 		if tyVal.Type() != cty.TypeType {
+			// This is also checked by stmtBlock.Attributes, so in normal
+			// codepaths we'll never get here but we still need to produce
+			// a reasonable result in case we're in an analysis codepath that
+			// wants to extract as much as it can from a broken program.
 			diags = append(diags, source.Diag{
 				Level:   source.Error,
 				Summary: "Invalid attribute type",

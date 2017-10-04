@@ -1,6 +1,7 @@
 package eval
 
 import (
+	"reflect"
 	"testing"
 
 	"github.com/cirbo-lang/cirbo/cty"
@@ -133,6 +134,127 @@ func TestNewStmtBlock(t *testing.T) {
 			}
 
 			if bad {
+				t.Fatalf("wrong result\ngot:  %#v\nwant: %#v", got, test.Want)
+			}
+		})
+	}
+}
+
+func TestStmtBlockAttributes(t *testing.T) {
+	type testCase struct {
+		Stmts []Stmt
+		Want  map[string]StmtBlockAttr
+		Diags int
+	}
+
+	tests := map[string]func(scope *Scope) testCase{
+		"empty": func(scope *Scope) testCase {
+			return testCase{
+				Stmts: []Stmt{},
+				Want:  map[string]StmtBlockAttr{},
+				Diags: 0,
+			}
+		},
+		"irrelevant statements": func(scope *Scope) testCase {
+			return testCase{
+				Stmts: []Stmt{
+					makeMockStmt(nil, nil),
+					makeMockStmt(nil, nil),
+				},
+				Want:  map[string]StmtBlockAttr{},
+				Diags: 0,
+			}
+		},
+		"simple required": func(scope *Scope) testCase {
+			sym := scope.Declare("foo")
+			tyExpr := SymbolExpr(scope.Get("Length"), source.NilRange)
+			return testCase{
+				Stmts: []Stmt{
+					AttrStmt(sym, tyExpr, source.NilRange),
+				},
+				Want: map[string]StmtBlockAttr{
+					"foo": {
+						Symbol:   sym,
+						Type:     cty.Length,
+						Required: true,
+					},
+				},
+				Diags: 0,
+			}
+		},
+		"simple optional": func(scope *Scope) testCase {
+			sym := scope.Declare("foo")
+			valExpr := SymbolExpr(scope.Get("Length"), source.NilRange)
+			return testCase{
+				Stmts: []Stmt{
+					AttrStmtDefault(sym, valExpr, source.NilRange),
+				},
+				Want: map[string]StmtBlockAttr{
+					"foo": {
+						Symbol:   sym,
+						Type:     cty.TypeType,
+						Required: false,
+					},
+				},
+				Diags: 0,
+			}
+		},
+		"multiple": func(scope *Scope) testCase {
+			sym1 := scope.Declare("sym1")
+			sym2 := scope.Declare("sym2")
+			expr := SymbolExpr(scope.Get("Length"), source.NilRange)
+			return testCase{
+				Stmts: []Stmt{
+					AttrStmtDefault(sym1, expr, source.NilRange),
+					AttrStmt(sym2, expr, source.NilRange),
+				},
+				Want: map[string]StmtBlockAttr{
+					"sym1": {
+						Symbol:   sym1,
+						Type:     cty.TypeType,
+						Required: false,
+					},
+					"sym2": {
+						Symbol:   sym2,
+						Type:     cty.Length,
+						Required: true,
+					},
+				},
+				Diags: 0,
+			}
+		},
+		"invalid type": func(scope *Scope) testCase {
+			sym := scope.Declare("foo")
+			tyExpr := LiteralExpr(cty.StringVal("hello"), source.NilRange)
+			return testCase{
+				Stmts: []Stmt{
+					AttrStmt(sym, tyExpr, source.NilRange),
+				},
+				Want: map[string]StmtBlockAttr{
+					"foo": {
+						Symbol:   sym,
+						Type:     cty.PlaceholderVal.Type(),
+						Required: true,
+					},
+				},
+				Diags: 1, // Type expression evaluates to String, not Type
+			}
+		},
+	}
+
+	for name, cons := range tests {
+		t.Run(name, func(t *testing.T) {
+			scope := globalScope.NewChild()
+			ctx := globalContext.NewChild()
+			test := cons(scope)
+			block, diags := MakeStmtBlock(scope, test.Stmts)
+
+			got, attrDiags := block.Attributes(ctx)
+			diags = append(diags, attrDiags...)
+
+			assertDiagCount(t, diags, test.Diags)
+
+			if !reflect.DeepEqual(got, test.Want) {
 				t.Fatalf("wrong result\ngot:  %#v\nwant: %#v", got, test.Want)
 			}
 		})

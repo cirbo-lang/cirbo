@@ -1,6 +1,8 @@
 package eval
 
 import (
+	"fmt"
+
 	"github.com/cirbo-lang/cirbo/cty"
 	"github.com/cirbo-lang/cirbo/source"
 )
@@ -129,17 +131,66 @@ func (sb StmtBlock) ModulesImportedAppend(ppaths []string) []string {
 	return ppaths
 }
 
-func (sb StmtBlock) AttributesRequired() map[string]*Symbol {
-	// TODO: This needs to also indicate the required value type of each
-	// attribute, so a caller can properly construct a call signature
-	// and type-check call arguments.
-	ret := map[string]*Symbol{}
+type StmtBlockAttr struct {
+	Symbol   *Symbol
+	Type     cty.Type
+	Required bool
+	DefRange source.Range
+}
+
+// Attributes returns a description of the attributes defined by the block.
+//
+// When executing the block, values for some or all of these (depending on
+// their Required status) should be provided in the StmtBlockExecute
+// instance.
+//
+// The given context is used to resolve the type or default value expressions
+// in the attribute statements. The given context must therefore be the same
+// context that would ultimately be provided to Execute in the StmtBlockExecute
+// object or else the result may be incorrect.
+func (sb StmtBlock) Attributes(ctx *Context) (map[string]StmtBlockAttr, source.Diags) {
+	var diags source.Diags
+	ret := map[string]StmtBlockAttr{}
 	for _, stmt := range sb.stmts {
 		if attr, isAttr := stmt.s.(*attrStmt); isAttr {
-			ret[attr.sym.DeclaredName()] = attr.sym
+			name := attr.sym.DeclaredName()
+			def := StmtBlockAttr{
+				Symbol: attr.sym,
+			}
+
+			switch {
+			case attr.valueType != NilExpr:
+				tyVal, exprDiags := attr.valueType.Value(ctx)
+				diags = append(diags, exprDiags...)
+
+				if tyVal.Type() != cty.TypeType {
+					diags = append(diags, source.Diag{
+						Level:   source.Error,
+						Summary: "Invalid attribute type",
+						Detail:  fmt.Sprintf("Expected a type, but given a value of type %s. To assign a default value, use the '=' (equals) symbol.", tyVal.Type().Name()),
+						Ranges:  attr.valueType.sourceRange().List(),
+					})
+					def.Type = cty.PlaceholderVal.Type()
+					def.Required = true
+				} else {
+					def.Type = tyVal.UnwrapType()
+					def.Required = true
+				}
+			case attr.defValue != NilExpr:
+				val, exprDiags := attr.defValue.Value(ctx)
+				diags = append(diags, exprDiags...)
+
+				def.Type = val.Type()
+				def.Required = false
+			default:
+				// should never happen
+				panic("attrStmt with neither value type nor default value")
+			}
+
+			ret[name] = def
 		}
 	}
-	return ret
+	return ret, diags
 }
 
 func (sb StmtBlock) Execute(exec StmtBlockExecute) (*StmtBlockResult, source.Diags) {
@@ -150,6 +201,7 @@ func (sb StmtBlock) Execute(exec StmtBlockExecute) (*StmtBlockResult, source.Dia
 	result := StmtBlockResult{}
 	var diags source.Diags
 
+	result.Scope = sb.scope
 	result.Context = exec.Context
 
 	for _, stmt := range sb.stmts {
