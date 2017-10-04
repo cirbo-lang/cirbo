@@ -72,7 +72,7 @@ func (s *importStmt) definedSymbol() *Symbol {
 
 func (s *importStmt) execute(exec *StmtBlockExecute, result *StmtBlockResult) source.Diags {
 	var diags source.Diags
-	val, defined := exec.Modules[s.ppath]
+	val, defined := exec.Packages[s.ppath]
 	if !defined {
 		val = cty.PlaceholderVal
 		diags = append(diags, source.Diag{

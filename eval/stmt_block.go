@@ -118,11 +118,11 @@ func MakeStmtBlock(scope *Scope, stmts []Stmt) (StmtBlock, source.Diags) {
 	}, diags
 }
 
-func (sb StmtBlock) ModulesImported() []string {
-	return sb.ModulesImportedAppend(nil)
+func (sb StmtBlock) PackagesImported() []string {
+	return sb.PackagesImportedAppend(nil)
 }
 
-func (sb StmtBlock) ModulesImportedAppend(ppaths []string) []string {
+func (sb StmtBlock) PackagesImportedAppend(ppaths []string) []string {
 	for _, stmt := range sb.stmts {
 		if imp, isImp := stmt.s.(*importStmt); isImp {
 			ppaths = append(ppaths, imp.ppath)
@@ -193,6 +193,32 @@ func (sb StmtBlock) Attributes(ctx *Context) (map[string]StmtBlockAttr, source.D
 	return ret, diags
 }
 
+// ImplicitExports returns a SymbolSet of the symbols defined in the block's
+// scope that are eligible to be included in an implicit export object.
+//
+// This includes most definitions, but specifically excludes imports as they are
+// assumed to be for internal use and could be requested directly by any caller.
+//
+// This method is intended for creating an implicit export object for a module,
+// and so it will likely not produce a useful or sensible result for blocks
+// created in other contexts.
+func (sb StmtBlock) ImplicitExports() SymbolSet {
+	var ret SymbolSet
+	for _, stmt := range sb.stmts {
+		if _, isImport := stmt.s.(*importStmt); isImport {
+			continue
+		}
+		sym := stmt.s.definedSymbol()
+		if sym != nil {
+			if ret == nil {
+				ret = SymbolSet{}
+			}
+			ret.Add(sym)
+		}
+	}
+	return ret
+}
+
 func (sb StmtBlock) Execute(exec StmtBlockExecute) (*StmtBlockResult, source.Diags) {
 	// Make a new child context to work in. (We get "exec" by value here, so
 	// we can mutate it without upsetting the caller.)
@@ -209,16 +235,15 @@ func (sb StmtBlock) Execute(exec StmtBlockExecute) (*StmtBlockResult, source.Dia
 		diags = append(diags, stmtDiags...)
 	}
 
-	result.Values = result.Context.AllValues(sb.scope)
 	result.Context.final = true // no more modifications allowed
 
 	return &result, diags
 }
 
 type StmtBlockExecute struct {
-	Context *Context
-	Modules map[string]cty.Value
-	Attrs   map[*Symbol]cty.Value
+	Context  *Context
+	Packages map[string]cty.Value
+	Attrs    map[*Symbol]cty.Value
 }
 
 type StmtBlockResult struct {
@@ -232,9 +257,6 @@ type StmtBlockResult struct {
 	// block, and so should not be modified.
 	Scope *Scope
 
-	// Values gives the local values that were defined during execution.
-	// These values are created from the perspective of the "inside" of the
-	// block and so should not generally be exposed to expressions outside of
-	// the block.
-	Values map[string]cty.Value
+	// ExportValue is the value exported by an "export" statement, if any.
+	ExportValue cty.Value
 }
