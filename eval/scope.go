@@ -10,6 +10,7 @@ import (
 type Scope struct {
 	parent  *Scope
 	symbols map[string]*Symbol
+	final   bool
 }
 
 // Symbol represents a particular symbol used in expressions. Symbol represents
@@ -38,8 +39,8 @@ func (s *Scope) NewChild() *Scope {
 // This method will also panic if a caller attempts to declare a symbol in the
 // global scope, since the global scope is an immutable singleton.
 func (s *Scope) Declare(name string) *Symbol {
-	if s == globalScope {
-		panic(fmt.Errorf("attempt to declare %q in the immutable global scope", name))
+	if s.final {
+		panic(fmt.Errorf("attempt to declare %q in a finalized scope", name))
 	}
 	if s.symbols[name] != nil {
 		panic(fmt.Errorf("attempt to re-declare %q in %#v", name, s))

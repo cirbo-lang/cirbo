@@ -23,9 +23,11 @@ var globalContext *Context
 func init() {
 	globalScope = &Scope{
 		symbols: map[string]*Symbol{},
+		final:   true,
 	}
 	globalContext = &Context{
 		values: map[*Symbol]cty.Value{},
+		final:  true,
 	}
 
 	vals := globals.Table()

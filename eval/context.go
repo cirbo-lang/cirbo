@@ -16,6 +16,7 @@ import (
 type Context struct {
 	parent *Context
 	values map[*Symbol]cty.Value
+	final  bool
 }
 
 // NewChild creates a new, empty context that is a child of the receiever.
@@ -50,8 +51,8 @@ func (ctx *Context) Define(sym *Symbol, expr Expr) (cty.Value, source.Diags) {
 //
 // This method will also panic if the receiver is the immutable global context.
 func (ctx *Context) DefineLiteral(sym *Symbol, val cty.Value) {
-	if ctx == globalContext {
-		panic(fmt.Errorf("attempt to define %#v as %#v in the immutable global scope", sym, val))
+	if ctx.final {
+		panic(fmt.Errorf("attempt to define %#v as %#v in a finalized context", sym, val))
 	}
 	if _, defined := ctx.values[sym]; defined {
 		panic(fmt.Errorf("attempt to re-define %#v as %#v in context %#v", sym, val, ctx))

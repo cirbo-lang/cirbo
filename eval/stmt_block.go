@@ -106,6 +106,10 @@ func MakeStmtBlock(scope *Scope, stmts []Stmt) (StmtBlock, source.Diags) {
 		}
 	}
 
+	// Don't permit any future modifications to the scope, since we're now
+	// depending on its contents.
+	scope.final = true
+
 	return StmtBlock{
 		scope: scope,
 		stmts: stmts,
@@ -154,6 +158,7 @@ func (sb StmtBlock) Execute(exec StmtBlockExecute) (*StmtBlockResult, source.Dia
 	}
 
 	result.Values = result.Context.AllValues(sb.scope)
+	result.Context.final = true // no more modifications allowed
 
 	return &result, diags
 }
