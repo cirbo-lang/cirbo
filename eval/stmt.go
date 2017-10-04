@@ -86,6 +86,38 @@ func (s *importStmt) execute(exec *StmtBlockExecute, result *StmtBlockResult) so
 	return diags
 }
 
+type exportStmt struct {
+	value Expr
+	rng
+	nonDefStmt
+}
+
+func ExportStmt(value Expr, rng source.Range) Stmt {
+	return Stmt{&exportStmt{
+		value: value,
+		rng:   srcRange(rng),
+	}}
+}
+
+func (s *exportStmt) execute(exec *StmtBlockExecute, result *StmtBlockResult) source.Diags {
+	val, diags := s.value.Value(exec.Context)
+	if result.ExportValue != cty.NilValue {
+		diags = append(diags, source.Diag{
+			Level:   source.Error,
+			Summary: "Duplicate export statements",
+			Detail:  "Only one export statement is permitted per module.",
+			Ranges:  s.sourceRange().List(),
+		})
+		return diags
+	}
+	result.ExportValue = val
+	return diags
+}
+
+func (s *exportStmt) requiredSymbols(scope *Scope) SymbolSet {
+	return s.value.RequiredSymbols(scope)
+}
+
 type attrStmt struct {
 	sym *Symbol
 
