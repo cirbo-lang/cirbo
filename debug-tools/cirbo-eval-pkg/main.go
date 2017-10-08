@@ -189,12 +189,7 @@ func compilePackage(pkgDir projpath.FilePath, proj projpath.Project, p *parser.P
 		files = nil
 	}
 
-	pkgNode := &ast.Package{
-		// FIXME: This is no longer the right place to retain this, since
-		// the parser no longer wants to know about packages.
-		DefaultName: "FIXME",
-		Files:       files,
-	}
+	pkgNode := ast.Package(files)
 
 	pkg, compileDiags := compiler.CompilePackage(pkgNode)
 	diags = append(diags, compileDiags...)

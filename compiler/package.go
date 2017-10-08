@@ -13,12 +13,12 @@ import (
 // If the package has an explicit "export" statement then its argument is
 // returned. Otherwise, symbols from the module's symbol table are used to
 // construct and instantiate an object type.
-func CompilePackage(pkg *ast.Package) (*cbo.Package, source.Diags) {
+func CompilePackage(pkg ast.Package) (*cbo.Package, source.Diags) {
 	var diags source.Diags
 
 	// First we'll make sure the top-level statements in all of our files
 	// are permitted at the module level.
-	for _, file := range pkg.Files {
+	for _, file := range pkg {
 		for _, node := range file.TopLevel {
 			switch tn := node.(type) {
 			case *ast.Assign, *ast.Import, *ast.Export, *ast.Circuit, *ast.Device, *ast.Land, *ast.Pinout:
@@ -43,7 +43,7 @@ func CompilePackage(pkg *ast.Package) (*cbo.Package, source.Diags) {
 	}
 
 	var nodes []ast.Node
-	for _, file := range pkg.Files {
+	for _, file := range pkg {
 		nodes = append(nodes, file.TopLevel...)
 	}
 	block, compileDiags := compileStatements(nodes, eval.GlobalScope())
