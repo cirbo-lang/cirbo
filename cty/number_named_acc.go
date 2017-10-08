@@ -13,16 +13,16 @@ var AngularSpeed Type = QuantityByName("AngularSpeed")
 // Area is a quantity type of dimensionality [L]².
 var Area Type = QuantityByName("Area")
 
-// Capacitance is a quantity type of dimensionality [I]²[T]⁴[L]⁻²[M]⁻¹.
+// Capacitance is a quantity type of dimensionality [I]²[T]⁴[M]⁻¹[L]⁻².
 var Capacitance Type = QuantityByName("Capacitance")
 
-// Charge is a quantity type of dimensionality [T][I].
+// Charge is a quantity type of dimensionality [I][T].
 var Charge Type = QuantityByName("Charge")
 
-// Conductance is a quantity type of dimensionality [I]²[T]³[L]⁻²[M]⁻¹.
+// Conductance is a quantity type of dimensionality [I]²[T]³[M]⁻¹[L]⁻².
 var Conductance Type = QuantityByName("Conductance")
 
-// Conductivity is a quantity type of dimensionality [I]²[T]³[L]⁻³[M]⁻¹.
+// Conductivity is a quantity type of dimensionality [I]²[T]³[M]⁻¹[L]⁻³.
 var Conductivity Type = QuantityByName("Conductivity")
 
 // Current is a quantity type of dimensionality [I].
@@ -37,7 +37,7 @@ var Frequency Type = QuantityByName("Frequency")
 // Illuminance is a quantity type of dimensionality [J][L]⁻².
 var Illuminance Type = QuantityByName("Illuminance")
 
-// Inductance is a quantity type of dimensionality [M][L]²[T]⁻²[I]⁻².
+// Inductance is a quantity type of dimensionality [M][L]²[I]⁻²[T]⁻².
 var Inductance Type = QuantityByName("Inductance")
 
 // Length is a quantity type of dimensionality [L].
@@ -58,10 +58,10 @@ var Number Type = QuantityByName("Number")
 // Power is a quantity type of dimensionality [M][L]²[T]⁻³.
 var Power Type = QuantityByName("Power")
 
-// Resistance is a quantity type of dimensionality [M][L]²[T]⁻³[I]⁻².
+// Resistance is a quantity type of dimensionality [M][L]²[I]⁻²[T]⁻³.
 var Resistance Type = QuantityByName("Resistance")
 
-// Resistivity is a quantity type of dimensionality [M][L]³[T]⁻³[I]⁻².
+// Resistivity is a quantity type of dimensionality [M][L]³[I]⁻²[T]⁻³.
 var Resistivity Type = QuantityByName("Resistivity")
 
 // Speed is a quantity type of dimensionality [L][T]⁻¹.
@@ -70,5 +70,5 @@ var Speed Type = QuantityByName("Speed")
 // Time is a quantity type of dimensionality [T].
 var Time Type = QuantityByName("Time")
 
-// Voltage is a quantity type of dimensionality [M][L]²[T]⁻³[I]⁻¹.
+// Voltage is a quantity type of dimensionality [M][L]²[I]⁻¹[T]⁻³.
 var Voltage Type = QuantityByName("Voltage")
