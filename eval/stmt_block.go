@@ -118,17 +118,25 @@ func MakeStmtBlock(scope *Scope, stmts []Stmt) (StmtBlock, source.Diags) {
 	}, diags
 }
 
-func (sb StmtBlock) PackagesImported() []string {
+func (sb StmtBlock) PackagesImported() []PackageRef {
 	return sb.PackagesImportedAppend(nil)
 }
 
-func (sb StmtBlock) PackagesImportedAppend(ppaths []string) []string {
+func (sb StmtBlock) PackagesImportedAppend(ppaths []PackageRef) []PackageRef {
 	for _, stmt := range sb.stmts {
 		if imp, isImp := stmt.s.(*importStmt); isImp {
-			ppaths = append(ppaths, imp.ppath)
+			ppaths = append(ppaths, PackageRef{
+				Path:  imp.ppath,
+				Range: imp.sourceRange(),
+			})
 		}
 	}
 	return ppaths
+}
+
+type PackageRef struct {
+	Path  string
+	Range source.Range
 }
 
 type StmtBlockAttr struct {

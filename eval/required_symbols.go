@@ -18,7 +18,7 @@ func (expr Expr) RequiredSymbols(scope *Scope) SymbolSet {
 		}
 		oe.eachChild(cb)
 	}
-	expr.eachChild(cb)
+	cb(expr)
 
 	return ret
 }
@@ -40,7 +40,7 @@ func (expr Expr) SymbolReferences(sym *Symbol) ExprSet {
 		}
 		oe.eachChild(cb)
 	}
-	expr.eachChild(cb)
+	cb(expr)
 
 	return ret
 }

@@ -23,7 +23,7 @@ func NewPackage(Block eval.StmtBlock) *Package {
 //
 // These are the packages that must be present in the otherPackages map
 // when calling the ExportedValue method.
-func (p *Package) PackagesImported() []string {
+func (p *Package) PackagesImported() []eval.PackageRef {
 	return p.block.PackagesImported()
 }
 
