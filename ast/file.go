@@ -1,5 +1,9 @@
 package ast
 
+import (
+	"github.com/cirbo-lang/cirbo/projpath"
+)
+
 type File struct {
 	WithRange
 	Source   []byte
@@ -12,6 +16,6 @@ func (n *File) walkChildNodes(cb internalWalkFunc) {
 	}
 }
 
-func (n *File) Filename() string {
+func (n *File) Filename() projpath.FilePath {
 	return n.WithRange.Filename
 }

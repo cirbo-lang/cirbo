@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/apparentlymart/go-textseg/textseg"
+	"github.com/cirbo-lang/cirbo/projpath"
 	"github.com/cirbo-lang/cirbo/source"
 )
 
@@ -104,7 +105,7 @@ const (
 )
 
 type tokenAccum struct {
-	Filename string
+	Filename projpath.FilePath
 	Bytes    []byte
 	Pos      source.Pos
 	Tokens   []Token

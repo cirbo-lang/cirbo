@@ -6,10 +6,10 @@ import (
 	"flag"
 	"fmt"
 	"os"
-	"path/filepath"
 	"reflect"
 	"strings"
 
+	"github.com/cirbo-lang/cirbo/projpath"
 	"github.com/cirbo-lang/cirbo/source"
 
 	"github.com/cirbo-lang/cirbo/ast"
@@ -37,12 +37,23 @@ func realMain(args []string) error {
 		os.Exit(1)
 	}
 
-	fullPath := args[0]
-	rootPath := filepath.Dir(fullPath)
-	fn := filepath.Base(fullPath)
+	wd, err := os.Getwd()
+	if err != nil {
+		wd = ""
+	}
+	proj := projpath.NewProject(projpath.PathConfig{
+		WorkingDir:   wd,
+		SystemPkgDir: wd, // not actually used here because we don't resolve imports
+	})
 
-	p := parser.NewParser(rootPath)
-	f, diags := p.ParseFile(fn)
+	fpath := proj.FilePathFromUI(args[0])
+	src, err := proj.ReadFile(fpath)
+	if err != nil {
+		return err
+	}
+
+	p := parser.NewParser()
+	f, diags := p.ParseFile(fpath, src)
 
 	ast.Walk(f, &walker{})
 

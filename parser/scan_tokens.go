@@ -2,12 +2,13 @@
 package parser
 
 import (
+	"github.com/cirbo-lang/cirbo/projpath"
 	"github.com/cirbo-lang/cirbo/source"
 )
 
 // This file is generated from scan_tokens.rl. DO NOT EDIT.
 
-// line 12 "scan_tokens.go"
+// line 13 "scan_tokens.go"
 var _cirbotok_actions []byte = []byte{
 	0, 1, 0, 1, 1, 1, 2, 1, 8,
 	1, 9, 1, 10, 1, 11, 1, 12,
@@ -1965,16 +1966,16 @@ const cirbotok_error int = -1
 
 const cirbotok_en_main int = 660
 
-// line 13 "scan_tokens.rl"
+// line 14 "scan_tokens.rl"
 
-func scanTokens(data []byte, filename string, start source.Pos, mode scanMode) []Token {
+func scanTokens(data []byte, filename projpath.FilePath, start source.Pos, mode scanMode) []Token {
 	f := &tokenAccum{
 		Filename: filename,
 		Bytes:    data,
 		Pos:      start,
 	}
 
-	// line 94 "scan_tokens.rl"
+	// line 95 "scan_tokens.rl"
 
 	// Ragel state
 	p := 0          // "Pointer" into data
@@ -1985,7 +1986,7 @@ func scanTokens(data []byte, filename string, start source.Pos, mode scanMode) [
 	eof := pe
 	cs := cirbotok_en_main
 
-	// line 112 "scan_tokens.rl"
+	// line 113 "scan_tokens.rl"
 
 	// Make Go compiler happy
 	_ = ts
@@ -2005,14 +2006,14 @@ func scanTokens(data []byte, filename string, start source.Pos, mode scanMode) [
 		f.emitToken(TokenType(b[0]), ts, te)
 	}
 
-	// line 2018 "scan_tokens.go"
+	// line 2019 "scan_tokens.go"
 	{
 		ts = 0
 		te = 0
 		act = 0
 	}
 
-	// line 2025 "scan_tokens.go"
+	// line 2026 "scan_tokens.go"
 	{
 		var _klen int
 		var _trans int
@@ -2034,7 +2035,7 @@ func scanTokens(data []byte, filename string, start source.Pos, mode scanMode) [
 
 				ts = p
 
-				// line 2046 "scan_tokens.go"
+				// line 2047 "scan_tokens.go"
 			}
 		}
 
@@ -2111,146 +2112,146 @@ func scanTokens(data []byte, filename string, start source.Pos, mode scanMode) [
 				te = p + 1
 
 			case 3:
-				// line 71 "scan_tokens.rl"
+				// line 72 "scan_tokens.rl"
 
 				act = 4
 			case 4:
-				// line 73 "scan_tokens.rl"
+				// line 74 "scan_tokens.rl"
 
 				act = 5
 			case 5:
-				// line 88 "scan_tokens.rl"
+				// line 89 "scan_tokens.rl"
 
 				act = 19
 			case 6:
-				// line 90 "scan_tokens.rl"
+				// line 91 "scan_tokens.rl"
 
 				act = 20
 			case 7:
-				// line 91 "scan_tokens.rl"
+				// line 92 "scan_tokens.rl"
 
 				act = 21
 			case 8:
-				// line 70 "scan_tokens.rl"
+				// line 71 "scan_tokens.rl"
 
 				te = p + 1
 				{
 					token(TokenStringLit)
 				}
 			case 9:
-				// line 71 "scan_tokens.rl"
+				// line 72 "scan_tokens.rl"
 
 				te = p + 1
 				{
 					token(TokenIdent)
 				}
 			case 10:
-				// line 73 "scan_tokens.rl"
+				// line 74 "scan_tokens.rl"
 
 				te = p + 1
 				{
 					token(TokenComment)
 				}
 			case 11:
-				// line 76 "scan_tokens.rl"
+				// line 77 "scan_tokens.rl"
 
 				te = p + 1
 				{
 					token(TokenEqual)
 				}
 			case 12:
-				// line 77 "scan_tokens.rl"
+				// line 78 "scan_tokens.rl"
 
 				te = p + 1
 				{
 					token(TokenNotEqual)
 				}
 			case 13:
-				// line 78 "scan_tokens.rl"
+				// line 79 "scan_tokens.rl"
 
 				te = p + 1
 				{
 					token(TokenGreaterThanEq)
 				}
 			case 14:
-				// line 79 "scan_tokens.rl"
+				// line 80 "scan_tokens.rl"
 
 				te = p + 1
 				{
 					token(TokenLessThanEq)
 				}
 			case 15:
-				// line 80 "scan_tokens.rl"
+				// line 81 "scan_tokens.rl"
 
 				te = p + 1
 				{
 					token(TokenAnd)
 				}
 			case 16:
-				// line 81 "scan_tokens.rl"
+				// line 82 "scan_tokens.rl"
 
 				te = p + 1
 				{
 					token(TokenOr)
 				}
 			case 17:
-				// line 82 "scan_tokens.rl"
+				// line 83 "scan_tokens.rl"
 
 				te = p + 1
 				{
 					token(TokenBarDashDash)
 				}
 			case 18:
-				// line 83 "scan_tokens.rl"
+				// line 84 "scan_tokens.rl"
 
 				te = p + 1
 				{
 					token(TokenDashDashBar)
 				}
 			case 19:
-				// line 85 "scan_tokens.rl"
+				// line 86 "scan_tokens.rl"
 
 				te = p + 1
 				{
 					token(TokenDotDot)
 				}
 			case 20:
-				// line 86 "scan_tokens.rl"
+				// line 87 "scan_tokens.rl"
 
 				te = p + 1
 				{
 					token(TokenOPoint)
 				}
 			case 21:
-				// line 87 "scan_tokens.rl"
+				// line 88 "scan_tokens.rl"
 
 				te = p + 1
 				{
 					token(TokenCPoint)
 				}
 			case 22:
-				// line 88 "scan_tokens.rl"
+				// line 89 "scan_tokens.rl"
 
 				te = p + 1
 				{
 					selfToken()
 				}
 			case 23:
-				// line 90 "scan_tokens.rl"
+				// line 91 "scan_tokens.rl"
 
 				te = p + 1
 				{
 					token(TokenBadUTF8)
 				}
 			case 24:
-				// line 91 "scan_tokens.rl"
+				// line 92 "scan_tokens.rl"
 
 				te = p + 1
 				{
 					token(TokenInvalid)
 				}
 			case 25:
-				// line 68 "scan_tokens.rl"
+				// line 69 "scan_tokens.rl"
 
 				te = p
 				p--
@@ -2258,7 +2259,7 @@ func scanTokens(data []byte, filename string, start source.Pos, mode scanMode) [
 					token(TokenWhitespace)
 				}
 			case 26:
-				// line 69 "scan_tokens.rl"
+				// line 70 "scan_tokens.rl"
 
 				te = p
 				p--
@@ -2266,7 +2267,7 @@ func scanTokens(data []byte, filename string, start source.Pos, mode scanMode) [
 					token(TokenNumberLit)
 				}
 			case 27:
-				// line 71 "scan_tokens.rl"
+				// line 72 "scan_tokens.rl"
 
 				te = p
 				p--
@@ -2274,7 +2275,7 @@ func scanTokens(data []byte, filename string, start source.Pos, mode scanMode) [
 					token(TokenIdent)
 				}
 			case 28:
-				// line 73 "scan_tokens.rl"
+				// line 74 "scan_tokens.rl"
 
 				te = p
 				p--
@@ -2282,7 +2283,7 @@ func scanTokens(data []byte, filename string, start source.Pos, mode scanMode) [
 					token(TokenComment)
 				}
 			case 29:
-				// line 84 "scan_tokens.rl"
+				// line 85 "scan_tokens.rl"
 
 				te = p
 				p--
@@ -2290,7 +2291,7 @@ func scanTokens(data []byte, filename string, start source.Pos, mode scanMode) [
 					token(TokenDashDash)
 				}
 			case 30:
-				// line 88 "scan_tokens.rl"
+				// line 89 "scan_tokens.rl"
 
 				te = p
 				p--
@@ -2298,7 +2299,7 @@ func scanTokens(data []byte, filename string, start source.Pos, mode scanMode) [
 					selfToken()
 				}
 			case 31:
-				// line 90 "scan_tokens.rl"
+				// line 91 "scan_tokens.rl"
 
 				te = p
 				p--
@@ -2306,7 +2307,7 @@ func scanTokens(data []byte, filename string, start source.Pos, mode scanMode) [
 					token(TokenBadUTF8)
 				}
 			case 32:
-				// line 91 "scan_tokens.rl"
+				// line 92 "scan_tokens.rl"
 
 				te = p
 				p--
@@ -2314,35 +2315,35 @@ func scanTokens(data []byte, filename string, start source.Pos, mode scanMode) [
 					token(TokenInvalid)
 				}
 			case 33:
-				// line 69 "scan_tokens.rl"
+				// line 70 "scan_tokens.rl"
 
 				p = (te) - 1
 				{
 					token(TokenNumberLit)
 				}
 			case 34:
-				// line 71 "scan_tokens.rl"
+				// line 72 "scan_tokens.rl"
 
 				p = (te) - 1
 				{
 					token(TokenIdent)
 				}
 			case 35:
-				// line 88 "scan_tokens.rl"
+				// line 89 "scan_tokens.rl"
 
 				p = (te) - 1
 				{
 					selfToken()
 				}
 			case 36:
-				// line 90 "scan_tokens.rl"
+				// line 91 "scan_tokens.rl"
 
 				p = (te) - 1
 				{
 					token(TokenBadUTF8)
 				}
 			case 37:
-				// line 91 "scan_tokens.rl"
+				// line 92 "scan_tokens.rl"
 
 				p = (te) - 1
 				{
@@ -2379,7 +2380,7 @@ func scanTokens(data []byte, filename string, start source.Pos, mode scanMode) [
 					}
 				}
 
-				// line 2320 "scan_tokens.go"
+				// line 2321 "scan_tokens.go"
 			}
 		}
 
@@ -2395,7 +2396,7 @@ func scanTokens(data []byte, filename string, start source.Pos, mode scanMode) [
 
 				ts = 0
 
-				// line 2335 "scan_tokens.go"
+				// line 2336 "scan_tokens.go"
 			}
 		}
 
@@ -2415,7 +2416,7 @@ func scanTokens(data []byte, filename string, start source.Pos, mode scanMode) [
 
 	}
 
-	// line 135 "scan_tokens.rl"
+	// line 136 "scan_tokens.rl"
 
 	// If we fall out here without being in a final state then we've
 	// encountered something that the scanner can't match, which we'll

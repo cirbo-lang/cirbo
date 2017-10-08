@@ -1,6 +1,7 @@
 package parser
 
 import (
+	"github.com/cirbo-lang/cirbo/projpath"
 	"github.com/cirbo-lang/cirbo/source"
 )
 
@@ -12,7 +13,7 @@ import (
   write data;
 }%%
 
-func scanTokens(data []byte, filename string, start source.Pos, mode scanMode) []Token {
+func scanTokens(data []byte, filename projpath.FilePath, start source.Pos, mode scanMode) []Token {
     f := &tokenAccum{
         Filename: filename,
         Bytes:    data,

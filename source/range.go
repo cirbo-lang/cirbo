@@ -1,6 +1,10 @@
 package source
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/cirbo-lang/cirbo/projpath"
+)
 
 // Pos represents a single position in a source file, by addressing the
 // start byte of a unicode character encoded in UTF-8.
@@ -55,7 +59,11 @@ func (p Pos) GoString() string {
 type Range struct {
 	// Filename is the name of the file into which this range's positions
 	// point.
-	Filename string
+	//
+	// Note that this is a canonical, opaque internal path that should be
+	// converted back to a user-friendly path using the same projpath.Project
+	// that created it before displaying it to a user.
+	Filename projpath.FilePath
 
 	// Start and End represent the bounds of this range. Start is inclusive
 	// and End is exclusive.

@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"bytes"
 	"fmt"
-	"io/ioutil"
 	"math/big"
 	"path"
 	"strings"
@@ -12,187 +11,35 @@ import (
 	"github.com/apparentlymart/go-textseg/textseg"
 	"github.com/cirbo-lang/cirbo/ast"
 	"github.com/cirbo-lang/cirbo/cbo"
+	"github.com/cirbo-lang/cirbo/projpath"
 	"github.com/cirbo-lang/cirbo/source"
-	"golang.org/x/tools/godoc/vfs"
 )
 
 var oneHundred = mustParseBigFloat("100")
 
 type Parser struct {
-	fs       vfs.FileSystem
-	files    map[string]*ast.File
-	packages map[string]*ast.Package
-	diags    source.Diags
+	files map[projpath.FilePath]*ast.File
+	diags source.Diags
 }
 
-// NewParser creates a new parser that works with files under the given
-// project root directory.
+// NewParser creates and returns a new parser.
 //
-// A project directory should usually contain one or more project files
-// (with the ".cb" filename extension) and may contain subdirectories
-// that represent project-local packages. It may also contain a directory
-// called "cirbo-pkg" which contains local copies of third-party packages,
-// usually managed with cirbo's built-in package management tools.
-//
-// Internally, the given directory is used as the root of a virtual filesystem
-// and all file paths are rooted in that filesystem. These project-relative
-// paths appear, in particular, in returned diagnostics. Before displaying such
-// paths to an end-user a caller should re-interpret these paths relative to
-// the "real" filesystem to avoid confusion.
-func NewParser(projectRoot string) *Parser {
-	fs := vfs.OS(projectRoot)
-
+// A parser instance keeps a cache of all of the files it has been asked to
+// load and their ASTs, which both avoids re-parsing the same files multiple
+// times and serves as a repository of files that can serve as context for
+// the source ranges included in diagnostic messages.
+func NewParser() *Parser {
 	return &Parser{
-		fs:       fs,
-		files:    map[string]*ast.File{},
-		packages: map[string]*ast.Package{},
+		files: map[projpath.FilePath]*ast.File{},
 	}
 }
 
-// ParsePackage parses all of the source files in a given package.
+// ParseFile parses a single file, given its bytes.
 //
-// If "from" is non-empty then it is a project-root-relative path to the file
-// that is requesting this package, which enables the use of relative package
-// paths.
-func (p *Parser) ParsePackage(ppath string, from string) (*ast.Package, source.Diags) {
-	pkg := &ast.Package{
-		DefaultName: path.Base(ppath),
-	}
-
-	vfsPath := p.resolvePackagePath(ppath, from)
-	if vfsPath == "" {
-		return pkg, source.Diags{
-			{
-				Level:   source.Error,
-				Summary: "Package not found",
-				Detail:  fmt.Sprintf("The given path %q could not be resolved as a package path.", ppath),
-			},
-		}
-	}
-
-	if pkg := p.packages[vfsPath]; pkg != nil {
-		return pkg, nil
-	}
-
-	entries, err := p.fs.ReadDir(vfsPath)
-	if err != nil {
-		return pkg, source.Diags{
-			{
-				Level:   source.Error,
-				Summary: "Package not found",
-				Detail:  fmt.Sprintf("The given path %q could not be resolved as a package path.", ppath),
-			},
-		}
-	}
-
-	p.packages[vfsPath] = pkg
-
-	var diags source.Diags
-	var files []*ast.File
-	for _, i := range entries {
-		if i.IsDir() {
-			continue
-		}
-		name := i.Name()
-		if !pathHasExtension(name, ".cbm") {
-			continue
-		}
-
-		filePath := path.Join(vfsPath, name)
-		file, fileDiags := p.ParseFile(filePath)
-		diags = append(diags, fileDiags...)
-		files = append(files, file)
-	}
-
-	pkg.Files = files
-
-	return pkg, diags
-}
-
-// ParseAllProjectFiles finds all of the project files in the project root and
-// parses them, returning a slice containing one entry for each.
-//
-// Most normal operations operate on a single file at a time, provided by the
-// user on the command line. This method is provided for the rare commands that
-// operate on an entire project directory, such as the package installer when
-// it's looking for dependencies in all project files.
-func (p *Parser) ParseAllProjectFiles() ([]*ast.File, source.Diags) {
-	var files []*ast.File
-
-	entries, err := p.fs.ReadDir("/")
-	if err != nil {
-		return files, source.Diags{
-			{
-				Level:   source.Error,
-				Summary: "Invalid project root",
-				Detail:  fmt.Sprintf("Failed to read from the project root: %s", err),
-			},
-		}
-	}
-
-	var diags source.Diags
-	for _, i := range entries {
-		if i.IsDir() {
-			continue
-		}
-		name := i.Name()
-		if !pathHasExtension(name, ".cb") {
-			continue
-		}
-
-		filePath := path.Join("/", name)
-		file, fileDiags := p.ParseFile(filePath)
-		diags = append(diags, fileDiags...)
-		files = append(files, file)
-	}
-
-	return files, diags
-}
-
-// ParseFile parses a single file.
-//
-// This is usually used for project files. Module files can be loaded via this
-// method for purposes such as single-file validation and text editor support
-// tools, but in normal use modules should be loaded as part of their packages
-// using ParsePackage.
-func (p *Parser) ParseFile(fpath string) (*ast.File, source.Diags) {
-	if ret := p.files[fpath]; ret != nil {
-		return ret, nil
-	}
-
-	ret := &ast.File{
-		WithRange: ast.WithRange{
-			source.Range{
-				Filename: fpath,
-				Start:    source.StartPos,
-				End:      source.StartPos,
-			},
-		},
-	}
-
-	f, err := p.fs.Open(fpath)
-	if err != nil {
-		return ret, source.Diags{
-			{
-				Level:   source.Error,
-				Summary: "Failed to read file",
-				Detail:  fmt.Sprintf("The file %q could not be read: %s.", fpath, err),
-			},
-		}
-	}
-	defer f.Close()
-
-	src, err := ioutil.ReadAll(f)
-	if err != nil {
-		return ret, source.Diags{
-			{
-				Level:   source.Error,
-				Summary: "Failed to read file",
-				Detail:  fmt.Sprintf("The file %q could not be read: %s.", fpath, err),
-			},
-		}
-	}
-
+// It's the caller's responsibility to actually load the file content and
+// ensure that the given file contents correlate to the given FilePath.
+func (p *Parser) ParseFile(fpath projpath.FilePath, src []byte) (*ast.File, source.Diags) {
+	ret := &ast.File{}
 	ret.Source = src
 
 	p.files[fpath] = ret
@@ -213,24 +60,14 @@ func (p *Parser) ParseFile(fpath string) (*ast.File, source.Diags) {
 	return ret, diags
 }
 
-// ScanFile loads a single file and returns the tokens found within it.
+// ScanFile scans a single file and returns the tokens found within it.
 //
 // This entrypoint does not actually do any parsing, and thus doesn't produce
-// diagnostics. An error is returned only if the given file cannot be read.
-func (p *Parser) ScanFile(fpath string) (Tokens, error) {
-	f, err := p.fs.Open(fpath)
-	if err != nil {
-		return nil, err
-	}
-	defer f.Close()
-
-	src, err := ioutil.ReadAll(f)
-	if err != nil {
-		return nil, err
-	}
-
+// diagnostics, though the resulting token sequence may include token types
+// signalling invalid input, such as TokenInvalid and TokenBadUTF8.
+func (p *Parser) ScanFile(fpath projpath.FilePath, src []byte) Tokens {
 	tokens := scanTokens(src, fpath, source.StartPos, scanNormal)
-	return tokens, nil
+	return tokens
 }
 
 func (p *Parser) Diagnostics() source.Diags {
@@ -2377,19 +2214,4 @@ func mustParseBigFloat(str string) *big.Float {
 		panic(err)
 	}
 	return f
-}
-
-// pathHasExtension checks if the given path has the given extension (suffix)
-// while also ignoring files that have names starting with "." or "_" that
-// are presumed to be temporary files created by editors or other tools.
-func pathHasExtension(path, ext string) bool {
-	if !strings.HasSuffix(path, ext) {
-		return false
-	}
-
-	if strings.HasPrefix(path, ".") || strings.HasPrefix(path, "_") {
-		return false
-	}
-
-	return true
 }
