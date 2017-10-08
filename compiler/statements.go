@@ -61,6 +61,9 @@ func compileStatement(node ast.Node, scope *eval.Scope) (eval.Stmt, source.Diags
 	case *ast.Import:
 		sym := scope.Get(tn.SymbolName())
 		return eval.ImportStmt(tn.Package, sym, tn.SourceRange()), nil
+	case *ast.Export:
+		expr, diags := CompileExpr(tn.Value, scope)
+		return eval.ExportStmt(expr, tn.SourceRange()), diags
 	case *ast.Attr:
 		sym := scope.Get(tn.Name)
 
