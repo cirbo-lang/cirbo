@@ -2,6 +2,7 @@ package cirbo
 
 import (
 	"fmt"
+	"sort"
 
 	"github.com/cirbo-lang/cirbo/ast"
 	"github.com/cirbo-lang/cirbo/cbo"
@@ -52,6 +53,12 @@ func (cb *Cirbo) LoadPackage(dir string) (cty.Value, source.Diags) {
 		if cb.pkgs.Has(pkgDir) {
 			// Dependency is already cached, so we don't need to visit it
 			// or any of its dependencies.
+			continue
+		}
+
+		if _, compiled := pkgs[pkgDir]; compiled {
+			// Dependency isn't already cached, but we already planned to
+			// compile it so we don't need to re-compile it here.
 			continue
 		}
 
@@ -144,8 +151,65 @@ func (cb *Cirbo) LoadPackage(dir string) (cty.Value, source.Diags) {
 		}
 	}
 
-	// TODO: check if anything is left in inDeg, which would indicate
-	// a dependency cycle.
+	if len(inDeg) > 0 {
+		switch len(inDeg) {
+		case 1:
+			var selfDep projpath.FilePath
+			for dfp := range inDeg {
+				selfDep = dfp
+			}
+			diags = append(diags, source.Diag{
+				Level:   source.Error,
+				Summary: "Package dependency cycle",
+				Detail: fmt.Sprintf(
+					"The package at %s depends on itself. Dependency cycles are not allowed.",
+					cb.proj.FilePathForUI(selfDep),
+				),
+			})
+		case 2:
+			paths := make([]string, 0, 2)
+			for dfp := range inDeg {
+				paths = append(paths, cb.proj.FilePathForUI(dfp))
+			}
+			sort.Strings(paths)
+			diags = append(diags, source.Diag{
+				Level:   source.Error,
+				Summary: "Package dependency cycle",
+				Detail: fmt.Sprintf(
+					"The packages in %s and %s both depend on each other. Dependency cycles are not allowed.",
+					paths[0], paths[1],
+				),
+			})
+		default:
+			// If we have a large number of items leftover then we've got
+			// a messy cycle situation that would require some analysis
+			// to get a great error message. For now, we'll just settle for
+			// a non-great error message. We will improve on this if this
+			// error ends up appearing a lot in practice.
+			paths := make([]string, 0, len(inDeg))
+			for dfp := range inDeg {
+				paths = append(paths, cb.proj.FilePathForUI(dfp))
+			}
+			sort.Strings(paths)
+			diags = append(diags, source.Diag{
+				Level:   source.Error,
+				Summary: "Package dependency cycle",
+				Detail: fmt.Sprintf(
+					"The package in %s either depends on itself or on packages that form a dependency cycle. Dependency cycles are not allowed. If you recently added an \"import\" statement, investigate whether that statement created a cycle.",
+					paths[0],
+				),
+			})
+		}
+	}
+
+	// If we've encountered any errors along the way then we probably won't
+	// have a reasonable value to return, so we'll stub it out.
+	if diags.HasErrors() {
+		cb.pkgs.Put(fp, pkgCacheEntry{
+			Value: cty.PlaceholderVal,
+		})
+		return cty.PlaceholderVal, diags
+	}
 
 	result := cb.pkgs.Get(fp).Value
 	return result, diags
