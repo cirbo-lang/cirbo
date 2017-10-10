@@ -19,9 +19,16 @@ import (
 // Callers should generally only pass AST subtrees that are documented as
 // representing expressions.
 func CompileExpr(node ast.Node, scope *eval.Scope) (eval.Expr, source.Diags) {
+	return compileExpr(node, scope, nil)
+}
+
+func compileExpr(node ast.Node, scope *eval.Scope, swap ast.SwapTable) (eval.Expr, source.Diags) {
+	// Use a substitute node if we have one.
+	node = swap.Swap(node)
+
 	switch tn := node.(type) {
 	case *ast.ParenExpr:
-		cn, diags := CompileExpr(tn.Content, scope)
+		cn, diags := compileExpr(tn.Content, scope, swap)
 		return eval.PassthroughExpr(cn, tn.SourceRange()), diags
 	case *ast.BooleanLit:
 		tv := cty.BoolVal(tn.Value)
@@ -71,8 +78,8 @@ func CompileExpr(node ast.Node, scope *eval.Scope) (eval.Expr, source.Diags) {
 		return eval.SymbolExpr(sym, tn.SourceRange()), nil
 	case *ast.ArithmeticBinary:
 		var diags source.Diags
-		lhs, lhsDiags := CompileExpr(tn.LHS, scope)
-		rhs, rhsDiags := CompileExpr(tn.RHS, scope)
+		lhs, lhsDiags := compileExpr(tn.LHS, scope, swap)
+		rhs, rhsDiags := compileExpr(tn.RHS, scope, swap)
 		diags = append(diags, lhsDiags...)
 		diags = append(diags, rhsDiags...)
 
@@ -109,7 +116,7 @@ func CompileExpr(node ast.Node, scope *eval.Scope) (eval.Expr, source.Diags) {
 			panic(fmt.Errorf("compilation of binary %s is not implemented", tn.Op))
 		}
 	case *ast.ArithmeticUnary:
-		operand, diags := CompileExpr(tn.Operand, scope)
+		operand, diags := compileExpr(tn.Operand, scope, swap)
 
 		switch tn.Op {
 		case ast.Negate:
@@ -120,31 +127,31 @@ func CompileExpr(node ast.Node, scope *eval.Scope) (eval.Expr, source.Diags) {
 			panic(fmt.Errorf("compilation of unary %s is not implemented", tn.Op))
 		}
 	case *ast.GetAttr:
-		obj, diags := CompileExpr(tn.Source, scope)
+		obj, diags := compileExpr(tn.Source, scope, swap)
 		return eval.AttrExpr(obj, tn.Name, tn.SourceRange()), diags
 	case *ast.GetIndex:
 		var diags source.Diags
-		coll, collDiags := CompileExpr(tn.Source, scope)
+		coll, collDiags := compileExpr(tn.Source, scope, swap)
 		diags = append(diags, collDiags...)
-		index, indexDiags := CompileExpr(tn.Index, scope)
+		index, indexDiags := compileExpr(tn.Index, scope, swap)
 		diags = append(diags, indexDiags...)
 		return eval.IndexExpr(coll, index, tn.SourceRange()), diags
 	case *ast.Call:
 		var diags source.Diags
 
-		callee, calleeDiags := CompileExpr(tn.Callee, scope)
+		callee, calleeDiags := compileExpr(tn.Callee, scope, swap)
 		diags = append(diags, calleeDiags...)
 
 		posArgs := make([]eval.Expr, len(tn.Args.Positional))
 		for i, cn := range tn.Args.Positional {
 			var argDiags source.Diags
-			posArgs[i], argDiags = CompileExpr(cn, scope)
+			posArgs[i], argDiags = compileExpr(cn, scope, swap)
 			diags = append(diags, argDiags...)
 		}
 
 		namedArgs := make(map[string]eval.Expr, len(tn.Args.Named))
 		for _, arg := range tn.Args.Named {
-			expr, argDiags := CompileExpr(arg.Value, scope)
+			expr, argDiags := compileExpr(arg.Value, scope, swap)
 			diags = append(diags, argDiags...)
 			if _, already := namedArgs[arg.Name]; already {
 				diags = append(diags, source.Diag{
