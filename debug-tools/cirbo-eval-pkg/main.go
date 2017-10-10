@@ -60,7 +60,7 @@ func diagsError(diags source.Diags) error {
 		os.Stderr.WriteString("\n")
 	}
 	if diags.HasErrors() {
-		return errors.New("There were some errors during parsing, as shown above.")
+		return errors.New("There were some errors, as shown above.")
 	}
 	return nil
 }
