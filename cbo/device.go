@@ -1,7 +1,7 @@
 package cbo
 
 import (
-	"github.com/cirbo-lang/cirbo/cty"
+	"github.com/cirbo-lang/cirbo/cbty"
 )
 
 // Device represents a reusable device, which can be instantiated multiple
@@ -17,7 +17,7 @@ type Device struct {
 	Terminals  TerminalsDef
 }
 
-func (d *Device) NewInstance(name string, attrs map[string]cty.Value) *DeviceInstance {
+func (d *Device) NewInstance(name string, attrs map[string]cbty.Value) *DeviceInstance {
 	// Like all terminals, these have both inside and outside endpoints
 	// but we will use only the outside ones on a device since its
 	// internals are opaque.
@@ -37,7 +37,7 @@ func (d *Device) NewInstance(name string, attrs map[string]cty.Value) *DeviceIns
 type DeviceInstance struct {
 	Device    *Device
 	Name      string
-	Attrs     map[string]cty.Value
+	Attrs     map[string]cbty.Value
 	Terminals map[string]*TerminalInstance
 }
 

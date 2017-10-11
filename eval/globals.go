@@ -1,8 +1,8 @@
 package eval
 
 import (
-	"github.com/cirbo-lang/cirbo/cty"
-	"github.com/cirbo-lang/cirbo/cty/globals"
+	"github.com/cirbo-lang/cirbo/cbty"
+	"github.com/cirbo-lang/cirbo/cbty/globals"
 )
 
 // GlobalScope returns the global scope, which is the top-most scope that
@@ -26,7 +26,7 @@ func init() {
 		final:   true,
 	}
 	globalContext = &Context{
-		values: map[*Symbol]cty.Value{},
+		values: map[*Symbol]cbty.Value{},
 		final:  true,
 	}
 

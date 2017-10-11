@@ -3,7 +3,7 @@ package eval
 import (
 	"fmt"
 
-	"github.com/cirbo-lang/cirbo/cty"
+	"github.com/cirbo-lang/cirbo/cbty"
 	"github.com/cirbo-lang/cirbo/source"
 )
 
@@ -11,7 +11,7 @@ type Expr struct {
 	e exprImpl
 }
 
-func (e Expr) value(ctx *Context, targetSym *Symbol) (cty.Value, source.Diags) {
+func (e Expr) value(ctx *Context, targetSym *Symbol) (cbty.Value, source.Diags) {
 	return e.e.value(ctx, targetSym)
 }
 
@@ -36,7 +36,7 @@ type exprImpl interface {
 	// then the that symbol is provided in "targetSym"; otherwise,
 	// targetSym is nil. Some expression types are valid only when being
 	// assigned directly to a symbol.
-	value(ctx *Context, targetSym *Symbol) (cty.Value, source.Diags)
+	value(ctx *Context, targetSym *Symbol) (cbty.Value, source.Diags)
 
 	// eachChild should pass each of its child expressions (e.g. operands)
 	// to the given callback in some reasonable order.
@@ -60,13 +60,13 @@ func SymbolExpr(sym *Symbol, rng source.Range) Expr {
 	}}
 }
 
-func (e *symbolExpr) value(ctx *Context, targetSym *Symbol) (cty.Value, source.Diags) {
+func (e *symbolExpr) value(ctx *Context, targetSym *Symbol) (cbty.Value, source.Diags) {
 	val := ctx.Value(e.sym)
-	if val == cty.NilValue {
+	if val == cbty.NilValue {
 		// This is actually an implementation error in Cirbo rather than a
 		// user error, but we'll return it as a diagnostic anyway since that's
 		// more graceful.
-		return cty.PlaceholderVal, source.Diags{
+		return cbty.PlaceholderVal, source.Diags{
 			{
 				Level:   source.Error,
 				Summary: "Symbol not yet defined",
@@ -83,19 +83,19 @@ func (e *symbolExpr) GoString() string {
 }
 
 type literalExpr struct {
-	val cty.Value
+	val cbty.Value
 	rng
 	leafExpr
 }
 
-func LiteralExpr(val cty.Value, rng source.Range) Expr {
+func LiteralExpr(val cbty.Value, rng source.Range) Expr {
 	return Expr{&literalExpr{
 		val: val,
 		rng: srcRange(rng),
 	}}
 }
 
-func (e *literalExpr) value(ctx *Context, targetSym *Symbol) (cty.Value, source.Diags) {
+func (e *literalExpr) value(ctx *Context, targetSym *Symbol) (cbty.Value, source.Diags) {
 	return e.val, nil
 }
 
@@ -179,7 +179,7 @@ func OrExpr(lhs, rhs Expr, rng source.Range) Expr {
 	return makeBinaryOpExpr(lhs, rhs, opOr, rng)
 }
 
-func (e *binaryOpExpr) value(ctx *Context, targetSym *Symbol) (cty.Value, source.Diags) {
+func (e *binaryOpExpr) value(ctx *Context, targetSym *Symbol) (cbty.Value, source.Diags) {
 	return e.op.evalBinary(ctx, e.lhs, e.rhs, e.sourceRange())
 }
 
@@ -215,7 +215,7 @@ func NotExpr(val Expr, rng source.Range) Expr {
 	return makeUnaryOpExpr(val, opNot, rng)
 }
 
-func (e *unaryOpExpr) value(ctx *Context, targetSym *Symbol) (cty.Value, source.Diags) {
+func (e *unaryOpExpr) value(ctx *Context, targetSym *Symbol) (cbty.Value, source.Diags) {
 	return e.op.evalUnary(ctx, e.val, e.sourceRange())
 }
 
@@ -239,7 +239,7 @@ func CallExpr(callee Expr, posArgs []Expr, namedArgs map[string]Expr, rng source
 	}}
 }
 
-func (e *callExpr) value(ctx *Context, targetSym *Symbol) (cty.Value, source.Diags) {
+func (e *callExpr) value(ctx *Context, targetSym *Symbol) (cbty.Value, source.Diags) {
 	panic("callExpr.value not yet implemented")
 }
 
@@ -267,7 +267,7 @@ func AttrExpr(obj Expr, name string, rng source.Range) Expr {
 	}}
 }
 
-func (e *attrExpr) value(ctx *Context, targetSym *Symbol) (cty.Value, source.Diags) {
+func (e *attrExpr) value(ctx *Context, targetSym *Symbol) (cbty.Value, source.Diags) {
 	panic("attrExpr.value not yet implemented")
 }
 
@@ -289,7 +289,7 @@ func IndexExpr(coll, index Expr, rng source.Range) Expr {
 	}}
 }
 
-func (e *indexExpr) value(ctx *Context, targetSym *Symbol) (cty.Value, source.Diags) {
+func (e *indexExpr) value(ctx *Context, targetSym *Symbol) (cbty.Value, source.Diags) {
 	panic("indexExpr.value not yet implemented")
 }
 
@@ -310,7 +310,7 @@ func PassthroughExpr(expr Expr, rng source.Range) Expr {
 	}}
 }
 
-func (e *passthroughExpr) value(ctx *Context, targetSym *Symbol) (cty.Value, source.Diags) {
+func (e *passthroughExpr) value(ctx *Context, targetSym *Symbol) (cbty.Value, source.Diags) {
 	// This is the one situation where we _do_ pass through a targetSym
 	// value, since we want PassthroughExpr to act like it isn't there at all.
 	// (It's only there to represent parethesized exprs so we can draw ranges

@@ -3,7 +3,7 @@ package eval
 import (
 	"fmt"
 
-	"github.com/cirbo-lang/cirbo/cty"
+	"github.com/cirbo-lang/cirbo/cbty"
 	"github.com/cirbo-lang/cirbo/source"
 )
 
@@ -15,7 +15,7 @@ import (
 // values for the same symbol in other possibly-concurrent calls.
 type Context struct {
 	parent *Context
-	values map[*Symbol]cty.Value
+	values map[*Symbol]cbty.Value
 	final  bool
 }
 
@@ -23,7 +23,7 @@ type Context struct {
 func (ctx *Context) NewChild() *Context {
 	return &Context{
 		parent: ctx,
-		values: map[*Symbol]cty.Value{},
+		values: map[*Symbol]cbty.Value{},
 	}
 }
 
@@ -37,7 +37,7 @@ func (ctx *Context) NewChild() *Context {
 // given symbol already has a definition in the given context.
 //
 // This method will also panic if the receiver is the immutable global context.
-func (ctx *Context) Define(sym *Symbol, expr Expr) (cty.Value, source.Diags) {
+func (ctx *Context) Define(sym *Symbol, expr Expr) (cbty.Value, source.Diags) {
 	v, diags := expr.value(ctx, sym)
 	ctx.DefineLiteral(sym, v)
 	return v, diags
@@ -50,7 +50,7 @@ func (ctx *Context) Define(sym *Symbol, expr Expr) (cty.Value, source.Diags) {
 // Use Defined to determine if a given symbol is already defined.
 //
 // This method will also panic if the receiver is the immutable global context.
-func (ctx *Context) DefineLiteral(sym *Symbol, val cty.Value) {
+func (ctx *Context) DefineLiteral(sym *Symbol, val cbty.Value) {
 	if ctx.final {
 		panic(fmt.Errorf("attempt to define %#v as %#v in a finalized context", sym, val))
 	}
@@ -72,7 +72,7 @@ func (ctx *Context) Defined(sym *Symbol) bool {
 // Value returns the value of the given symbol in the receiver or the nearest
 // defining ancestor context, or NilValue if the given symbol is not yet
 // defined in any context in the inheritance chain.
-func (ctx *Context) Value(sym *Symbol) cty.Value {
+func (ctx *Context) Value(sym *Symbol) cbty.Value {
 	current := ctx
 	for current != nil {
 		val, has := current.values[sym]
@@ -82,15 +82,15 @@ func (ctx *Context) Value(sym *Symbol) cty.Value {
 		current = current.parent
 	}
 
-	return cty.NilValue
+	return cbty.NilValue
 }
 
 // AllValues returns a map describing the values of all of all of the symbols
 // defined in the given scope, using their definition names.
 //
 // If any of the symbols are not yet defined, they will map to NilValue.
-func (ctx *Context) AllValues(s *Scope) map[string]cty.Value {
-	ret := make(map[string]cty.Value, len(s.symbols))
+func (ctx *Context) AllValues(s *Scope) map[string]cbty.Value {
+	ret := make(map[string]cbty.Value, len(s.symbols))
 	for name, symbol := range s.symbols {
 		ret[name] = ctx.Value(symbol)
 	}

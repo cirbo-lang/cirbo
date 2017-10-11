@@ -3,7 +3,7 @@ package eval
 import (
 	"fmt"
 
-	"github.com/cirbo-lang/cirbo/cty"
+	"github.com/cirbo-lang/cirbo/cbty"
 	"github.com/cirbo-lang/cirbo/source"
 )
 
@@ -74,7 +74,7 @@ func (s *importStmt) execute(exec *StmtBlockExecute, result *StmtBlockResult) so
 	var diags source.Diags
 	val, defined := exec.Packages[s.ppath]
 	if !defined {
-		val = cty.PlaceholderVal
+		val = cbty.PlaceholderVal
 		diags = append(diags, source.Diag{
 			Level:   source.Error,
 			Summary: "Module not loaded",
@@ -101,7 +101,7 @@ func ExportStmt(value Expr, rng source.Range) Stmt {
 
 func (s *exportStmt) execute(exec *StmtBlockExecute, result *StmtBlockResult) source.Diags {
 	val, diags := s.value.Value(exec.Context)
-	if result.ExportValue != cty.NilValue {
+	if result.ExportValue != cbty.NilValue {
 		diags = append(diags, source.Diag{
 			Level:   source.Error,
 			Summary: "Duplicate export statements",
@@ -160,7 +160,7 @@ func (s *attrStmt) requiredSymbols(scope *Scope) SymbolSet {
 
 func (s *attrStmt) execute(exec *StmtBlockExecute, result *StmtBlockResult) source.Diags {
 	var diags source.Diags
-	var val cty.Value
+	var val cbty.Value
 
 	// Attribute values and types are always resolved in the parent context,
 	// since they aren't allowed to refer to symbols in the current scope.
@@ -177,11 +177,11 @@ func (s *attrStmt) execute(exec *StmtBlockExecute, result *StmtBlockResult) sour
 		val = exec.Attrs[s.sym]
 	}
 
-	var ty cty.Type
+	var ty cbty.Type
 	if s.valueType != NilExpr {
 		tyVal, exprDiags := s.valueType.Value(exec.Context)
 		diags = append(diags, exprDiags...)
-		if tyVal.Type() != cty.TypeType {
+		if tyVal.Type() != cbty.TypeType {
 			// This is also checked by stmtBlock.Attributes, so in normal
 			// codepaths we'll never get here but we still need to produce
 			// a reasonable result in case we're in an analysis codepath that
@@ -192,18 +192,18 @@ func (s *attrStmt) execute(exec *StmtBlockExecute, result *StmtBlockResult) sour
 				Detail:  fmt.Sprintf("Expected a type, but given a value of type %s. To assign a default value, use the '=' (equals) symbol.", tyVal.Type().Name()),
 				Ranges:  s.valueType.sourceRange().List(),
 			})
-			exec.Context.DefineLiteral(s.sym, cty.PlaceholderVal)
+			exec.Context.DefineLiteral(s.sym, cbty.PlaceholderVal)
 			return diags
 		}
 		ty = tyVal.UnwrapType()
-		if val == cty.NilValue {
-			val = cty.UnknownVal(ty)
+		if val == cbty.NilValue {
+			val = cbty.UnknownVal(ty)
 		}
 	} else if s.defValue != NilExpr {
 		defVal, exprDiags := s.defValue.Value(exec.Context)
 		diags = append(diags, exprDiags...)
 		ty = defVal.Type()
-		if val == cty.NilValue {
+		if val == cbty.NilValue {
 			val = defVal
 		}
 	}
@@ -225,7 +225,7 @@ func (s *attrStmt) execute(exec *StmtBlockExecute, result *StmtBlockResult) sour
 
 		// Place an unknown value of the correct type to suppress any
 		// downstream errors that would otherwise result from this problem.
-		val = cty.UnknownVal(ty)
+		val = cbty.UnknownVal(ty)
 	}
 
 	exec.Context.DefineLiteral(s.sym, val)

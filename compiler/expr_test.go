@@ -3,7 +3,7 @@ package compiler
 import (
 	"testing"
 
-	"github.com/cirbo-lang/cirbo/cty"
+	"github.com/cirbo-lang/cirbo/cbty"
 	"github.com/cirbo-lang/cirbo/eval"
 	"github.com/cirbo-lang/cirbo/parser"
 	"github.com/cirbo-lang/cirbo/source"
@@ -13,112 +13,112 @@ import (
 func TestCompileExpr(t *testing.T) {
 	tests := []struct {
 		Source string
-		Want   cty.Value
+		Want   cbty.Value
 		Diags  int
 	}{
 		{
 			"true",
-			cty.True,
+			cbty.True,
 			0,
 		},
 		{
 			"(true)",
-			cty.True,
+			cbty.True,
 			0,
 		},
 		{
 			"0",
-			cty.Zero,
+			cbty.Zero,
 			0,
 		},
 		{
 			"50%",
-			cty.NumberValFloat(0.5),
+			cbty.NumberValFloat(0.5),
 			0,
 		},
 		{
 			"5mm",
-			cty.QuantityVal(units.MakeQuantityInt(5, units.ByName("mm"))),
+			cbty.QuantityVal(units.MakeQuantityInt(5, units.ByName("mm"))),
 			0,
 		},
 		{
 			"foo",
-			cty.StringVal("foo"),
+			cbty.StringVal("foo"),
 			0,
 		},
 		{
 			"bar",
-			cty.StringVal("bar"),
+			cbty.StringVal("bar"),
 			0,
 		},
 		{
 			"baz",
-			cty.PlaceholderVal,
+			cbty.PlaceholderVal,
 			1, // variable not declared in this scope
 		},
 		{
 			"notDefined",
-			cty.PlaceholderVal,
+			cbty.PlaceholderVal,
 			1, // symbol not defined (if this happens then it's a Cirbo bug rather than user error, but we want to still catch it gracefully)
 		},
 		{
 			"1 + 2",
-			cty.NumberValInt(3),
+			cbty.NumberValInt(3),
 			0,
 		},
 		{
 			"1m + 50cm",
-			cty.QuantityVal(units.MakeQuantityFloat(1.5, units.ByName("m"))),
+			cbty.QuantityVal(units.MakeQuantityFloat(1.5, units.ByName("m"))),
 			0,
 		},
 		{
 			"4 - 1",
-			cty.NumberValInt(3),
+			cbty.NumberValInt(3),
 			0,
 		},
 		{
 			"2 * 6",
-			cty.NumberValInt(12),
+			cbty.NumberValInt(12),
 			0,
 		},
 		{
 			"16 / 2",
-			cty.NumberValInt(8),
+			cbty.NumberValInt(8),
 			0,
 		},
 		{
 			"true == true",
-			cty.True,
+			cbty.True,
 			0,
 		},
 		{
 			"true == false",
-			cty.False,
+			cbty.False,
 			0,
 		},
 		{
 			"true != false",
-			cty.True,
+			cbty.True,
 			0,
 		},
 		{
 			"true || false",
-			cty.True,
+			cbty.True,
 			0,
 		},
 		{
 			"true && false",
-			cty.False,
+			cbty.False,
 			0,
 		},
 		{
 			"!true",
-			cty.False,
+			cbty.False,
 			0,
 		},
 		{
 			"blah blah",
-			cty.PlaceholderVal,
+			cbty.PlaceholderVal,
 			2, // unknown variable "blah", unexpected characters after expression
 		},
 	}
@@ -131,19 +131,19 @@ func TestCompileExpr(t *testing.T) {
 	scope1.Declare("notDefined")
 
 	ctx := eval.GlobalContext().NewChild()
-	ctx.DefineLiteral(fooSym, cty.StringVal("foo"))
-	ctx.DefineLiteral(barSym, cty.StringVal("bar"))
-	ctx.DefineLiteral(upperSym, cty.FunctionVal(cty.FunctionImpl{
-		Signature: &cty.CallSignature{
-			Parameters: map[string]cty.CallParameter{
+	ctx.DefineLiteral(fooSym, cbty.StringVal("foo"))
+	ctx.DefineLiteral(barSym, cbty.StringVal("bar"))
+	ctx.DefineLiteral(upperSym, cbty.FunctionVal(cbty.FunctionImpl{
+		Signature: &cbty.CallSignature{
+			Parameters: map[string]cbty.CallParameter{
 				"str": {
-					Type:     cty.String,
+					Type:     cbty.String,
 					Required: true,
 				},
 			},
-			Result: cty.String,
+			Result: cbty.String,
 		},
-		Callback: func(args cty.CallArgs) (cty.Value, source.Diags) {
+		Callback: func(args cbty.CallArgs) (cbty.Value, source.Diags) {
 			// TODO: Implement this and test with it below once the evaluator
 			// knows how to handle calls.
 			panic("upper function not yet implemented")

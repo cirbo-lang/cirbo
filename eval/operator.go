@@ -3,7 +3,7 @@ package eval
 import (
 	"fmt"
 
-	"github.com/cirbo-lang/cirbo/cty"
+	"github.com/cirbo-lang/cirbo/cbty"
 	"github.com/cirbo-lang/cirbo/source"
 )
 
@@ -42,7 +42,7 @@ const (
 	opNot operator = '¬'
 )
 
-func (o operator) evalBinary(ctx *Context, lhs, rhs Expr, rng source.Range) (cty.Value, source.Diags) {
+func (o operator) evalBinary(ctx *Context, lhs, rhs Expr, rng source.Range) (cbty.Value, source.Diags) {
 	var diags source.Diags
 	lv, lhsDiags := lhs.value(ctx, nil)
 	diags = append(diags, lhsDiags...)
@@ -61,7 +61,7 @@ func (o operator) evalBinary(ctx *Context, lhs, rhs Expr, rng source.Range) (cty
 	case opAdd, opSubtract:
 		if !lv.Type().CanSum(rv.Type()) {
 			diags = append(diags, invalidTypes())
-			return cty.PlaceholderVal, diags
+			return cbty.PlaceholderVal, diags
 		}
 		switch o {
 		case opAdd:
@@ -74,7 +74,7 @@ func (o operator) evalBinary(ctx *Context, lhs, rhs Expr, rng source.Range) (cty
 	case opMultiply, opDivide, opModulo, opExponent:
 		if !lv.Type().CanProduct(rv.Type()) {
 			diags = append(diags, invalidTypes())
-			return cty.PlaceholderVal, diags
+			return cbty.PlaceholderVal, diags
 		}
 		switch o {
 		case opMultiply:
@@ -93,7 +93,7 @@ func (o operator) evalBinary(ctx *Context, lhs, rhs Expr, rng source.Range) (cty
 	case opConcat:
 		if !lv.Type().CanConcat(rv.Type()) {
 			diags = append(diags, invalidTypes())
-			return cty.PlaceholderVal, diags
+			return cbty.PlaceholderVal, diags
 		}
 		return lv.Concat(rv), diags
 	case opEqual:
@@ -103,9 +103,9 @@ func (o operator) evalBinary(ctx *Context, lhs, rhs Expr, rng source.Range) (cty
 	case opLessThan, opLessThanOrEqual, opGreaterThan, opGreaterThanOrEqual:
 		panic("comparison not yet implemented")
 	case opAnd, opOr:
-		if !(lv.Type().Same(cty.Bool) && rv.Type().Same(cty.Bool)) {
+		if !(lv.Type().Same(cbty.Bool) && rv.Type().Same(cbty.Bool)) {
 			diags = append(diags, invalidTypes())
-			return cty.UnknownVal(cty.Bool), diags
+			return cbty.UnknownVal(cbty.Bool), diags
 		}
 		switch o {
 		case opAnd:
@@ -120,20 +120,20 @@ func (o operator) evalBinary(ctx *Context, lhs, rhs Expr, rng source.Range) (cty
 	}
 }
 
-func (o operator) evalUnary(ctx *Context, val Expr, rng source.Range) (cty.Value, source.Diags) {
+func (o operator) evalUnary(ctx *Context, val Expr, rng source.Range) (cbty.Value, source.Diags) {
 	vv, diags := val.value(ctx, nil)
 
 	switch o {
 	case opNegate:
 		panic("negate not yet implemented")
 	case opNot:
-		if !vv.Type().Same(cty.Bool) {
+		if !vv.Type().Same(cbty.Bool) {
 			diags = append(diags, source.Diag{
 				Level:   source.Error,
 				Summary: "Invalid operand type",
 				Detail:  fmt.Sprintf("Cannot %s with a %s value.", o.verb(), vv.Type().Name()),
 			})
-			return cty.UnknownVal(cty.Bool), diags
+			return cbty.UnknownVal(cbty.Bool), diags
 		}
 		return vv.Not(), diags
 	default:
@@ -174,7 +174,7 @@ func (o operator) verb() string {
 	}
 }
 
-func typePairStr(a, b cty.Type) string {
+func typePairStr(a, b cbty.Type) string {
 	if a.Same(b) {
 		return fmt.Sprintf("two %s", a.Name())
 	} else {

@@ -4,7 +4,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/cirbo-lang/cirbo/cty"
+	"github.com/cirbo-lang/cirbo/cbty"
 	"github.com/cirbo-lang/cirbo/source"
 )
 
@@ -175,7 +175,7 @@ func TestStmtBlockAttributes(t *testing.T) {
 				Want: map[string]StmtBlockAttr{
 					"foo": {
 						Symbol:   sym,
-						Type:     cty.Length,
+						Type:     cbty.Length,
 						Required: true,
 					},
 				},
@@ -192,7 +192,7 @@ func TestStmtBlockAttributes(t *testing.T) {
 				Want: map[string]StmtBlockAttr{
 					"foo": {
 						Symbol:   sym,
-						Type:     cty.TypeType,
+						Type:     cbty.TypeType,
 						Required: false,
 					},
 				},
@@ -211,12 +211,12 @@ func TestStmtBlockAttributes(t *testing.T) {
 				Want: map[string]StmtBlockAttr{
 					"sym1": {
 						Symbol:   sym1,
-						Type:     cty.TypeType,
+						Type:     cbty.TypeType,
 						Required: false,
 					},
 					"sym2": {
 						Symbol:   sym2,
-						Type:     cty.Length,
+						Type:     cbty.Length,
 						Required: true,
 					},
 				},
@@ -225,7 +225,7 @@ func TestStmtBlockAttributes(t *testing.T) {
 		},
 		"invalid type": func(scope *Scope) testCase {
 			sym := scope.Declare("foo")
-			tyExpr := LiteralExpr(cty.StringVal("hello"), source.NilRange)
+			tyExpr := LiteralExpr(cbty.StringVal("hello"), source.NilRange)
 			return testCase{
 				Stmts: []Stmt{
 					AttrStmt(sym, tyExpr, source.NilRange),
@@ -233,7 +233,7 @@ func TestStmtBlockAttributes(t *testing.T) {
 				Want: map[string]StmtBlockAttr{
 					"foo": {
 						Symbol:   sym,
-						Type:     cty.PlaceholderVal.Type(),
+						Type:     cbty.PlaceholderVal.Type(),
 						Required: true,
 					},
 				},
@@ -283,6 +283,6 @@ func (s *mockStmt) requiredSymbols(*Scope) SymbolSet {
 }
 
 func (s *mockStmt) execute(exec *StmtBlockExecute, result *StmtBlockResult) source.Diags {
-	exec.Context.DefineLiteral(s.defines, cty.PlaceholderVal)
+	exec.Context.DefineLiteral(s.defines, cbty.PlaceholderVal)
 	return nil
 }

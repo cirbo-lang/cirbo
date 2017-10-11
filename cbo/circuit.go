@@ -1,7 +1,7 @@
 package cbo
 
 import (
-	"github.com/cirbo-lang/cirbo/cty"
+	"github.com/cirbo-lang/cirbo/cbty"
 )
 
 // Circuit represents a reusable circuit, which can be instantiated multiple
@@ -14,7 +14,7 @@ type Circuit struct {
 	Terminals TerminalsDef
 }
 
-func (c *Circuit) NewInstance(name string, attrs map[string]cty.Value) *CircuitInstance {
+func (c *Circuit) NewInstance(name string, attrs map[string]cbty.Value) *CircuitInstance {
 	// We need to recursively instantiate all of the contained items
 
 	terminals := make(map[string]*TerminalInstance, len(c.Terminals.All))
@@ -40,7 +40,7 @@ func (c *Circuit) NewInstance(name string, attrs map[string]cty.Value) *CircuitI
 type CircuitInstance struct {
 	Circuit   *Circuit
 	Name      string
-	Attrs     map[string]cty.Value
+	Attrs     map[string]cbty.Value
 	Terminals map[string]*TerminalInstance
 	Devices   map[string]*DeviceInstance
 	Circuits  map[string]*CircuitInstance

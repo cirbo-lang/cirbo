@@ -3,7 +3,7 @@ package eval
 import (
 	"testing"
 
-	"github.com/cirbo-lang/cirbo/cty"
+	"github.com/cirbo-lang/cirbo/cbty"
 	"github.com/cirbo-lang/cirbo/source"
 )
 
@@ -15,8 +15,8 @@ func TestContextDefine(t *testing.T) {
 	ctx := GlobalContext().NewChild()
 
 	{
-		expr := LiteralExpr(cty.True, source.NilRange)
-		want := cty.True
+		expr := LiteralExpr(cbty.True, source.NilRange)
+		want := cbty.True
 
 		got, diags := ctx.Define(sym1, expr)
 		assertDiagCount(t, diags, 0)
@@ -26,8 +26,8 @@ func TestContextDefine(t *testing.T) {
 		assertExprResult(t, expr, got, want)
 	}
 	{
-		expr := NotExpr(LiteralExpr(cty.Zero, source.NilRange), source.NilRange)
-		want := cty.UnknownVal(cty.Bool)
+		expr := NotExpr(LiteralExpr(cbty.Zero, source.NilRange), source.NilRange)
+		want := cbty.UnknownVal(cbty.Bool)
 
 		got, diags := ctx.Define(sym2, expr)
 		assertDiagCount(t, diags, 1) // invalid operand type

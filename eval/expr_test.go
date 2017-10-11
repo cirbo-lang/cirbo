@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/cirbo-lang/cirbo/cty"
+	"github.com/cirbo-lang/cirbo/cbty"
 	"github.com/cirbo-lang/cirbo/source"
 	"github.com/cirbo-lang/cirbo/units"
 )
@@ -34,22 +34,22 @@ func TestSymbolExpr(t *testing.T) {
 	ctx := (*Context)(nil).NewChild()
 
 	sym := scope.Declare("foo")
-	ctx.DefineLiteral(sym, cty.True)
+	ctx.DefineLiteral(sym, cbty.True)
 	undef := scope.Declare("undefined")
 
 	tests := []struct {
 		Expr      Expr
-		Want      cty.Value
+		Want      cbty.Value
 		DiagCount int
 	}{
 		{
 			SymbolExpr(sym, source.NilRange),
-			cty.True,
+			cbty.True,
 			0,
 		},
 		{
 			SymbolExpr(undef, source.NilRange),
-			cty.PlaceholderVal,
+			cbty.PlaceholderVal,
 			1, // symbol is not defined
 		},
 	}
@@ -66,17 +66,17 @@ func TestSymbolExpr(t *testing.T) {
 func TestLiteralExpr(t *testing.T) {
 	tests := []struct {
 		Expr      Expr
-		Want      cty.Value
+		Want      cbty.Value
 		DiagCount int
 	}{
 		{
-			LiteralExpr(cty.True, source.NilRange),
-			cty.True,
+			LiteralExpr(cbty.True, source.NilRange),
+			cbty.True,
 			0,
 		},
 		{
-			LiteralExpr(cty.UnknownVal(cty.Bool), source.NilRange),
-			cty.UnknownVal(cty.Bool),
+			LiteralExpr(cbty.UnknownVal(cbty.Bool), source.NilRange),
+			cbty.UnknownVal(cbty.Bool),
 			0,
 		},
 	}
@@ -93,152 +93,152 @@ func TestLiteralExpr(t *testing.T) {
 func TestOperatorExpr(t *testing.T) {
 	tests := []struct {
 		Expr      Expr
-		Want      cty.Value
+		Want      cbty.Value
 		DiagCount int
 	}{
 
 		{
-			AddExpr(litExp(cty.One), litExp(cty.One), source.NilRange),
-			cty.NumberValInt(2),
+			AddExpr(litExp(cbty.One), litExp(cbty.One), source.NilRange),
+			cbty.NumberValInt(2),
 			0,
 		},
 		{
 			AddExpr(
-				litExp(cty.QuantityVal(units.MakeQuantityInt(2, units.Meter))),
-				litExp(cty.QuantityVal(units.MakeQuantityInt(1, units.Meter))),
+				litExp(cbty.QuantityVal(units.MakeQuantityInt(2, units.Meter))),
+				litExp(cbty.QuantityVal(units.MakeQuantityInt(1, units.Meter))),
 				source.NilRange,
 			),
-			cty.QuantityVal(units.MakeQuantityInt(3, units.Meter)),
+			cbty.QuantityVal(units.MakeQuantityInt(3, units.Meter)),
 			0,
 		},
 		{
 			AddExpr(
-				litExp(cty.One),
-				litExp(cty.QuantityVal(units.MakeQuantityInt(1, units.Meter))),
+				litExp(cbty.One),
+				litExp(cbty.QuantityVal(units.MakeQuantityInt(1, units.Meter))),
 				source.NilRange,
 			),
-			cty.PlaceholderVal,
+			cbty.PlaceholderVal,
 			1, // can't add Number to Length
 		},
 
 		{
-			SubtractExpr(litExp(cty.NumberValInt(4)), litExp(cty.One), source.NilRange),
-			cty.NumberValInt(3),
+			SubtractExpr(litExp(cbty.NumberValInt(4)), litExp(cbty.One), source.NilRange),
+			cbty.NumberValInt(3),
 			0,
 		},
 
 		{
-			MultiplyExpr(litExp(cty.NumberValInt(4)), litExp(cty.NumberValInt(2)), source.NilRange),
-			cty.NumberValInt(8),
+			MultiplyExpr(litExp(cbty.NumberValInt(4)), litExp(cbty.NumberValInt(2)), source.NilRange),
+			cbty.NumberValInt(8),
 			0,
 		},
 		{
 			MultiplyExpr(
-				litExp(cty.QuantityVal(units.MakeQuantityInt(4, units.Meter))),
-				litExp(cty.QuantityVal(units.MakeQuantityInt(3, units.Meter))),
+				litExp(cbty.QuantityVal(units.MakeQuantityInt(4, units.Meter))),
+				litExp(cbty.QuantityVal(units.MakeQuantityInt(3, units.Meter))),
 				source.NilRange,
 			),
-			cty.QuantityVal(units.MakeQuantityInt(12, units.Meter.ToPower(2))),
+			cbty.QuantityVal(units.MakeQuantityInt(12, units.Meter.ToPower(2))),
 			0,
 		},
 
 		{
-			DivideExpr(litExp(cty.NumberValInt(12)), litExp(cty.NumberValInt(2)), source.NilRange),
-			cty.NumberValInt(6),
+			DivideExpr(litExp(cbty.NumberValInt(12)), litExp(cbty.NumberValInt(2)), source.NilRange),
+			cbty.NumberValInt(6),
 			0,
 		},
 		{
 			DivideExpr(
-				litExp(cty.QuantityVal(units.MakeQuantityInt(24, units.Meter))),
-				litExp(cty.QuantityVal(units.MakeQuantityInt(12, units.Second))),
+				litExp(cbty.QuantityVal(units.MakeQuantityInt(24, units.Meter))),
+				litExp(cbty.QuantityVal(units.MakeQuantityInt(12, units.Second))),
 				source.NilRange,
 			),
-			cty.QuantityVal(units.MakeQuantityInt(2, units.Meter.Multiply(units.Second.ToPower(-1)))),
+			cbty.QuantityVal(units.MakeQuantityInt(2, units.Meter.Multiply(units.Second.ToPower(-1)))),
 			0,
 		},
 
 		{
-			ConcatExpr(litExp(cty.StringVal("ab")), litExp(cty.StringVal("cde")), source.NilRange),
-			cty.StringVal("abcde"),
+			ConcatExpr(litExp(cbty.StringVal("ab")), litExp(cbty.StringVal("cde")), source.NilRange),
+			cbty.StringVal("abcde"),
 			0,
 		},
 		{
-			ConcatExpr(litExp(cty.True), litExp(cty.False), source.NilRange),
-			cty.PlaceholderVal,
+			ConcatExpr(litExp(cbty.True), litExp(cbty.False), source.NilRange),
+			cbty.PlaceholderVal,
 			1, // cannot concatenate Bool values
 		},
 
 		{
-			EqualExpr(litExp(cty.True), litExp(cty.False), source.NilRange),
-			cty.False,
+			EqualExpr(litExp(cbty.True), litExp(cbty.False), source.NilRange),
+			cbty.False,
 			0,
 		},
 		{
-			EqualExpr(litExp(cty.True), litExp(cty.True), source.NilRange),
-			cty.True,
+			EqualExpr(litExp(cbty.True), litExp(cbty.True), source.NilRange),
+			cbty.True,
 			0,
 		},
 		{
-			NotEqualExpr(litExp(cty.True), litExp(cty.True), source.NilRange),
-			cty.False,
+			NotEqualExpr(litExp(cbty.True), litExp(cbty.True), source.NilRange),
+			cbty.False,
 			0,
 		},
 
 		{
-			AndExpr(litExp(cty.True), litExp(cty.False), source.NilRange),
-			cty.False,
+			AndExpr(litExp(cbty.True), litExp(cbty.False), source.NilRange),
+			cbty.False,
 			0,
 		},
 		{
-			AndExpr(litExp(cty.True), litExp(cty.True), source.NilRange),
-			cty.True,
+			AndExpr(litExp(cbty.True), litExp(cbty.True), source.NilRange),
+			cbty.True,
 			0,
 		},
 		{
-			AndExpr(litExp(cty.False), litExp(cty.False), source.NilRange),
-			cty.False,
+			AndExpr(litExp(cbty.False), litExp(cbty.False), source.NilRange),
+			cbty.False,
 			0,
 		},
 		{
-			AndExpr(litExp(cty.True), litExp(cty.Zero), source.NilRange),
-			cty.UnknownVal(cty.Bool),
+			AndExpr(litExp(cbty.True), litExp(cbty.Zero), source.NilRange),
+			cbty.UnknownVal(cbty.Bool),
 			1, // invalid operand types
 		},
 
 		{
-			OrExpr(litExp(cty.True), litExp(cty.False), source.NilRange),
-			cty.True,
+			OrExpr(litExp(cbty.True), litExp(cbty.False), source.NilRange),
+			cbty.True,
 			0,
 		},
 		{
-			OrExpr(litExp(cty.True), litExp(cty.True), source.NilRange),
-			cty.True,
+			OrExpr(litExp(cbty.True), litExp(cbty.True), source.NilRange),
+			cbty.True,
 			0,
 		},
 		{
-			OrExpr(litExp(cty.True), litExp(cty.True), source.NilRange),
-			cty.True,
+			OrExpr(litExp(cbty.True), litExp(cbty.True), source.NilRange),
+			cbty.True,
 			0,
 		},
 		{
-			OrExpr(litExp(cty.True), litExp(cty.Zero), source.NilRange),
-			cty.UnknownVal(cty.Bool),
+			OrExpr(litExp(cbty.True), litExp(cbty.Zero), source.NilRange),
+			cbty.UnknownVal(cbty.Bool),
 			1, // invalid operand types
 		},
 
 		{
-			NotExpr(litExp(cty.True), source.NilRange),
-			cty.False,
+			NotExpr(litExp(cbty.True), source.NilRange),
+			cbty.False,
 			0,
 		},
 		{
-			NotExpr(litExp(cty.False), source.NilRange),
-			cty.True,
+			NotExpr(litExp(cbty.False), source.NilRange),
+			cbty.True,
 			0,
 		},
 		{
-			NotExpr(litExp(cty.Zero), source.NilRange),
-			cty.UnknownVal(cty.Bool),
+			NotExpr(litExp(cbty.Zero), source.NilRange),
+			cbty.UnknownVal(cbty.Bool),
 			1, // invalid operand type
 		},
 	}
@@ -252,7 +252,7 @@ func TestOperatorExpr(t *testing.T) {
 	}
 }
 
-func litExp(v cty.Value) Expr {
+func litExp(v cbty.Value) Expr {
 	return LiteralExpr(v, source.NilRange)
 }
 
@@ -268,7 +268,7 @@ func assertDiagCount(t *testing.T, diags source.Diags, want int) bool {
 	return true
 }
 
-func assertExprResult(t *testing.T, e Expr, got cty.Value, want cty.Value) bool {
+func assertExprResult(t *testing.T, e Expr, got cbty.Value, want cbty.Value) bool {
 	t.Helper()
 	if !got.Same(want) {
 		t.Errorf("wrong expression result\nexpr: %#v\ngot:  %#v\nwant: %#v", e, got, want)

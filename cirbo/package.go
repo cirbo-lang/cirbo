@@ -6,8 +6,8 @@ import (
 
 	"github.com/cirbo-lang/cirbo/ast"
 	"github.com/cirbo-lang/cirbo/cbo"
+	"github.com/cirbo-lang/cirbo/cbty"
 	"github.com/cirbo-lang/cirbo/compiler"
-	"github.com/cirbo-lang/cirbo/cty"
 	"github.com/cirbo-lang/cirbo/projpath"
 	"github.com/cirbo-lang/cirbo/source"
 )
@@ -22,10 +22,10 @@ import (
 // Cirbo will accumulate any diagnostics into a single diagnostic list, and
 // thus re-returning the same diagnostic would cause it to be duplicated in the
 // output.
-func (cb *Cirbo) LoadPackage(dir string) (cty.Value, source.Diags) {
+func (cb *Cirbo) LoadPackage(dir string) (cbty.Value, source.Diags) {
 	fp := cb.proj.FilePathFromUI(dir)
 	if fp == projpath.NoPath {
-		return cty.PlaceholderVal, source.Diags{
+		return cbty.PlaceholderVal, source.Diags{
 			source.Diag{
 				Level:   source.Error,
 				Summary: "Invalid package directory",
@@ -68,7 +68,7 @@ func (cb *Cirbo) LoadPackage(dir string) (cty.Value, source.Diags) {
 			// If we can't compile a particular package at all, we'll
 			// just stub it out with a placeholder and skip over it.
 			cb.pkgs.Put(pkgDir, pkgCacheEntry{
-				Value: cty.PlaceholderVal,
+				Value: cbty.PlaceholderVal,
 			})
 			continue
 		}
@@ -99,9 +99,9 @@ func (cb *Cirbo) LoadPackage(dir string) (cty.Value, source.Diags) {
 	// If any of the packages failed to compile then we can't proceed.
 	if diags.HasErrors() {
 		cb.pkgs.Put(fp, pkgCacheEntry{
-			Value: cty.PlaceholderVal,
+			Value: cbty.PlaceholderVal,
 		})
-		return cty.PlaceholderVal, diags
+		return cbty.PlaceholderVal, diags
 	}
 
 	// If we _did_ manage to load all of the necessary packages, then our
@@ -119,7 +119,7 @@ func (cb *Cirbo) LoadPackage(dir string) (cty.Value, source.Diags) {
 		pkgDir, queue = queue[0], queue[1:] // dequeue next item
 		pkg := pkgs[pkgDir]
 
-		depVals := map[string]cty.Value{}
+		depVals := map[string]cbty.Value{}
 
 		for depName, depPath := range pkgRefMap[pkgDir] {
 			if depEntry, ok := cb.pkgs.GetOk(depPath); ok {
@@ -132,7 +132,7 @@ func (cb *Cirbo) LoadPackage(dir string) (cty.Value, source.Diags) {
 					Summary: "Unresolved package",
 					Detail:  fmt.Sprintf("Required package %q for %q was not resolved in time. This is a bug in Cirbo that should be reported!", depPath, pkgDir),
 				})
-				depVals[depName] = cty.PlaceholderVal
+				depVals[depName] = cbty.PlaceholderVal
 			}
 		}
 
@@ -206,9 +206,9 @@ func (cb *Cirbo) LoadPackage(dir string) (cty.Value, source.Diags) {
 	// have a reasonable value to return, so we'll stub it out.
 	if diags.HasErrors() {
 		cb.pkgs.Put(fp, pkgCacheEntry{
-			Value: cty.PlaceholderVal,
+			Value: cbty.PlaceholderVal,
 		})
-		return cty.PlaceholderVal, diags
+		return cbty.PlaceholderVal, diags
 	}
 
 	result := cb.pkgs.Get(fp).Value

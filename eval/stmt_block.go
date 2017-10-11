@@ -3,7 +3,7 @@ package eval
 import (
 	"fmt"
 
-	"github.com/cirbo-lang/cirbo/cty"
+	"github.com/cirbo-lang/cirbo/cbty"
 	"github.com/cirbo-lang/cirbo/source"
 )
 
@@ -141,7 +141,7 @@ type PackageRef struct {
 
 type StmtBlockAttr struct {
 	Symbol   *Symbol
-	Type     cty.Type
+	Type     cbty.Type
 	Required bool
 	DefRange source.Range
 }
@@ -171,14 +171,14 @@ func (sb StmtBlock) Attributes(ctx *Context) (map[string]StmtBlockAttr, source.D
 				tyVal, exprDiags := attr.valueType.Value(ctx)
 				diags = append(diags, exprDiags...)
 
-				if tyVal.Type() != cty.TypeType {
+				if tyVal.Type() != cbty.TypeType {
 					diags = append(diags, source.Diag{
 						Level:   source.Error,
 						Summary: "Invalid attribute type",
 						Detail:  fmt.Sprintf("Expected a type, but given a value of type %s. To assign a default value, use the '=' (equals) symbol.", tyVal.Type().Name()),
 						Ranges:  attr.valueType.sourceRange().List(),
 					})
-					def.Type = cty.PlaceholderVal.Type()
+					def.Type = cbty.PlaceholderVal.Type()
 					def.Required = true
 				} else {
 					def.Type = tyVal.UnwrapType()
@@ -250,8 +250,8 @@ func (sb StmtBlock) Execute(exec StmtBlockExecute) (*StmtBlockResult, source.Dia
 
 type StmtBlockExecute struct {
 	Context  *Context
-	Packages map[string]cty.Value
-	Attrs    map[*Symbol]cty.Value
+	Packages map[string]cbty.Value
+	Attrs    map[*Symbol]cbty.Value
 }
 
 type StmtBlockResult struct {
@@ -266,5 +266,5 @@ type StmtBlockResult struct {
 	Scope *Scope
 
 	// ExportValue is the value exported by an "export" statement, if any.
-	ExportValue cty.Value
+	ExportValue cbty.Value
 }

@@ -1,14 +1,14 @@
 package cirbo
 
 import (
-	"github.com/cirbo-lang/cirbo/cty"
+	"github.com/cirbo-lang/cirbo/cbty"
 	"github.com/cirbo-lang/cirbo/projpath"
 )
 
 type pkgCache map[projpath.FilePath]pkgCacheEntry
 
 type pkgCacheEntry struct {
-	Value cty.Value
+	Value cbty.Value
 }
 
 var noPkgCacheEntry = pkgCacheEntry{}

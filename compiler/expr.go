@@ -3,7 +3,7 @@ package compiler
 import (
 	"fmt"
 
-	"github.com/cirbo-lang/cirbo/cty"
+	"github.com/cirbo-lang/cirbo/cbty"
 	"github.com/cirbo-lang/cirbo/units"
 
 	"github.com/cirbo-lang/cirbo/ast"
@@ -31,15 +31,15 @@ func compileExpr(node ast.Node, scope *eval.Scope, swap ast.SwapTable) (eval.Exp
 		cn, diags := compileExpr(tn.Content, scope, swap)
 		return eval.PassthroughExpr(cn, tn.SourceRange()), diags
 	case *ast.BooleanLit:
-		tv := cty.BoolVal(tn.Value)
+		tv := cbty.BoolVal(tn.Value)
 		return eval.LiteralExpr(tv, tn.SourceRange()), nil
 	case *ast.StringLit:
-		tv := cty.StringVal(tn.Value)
+		tv := cbty.StringVal(tn.Value)
 		return eval.LiteralExpr(tv, tn.SourceRange()), nil
 	case *ast.NumberLit:
 		unitName := tn.Unit
 		if unitName == "" {
-			tv := cty.QuantityVal(units.MakeDimensionless(tn.Value))
+			tv := cbty.QuantityVal(units.MakeDimensionless(tn.Value))
 			return eval.LiteralExpr(tv, tn.SourceRange()), nil
 		}
 		unit := units.ByName(tn.Unit)
@@ -57,7 +57,7 @@ func compileExpr(node ast.Node, scope *eval.Scope, swap ast.SwapTable) (eval.Exp
 				},
 			}
 		}
-		tv := cty.QuantityVal(units.MakeQuantity(tn.Value, unit))
+		tv := cbty.QuantityVal(units.MakeQuantity(tn.Value, unit))
 		return eval.LiteralExpr(tv, tn.SourceRange()), nil
 	case *ast.Variable:
 		sym := scope.Get(tn.Name)
@@ -182,5 +182,5 @@ func compileExpr(node ast.Node, scope *eval.Scope, swap ast.SwapTable) (eval.Exp
 // the given source location. This is used as a return value from CompileExpr
 // in erroneous situations where no reasonable real value can be built.
 func placeholderExpr(rng source.Range) eval.Expr {
-	return eval.LiteralExpr(cty.PlaceholderVal, rng)
+	return eval.LiteralExpr(cbty.PlaceholderVal, rng)
 }

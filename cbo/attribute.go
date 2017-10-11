@@ -1,7 +1,7 @@
 package cbo
 
 import (
-	"github.com/cirbo-lang/cirbo/cty"
+	"github.com/cirbo-lang/cirbo/cbty"
 )
 
 // AttributesDef represents a set of attribute definitions.
@@ -12,7 +12,7 @@ type AttributesDef struct {
 
 // AttributeDef represents a single attribute definition.
 type AttributeDef struct {
-	Type     cty.Type
+	Type     cbty.Type
 	Required bool
 }
 

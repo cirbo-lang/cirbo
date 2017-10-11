@@ -1,7 +1,7 @@
 package cbo
 
 import (
-	"github.com/cirbo-lang/cirbo/cty"
+	"github.com/cirbo-lang/cirbo/cbty"
 	"github.com/cirbo-lang/cirbo/eval"
 	"github.com/cirbo-lang/cirbo/source"
 )
@@ -35,21 +35,21 @@ func (p *Package) PackagesImported() []eval.PackageRef {
 // undefined. It's the caller's responsibility to build the package dependency
 // graph and resolve modules in an appropriate order to satisfy each package's
 // dependencies.
-func (p *Package) ExportedValue(otherPackages map[string]cty.Value) (cty.Value, source.Diags) {
+func (p *Package) ExportedValue(otherPackages map[string]cbty.Value) (cbty.Value, source.Diags) {
 	result, diags := p.block.Execute(eval.StmtBlockExecute{
 		Context:  eval.GlobalContext(),
 		Packages: otherPackages,
 	})
 
-	if result.ExportValue != cty.NilValue {
+	if result.ExportValue != cbty.NilValue {
 		return result.ExportValue, diags
 	}
 
 	// If the package didn't explicitly export a value, we'll create a synthetic
 	// one using the symbols it defined in its scope.
-	impliedAttrs := map[string]cty.Value{}
+	impliedAttrs := map[string]cbty.Value{}
 	for sym := range p.block.ImplicitExports() {
 		impliedAttrs[sym.DeclaredName()] = result.Context.Value(sym)
 	}
-	return cty.ObjectVal(impliedAttrs), diags
+	return cbty.ObjectVal(impliedAttrs), diags
 }

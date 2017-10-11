@@ -3,7 +3,7 @@ package eval
 import (
 	"testing"
 
-	"github.com/cirbo-lang/cirbo/cty"
+	"github.com/cirbo-lang/cirbo/cbty"
 )
 
 func TestGlobalScope(t *testing.T) {
@@ -73,15 +73,15 @@ func TestGlobalScope(t *testing.T) {
 func TestGlobalContext(t *testing.T) {
 	tests := []struct {
 		Name     string
-		WantType cty.Type
+		WantType cbty.Type
 	}{
 		{
 			"",
-			cty.NilType,
+			cbty.NilType,
 		},
 		{
 			"BlahBlahBaz",
-			cty.NilType,
+			cbty.NilType,
 		},
 
 		// We do not exhaustively test all of the symbols in our global table
@@ -90,27 +90,27 @@ func TestGlobalContext(t *testing.T) {
 		// building mechanism is working.
 		{
 			"Length",
-			cty.TypeType,
+			cbty.TypeType,
 		},
 		{
 			"Area",
-			cty.TypeType,
+			cbty.TypeType,
 		},
 		{
 			"String",
-			cty.TypeType,
+			cbty.TypeType,
 		},
 		{
 			"Object",
-			cty.Function(&cty.CallSignature{
-				Parameters:           map[string]cty.CallParameter{},
+			cbty.Function(&cbty.CallSignature{
+				Parameters:           map[string]cbty.CallParameter{},
 				AcceptsVariadicNamed: true,
-				Result:               cty.TypeType,
+				Result:               cbty.TypeType,
 			}),
 		},
 		{
 			"Type",
-			cty.TypeType,
+			cbty.TypeType,
 		},
 	}
 
@@ -121,7 +121,7 @@ func TestGlobalContext(t *testing.T) {
 		t.Run(test.Name, func(t *testing.T) {
 			symbol := scope.Get(test.Name)
 			if symbol == nil {
-				if test.WantType == cty.NilType {
+				if test.WantType == cbty.NilType {
 					return
 				}
 				t.Fatalf("symbol %q not declared; should have been", test.Name)
@@ -130,7 +130,7 @@ func TestGlobalContext(t *testing.T) {
 			defined := ctx.Defined(symbol)
 			value := ctx.Value(symbol)
 
-			if test.WantType != cty.NilType {
+			if test.WantType != cbty.NilType {
 				if !defined {
 					t.Errorf("symbol %q not defined; should have been", test.Name)
 				}
@@ -141,7 +141,7 @@ func TestGlobalContext(t *testing.T) {
 				if defined {
 					t.Errorf("symbol %q is defined; should not have been", test.Name)
 				}
-				if value.Type() == cty.NilType {
+				if value.Type() == cbty.NilType {
 					t.Errorf("symbol %q is %#v; should be %#v", test.Name, value, test.WantType)
 				}
 			}
