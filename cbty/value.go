@@ -272,6 +272,23 @@ func (v Value) UnwrapType() Type {
 	return v.v.(Type)
 }
 
+// UnwrapModel returns the raw value encapsulated in the receiver if it is a
+// known value of a model type.
+//
+// If the receiver is unknown or if it is of a non-model type then this method
+// will panic.
+//
+// The dynamic type of the returned value depends on which model type the
+// value belongs to.
+func (v Value) UnwrapModel() interface{} {
+	_, isModel := v.ty.impl.(*modelImpl)
+	if !isModel {
+		panic(fmt.Errorf("attempt to unwrap raw value from %#v", v.Type()))
+	}
+
+	return v.v
+}
+
 func (v Value) GoString() string {
 	_, isQuantity := v.ty.impl.(numberImpl)
 	switch {
