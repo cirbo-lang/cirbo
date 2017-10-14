@@ -157,6 +157,8 @@ type StmtBlockAttr struct {
 	DefRange source.Range
 }
 
+type StmtBlockAttrs map[string]StmtBlockAttr
+
 // AttributeNames returns a map of the attribute names required by the block,
 // which can be resolved without needing a context. This can be used for
 // early validation, though Attributes should be called with a context to
@@ -181,7 +183,7 @@ func (sb StmtBlock) AttributeNames() map[string]*Symbol {
 // in the attribute statements. The given context must therefore be the same
 // context that would ultimately be provided to Execute in the StmtBlockExecute
 // object or else the result may be incorrect.
-func (sb StmtBlock) Attributes(ctx *Context) (map[string]StmtBlockAttr, source.Diags) {
+func (sb StmtBlock) Attributes(ctx *Context) (StmtBlockAttrs, source.Diags) {
 	var diags source.Diags
 	ret := map[string]StmtBlockAttr{}
 	for _, stmt := range sb.stmts {
@@ -292,4 +294,9 @@ type StmtBlockResult struct {
 
 	// ExportValue is the value exported by an "export" statement, if any.
 	ExportValue cbty.Value
+}
+
+func (a StmtBlockAttrs) CallSignature(posParams PosParameters) (*cbty.CallSignature, source.Diags) {
+	// TODO: Fit the posParams to the attributes to produce a CallSignature
+	panic("StmtBlockAtrs.CallSignature not yet implemented")
 }

@@ -143,7 +143,7 @@ func TestNewStmtBlock(t *testing.T) {
 func TestStmtBlockAttributes(t *testing.T) {
 	type testCase struct {
 		Stmts []Stmt
-		Want  map[string]StmtBlockAttr
+		Want  StmtBlockAttrs
 		Diags int
 	}
 
@@ -151,7 +151,7 @@ func TestStmtBlockAttributes(t *testing.T) {
 		"empty": func(scope *Scope) testCase {
 			return testCase{
 				Stmts: []Stmt{},
-				Want:  map[string]StmtBlockAttr{},
+				Want:  StmtBlockAttrs{},
 				Diags: 0,
 			}
 		},
@@ -161,7 +161,7 @@ func TestStmtBlockAttributes(t *testing.T) {
 					makeMockStmt(nil, nil),
 					makeMockStmt(nil, nil),
 				},
-				Want:  map[string]StmtBlockAttr{},
+				Want:  StmtBlockAttrs{},
 				Diags: 0,
 			}
 		},
@@ -172,7 +172,7 @@ func TestStmtBlockAttributes(t *testing.T) {
 				Stmts: []Stmt{
 					AttrStmt(sym, tyExpr, source.NilRange),
 				},
-				Want: map[string]StmtBlockAttr{
+				Want: StmtBlockAttrs{
 					"foo": {
 						Symbol:   sym,
 						Type:     cbty.Length,
@@ -189,7 +189,7 @@ func TestStmtBlockAttributes(t *testing.T) {
 				Stmts: []Stmt{
 					AttrStmtDefault(sym, valExpr, source.NilRange),
 				},
-				Want: map[string]StmtBlockAttr{
+				Want: StmtBlockAttrs{
 					"foo": {
 						Symbol:   sym,
 						Type:     cbty.TypeType,
@@ -208,7 +208,7 @@ func TestStmtBlockAttributes(t *testing.T) {
 					AttrStmtDefault(sym1, expr, source.NilRange),
 					AttrStmt(sym2, expr, source.NilRange),
 				},
-				Want: map[string]StmtBlockAttr{
+				Want: StmtBlockAttrs{
 					"sym1": {
 						Symbol:   sym1,
 						Type:     cbty.TypeType,
@@ -230,7 +230,7 @@ func TestStmtBlockAttributes(t *testing.T) {
 				Stmts: []Stmt{
 					AttrStmt(sym, tyExpr, source.NilRange),
 				},
-				Want: map[string]StmtBlockAttr{
+				Want: StmtBlockAttrs{
 					"foo": {
 						Symbol:   sym,
 						Type:     cbty.PlaceholderVal.Type(),
