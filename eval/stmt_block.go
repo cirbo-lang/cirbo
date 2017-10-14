@@ -118,6 +118,17 @@ func MakeStmtBlock(scope *Scope, stmts []Stmt) (StmtBlock, source.Diags) {
 	}, diags
 }
 
+func (cb StmtBlock) RequiredSymbols(scope *Scope) SymbolSet {
+	ret := NewSymbolSet()
+	for _, stmt := range cb.stmts {
+		reqd := stmt.RequiredSymbols(scope)
+		for sym := range reqd {
+			ret.Add(sym)
+		}
+	}
+	return ret
+}
+
 func (sb StmtBlock) PackagesImported() []PackageRef {
 	return sb.PackagesImportedAppend(nil)
 }

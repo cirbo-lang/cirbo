@@ -17,6 +17,10 @@ type Stmt struct {
 // expression. Any methods called on it will panic.
 var NilStmt Stmt
 
+func (s Stmt) RequiredSymbols(scope *Scope) SymbolSet {
+	return s.s.requiredSymbols(scope)
+}
+
 type stmtImpl interface {
 	definedSymbol() *Symbol
 	requiredSymbols(scope *Scope) SymbolSet
