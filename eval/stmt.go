@@ -236,3 +236,49 @@ func (s *attrStmt) execute(exec *StmtBlockExecute, result *StmtBlockResult) sour
 
 	return diags
 }
+
+type deviceStmt struct {
+	sym    *Symbol
+	params PosParameters
+	block  StmtBlock
+	rng
+}
+
+func DeviceStmt(sym *Symbol, params PosParameters, block StmtBlock, rng source.Range) Stmt {
+	return Stmt{&deviceStmt{
+		sym:    sym,
+		params: params,
+		block:  block,
+		rng:    srcRange(rng),
+	}}
+}
+
+func (s *deviceStmt) definedSymbol() *Symbol {
+	return s.sym
+}
+
+func (s *deviceStmt) requiredSymbols(scope *Scope) SymbolSet {
+	return s.block.RequiredSymbols(scope)
+}
+
+func (s *deviceStmt) execute(exec *StmtBlockExecute, result *StmtBlockResult) source.Diags {
+	var diags source.Diags
+
+	attrs, attrDiags := s.block.Attributes(exec.Context)
+	diags = append(diags, attrDiags...)
+
+	callSig, callSigDiags := attrs.CallSignature(s.params)
+	diags = append(diags, callSigDiags...)
+
+	dev := &device{
+		name:    s.sym.DeclaredName(),
+		callSig: callSig,
+		attrs:   attrs,
+		block:   s.block,
+	}
+
+	val := deviceValue(dev)
+	exec.Context.DefineLiteral(s.sym, val)
+
+	return diags
+}

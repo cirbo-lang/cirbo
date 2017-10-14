@@ -110,6 +110,12 @@ func compileStatement(node ast.Node, scope *eval.Scope, swap ast.SwapTable) (eva
 			// should never happen
 			panic("invalid *ast.Attr: neither Value nor Type is set")
 		}
+	case *ast.Device:
+		sym := scope.Get(tn.Name)
+		block, diags := compileStatements(tn.Body.Statements, scope)
+		params, paramDiags := compilePositionalParams(tn.Params.Positional, block.AttributeNames())
+		diags = append(diags, paramDiags...)
+		return eval.DeviceStmt(sym, params, block, tn.SourceRange()), diags
 	default:
 		panic(fmt.Errorf("%#v cannot be compiled to a statement", node))
 	}
