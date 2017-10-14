@@ -117,7 +117,7 @@ func compileStatement(node ast.Node, scope *eval.Scope, swap ast.SwapTable) (eva
 		diags = append(diags, paramDiags...)
 		return eval.DeviceStmt(sym, params, block, tn.SourceRange()), diags
 	default:
-		panic(fmt.Errorf("%#v cannot be compiled to a statement", node))
+		panic(fmt.Errorf("%T cannot be compiled to a statement", node))
 	}
 }
 
