@@ -157,6 +157,20 @@ type StmtBlockAttr struct {
 	DefRange source.Range
 }
 
+// AttributeNames returns a map of the attribute names required by the block,
+// which can be resolved without needing a context. This can be used for
+// early validation, though Attributes should be called with a context to
+// get the full description of the attributes.
+func (sb StmtBlock) AttributeNames() map[string]*Symbol {
+	ret := map[string]*Symbol{}
+	for _, stmt := range sb.stmts {
+		if attr, isAttr := stmt.s.(*attrStmt); isAttr {
+			ret[attr.sym.DeclaredName()] = attr.sym
+		}
+	}
+	return ret
+}
+
 // Attributes returns a description of the attributes defined by the block.
 //
 // When executing the block, values for some or all of these (depending on
