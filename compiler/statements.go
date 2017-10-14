@@ -110,6 +110,9 @@ func compileStatement(node ast.Node, scope *eval.Scope, swap ast.SwapTable) (eva
 			// should never happen
 			panic("invalid *ast.Attr: neither Value nor Type is set")
 		}
+	case *ast.Designator:
+		expr, diags := compileExpr(tn.Value, scope, swap)
+		return eval.DesignatorStmt(expr, tn.SourceRange()), diags
 	case *ast.Device:
 		sym := scope.Get(tn.Name)
 		block, diags := compileStatements(tn.Body.Statements, scope)

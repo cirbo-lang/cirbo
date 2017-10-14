@@ -2,6 +2,7 @@ package eval
 
 import (
 	"fmt"
+	"unicode"
 
 	"github.com/cirbo-lang/cirbo/cbty"
 	"github.com/cirbo-lang/cirbo/source"
@@ -233,6 +234,84 @@ func (s *attrStmt) execute(exec *StmtBlockExecute, result *StmtBlockResult) sour
 	}
 
 	exec.Context.DefineLiteral(s.sym, val)
+
+	return diags
+}
+
+type designatorStmt struct {
+	expr Expr
+	rng
+}
+
+func DesignatorStmt(expr Expr, rng source.Range) Stmt {
+	return Stmt{&designatorStmt{
+		expr: expr,
+		rng:  srcRange(rng),
+	}}
+}
+
+func (s *designatorStmt) definedSymbol() *Symbol {
+	return nil
+}
+
+func (s *designatorStmt) requiredSymbols(scope *Scope) SymbolSet {
+	return s.expr.RequiredSymbols(scope)
+}
+
+func (s *designatorStmt) execute(exec *StmtBlockExecute, result *StmtBlockResult) source.Diags {
+	val, diags := s.expr.Value(exec.Context)
+
+	if result.Designator != "" {
+		diags = append(diags, source.Diag{
+			Level:   source.Error,
+			Summary: "Duplicate \"designator\" statement",
+			Detail:  "Each device block may have only one \"designator\" statement.",
+			Ranges:  s.sourceRange().List(),
+		})
+		return diags
+	}
+
+	if !val.IsKnown() {
+		result.Designator = "<unknown>"
+		return diags
+	}
+
+	result.Designator = "<invalid>"
+
+	if !val.Type().Same(cbty.String) {
+		diags = append(diags, source.Diag{
+			Level:   source.Error,
+			Summary: "Invalid designator type",
+			Detail:  fmt.Sprintf("Designator value must be of type String. The given value is of type %s.", val.Type().Name()),
+			Ranges:  s.expr.sourceRange().List(),
+		})
+		return diags
+	}
+
+	str := val.AsString()
+
+	if len(str) == 0 {
+		diags = append(diags, source.Diag{
+			Level:   source.Error,
+			Summary: "Invalid designator value",
+			Detail:  "Device designator must have at least one letter.",
+			Ranges:  s.expr.sourceRange().List(),
+		})
+		return diags
+	}
+	for _, c := range str {
+		if !unicode.IsUpper(c) {
+			diags = append(diags, source.Diag{
+				Level:   source.Error,
+				Summary: "Invalid designator value",
+				Detail:  "Device designator must consist only of uppercase letters.",
+				Ranges:  s.expr.sourceRange().List(),
+			})
+			return diags
+		}
+	}
+
+	result.Designator = str
 
 	return diags
 }

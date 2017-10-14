@@ -292,6 +292,16 @@ type StmtBlockResult struct {
 	// block, and so should not be modified.
 	Scope *Scope
 
+	// Designator is the value passed to a "Designator" statement, if present.
+	// The empty string if not present.
+	//
+	// If errors are encountered processing a given designator, this string may
+	// have the special value "<invalid>". If the result depends on a value
+	// that isn't yet known (due to an error or otherwise), this string will
+	// have the special value "<unknown>". Neither special value should be
+	// seen for a valid program where all input values are known.
+	Designator string
+
 	// ExportValue is the value exported by an "export" statement, if any.
 	ExportValue cbty.Value
 }
