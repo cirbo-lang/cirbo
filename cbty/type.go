@@ -121,6 +121,25 @@ func (t Type) CallSignature() *CallSignature {
 	return callImpl.CallSignature()
 }
 
+// IsModel returns true if the receiver is a model type.
+func (t Type) IsModel() bool {
+	_, isModel := t.impl.(*modelImpl)
+	return isModel
+}
+
+// ModelImpl returns the underlying implementation of the receiver if it
+// is a model type, or nil otherwise.
+//
+// This should only be used by the package that created the type, to avoid
+// exposing implementation details.
+func (t Type) ModelImpl() interface{} {
+	m, isModel := t.impl.(*modelImpl)
+	if !isModel {
+		return nil
+	}
+	return m.pubImpl
+}
+
 type typeImpl interface {
 	typeSigil() isType
 	Name() string

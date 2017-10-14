@@ -51,6 +51,15 @@ func TestModelType(t *testing.T) {
 	if got, want := *(val1.UnwrapModel().(*string)), "hello"; got != want {
 		t.Errorf("wrong result for val1.UnwrapModel() %#v; want %#v", got, want)
 	}
+
+	if got, want := ty.IsModel(), true; got != want {
+		t.Errorf("wrong result for ty.IsModel() %#v; want %#v", got, want)
+	}
+
+	if _, ok := ty.ModelImpl().(testModelImpl); !ok {
+		t.Errorf("ModelImpl returned value of the wrong dynamic type %T; want testModelImpl", ty.ModelImpl())
+	}
+
 }
 
 type testModelImpl struct {
