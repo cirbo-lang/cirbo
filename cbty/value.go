@@ -93,6 +93,18 @@ func (v Value) True() bool {
 	}
 }
 
+// AsString returns the string value of the receiver if it is known and
+// of type string, or panics otherwise.
+func (v Value) AsString() string {
+	if v.IsUnknown() {
+		panic("AsString on unknown value")
+	}
+	if !v.Type().Same(String) {
+		panic("AsString on non-string value")
+	}
+	return v.v.(string)
+}
+
 // IsKnown returns true if the receiver is a known value.
 //
 // If false is returned, only the type is known.
