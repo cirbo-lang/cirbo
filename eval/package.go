@@ -1,18 +1,17 @@
-package cbo
+package eval
 
 import (
 	"github.com/cirbo-lang/cirbo/cbty"
-	"github.com/cirbo-lang/cirbo/eval"
 	"github.com/cirbo-lang/cirbo/source"
 )
 
 // Package is the result of compiling a package directory containing one or more
 // Cirbo module files (.cbm files).
 type Package struct {
-	block eval.StmtBlock
+	block StmtBlock
 }
 
-func NewPackage(Block eval.StmtBlock) *Package {
+func NewPackage(Block StmtBlock) *Package {
 	return &Package{
 		block: Block,
 	}
@@ -23,7 +22,7 @@ func NewPackage(Block eval.StmtBlock) *Package {
 //
 // These are the packages that must be present in the otherPackages map
 // when calling the ExportedValue method.
-func (p *Package) PackagesImported() []eval.PackageRef {
+func (p *Package) PackagesImported() []PackageRef {
 	return p.block.PackagesImported()
 }
 
@@ -36,8 +35,8 @@ func (p *Package) PackagesImported() []eval.PackageRef {
 // graph and resolve modules in an appropriate order to satisfy each package's
 // dependencies.
 func (p *Package) ExportedValue(otherPackages map[string]cbty.Value) (cbty.Value, source.Diags) {
-	result, diags := p.block.Execute(eval.StmtBlockExecute{
-		Context:  eval.GlobalContext(),
+	result, diags := p.block.Execute(StmtBlockExecute{
+		Context:  GlobalContext(),
 		Packages: otherPackages,
 	})
 

@@ -5,9 +5,9 @@ import (
 	"sort"
 
 	"github.com/cirbo-lang/cirbo/ast"
-	"github.com/cirbo-lang/cirbo/cbo"
 	"github.com/cirbo-lang/cirbo/cbty"
 	"github.com/cirbo-lang/cirbo/compiler"
+	"github.com/cirbo-lang/cirbo/eval"
 	"github.com/cirbo-lang/cirbo/projpath"
 	"github.com/cirbo-lang/cirbo/source"
 )
@@ -44,7 +44,7 @@ func (cb *Cirbo) LoadPackage(dir string) (cbty.Value, source.Diags) {
 	inDeg := map[projpath.FilePath]int{}
 	var queue []projpath.FilePath
 	queue = append(queue, fp)
-	pkgs := map[projpath.FilePath]*cbo.Package{}
+	pkgs := map[projpath.FilePath]*eval.Package{}
 	pkgRefMap := map[projpath.FilePath]map[string]projpath.FilePath{}
 
 	// Compile the requested package and all of its transitive dependencies
@@ -215,7 +215,7 @@ func (cb *Cirbo) LoadPackage(dir string) (cbty.Value, source.Diags) {
 	return result, diags
 }
 
-func (cb *Cirbo) compilePackage(pkgDir projpath.FilePath) (*cbo.Package, source.Diags) {
+func (cb *Cirbo) compilePackage(pkgDir projpath.FilePath) (*eval.Package, source.Diags) {
 	var diags source.Diags
 	modFilenames := cb.proj.ListModuleFiles(pkgDir)
 

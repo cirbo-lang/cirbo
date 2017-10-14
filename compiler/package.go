@@ -2,7 +2,6 @@ package compiler
 
 import (
 	"github.com/cirbo-lang/cirbo/ast"
-	"github.com/cirbo-lang/cirbo/cbo"
 	"github.com/cirbo-lang/cirbo/eval"
 	"github.com/cirbo-lang/cirbo/source"
 )
@@ -13,7 +12,7 @@ import (
 // If the package has an explicit "export" statement then its argument is
 // returned. Otherwise, symbols from the module's symbol table are used to
 // construct and instantiate an object type.
-func CompilePackage(pkg ast.Package) (*cbo.Package, source.Diags) {
+func CompilePackage(pkg ast.Package) (*eval.Package, source.Diags) {
 	var diags source.Diags
 
 	// First we'll make sure the top-level statements in all of our files
@@ -49,5 +48,5 @@ func CompilePackage(pkg ast.Package) (*cbo.Package, source.Diags) {
 	block, compileDiags := compileStatements(nodes, eval.GlobalScope())
 	diags = append(diags, compileDiags...)
 
-	return cbo.NewPackage(block), diags
+	return eval.NewPackage(block), diags
 }
