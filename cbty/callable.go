@@ -44,6 +44,16 @@ type CallArgs struct {
 	Explicit      map[string]Value
 	PosVariadic   []Value
 	NamedVariadic map[string]Value
+
+	// TargetName, if non-empty, is the declared name of a symbol that the
+	// call result will be written to. Always empty if the result will not
+	// be used to define a symbol
+	//
+	// Most callables can ignore this, but this can optionally be used to
+	// establish the primary name of an object that needs such a name. This
+	// includes circuit and device instances since they must be addressable
+	// within the assignments file of a project.
+	TargetName string
 }
 
 // Same returns true if the receiver and the other given signature are
