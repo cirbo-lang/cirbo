@@ -42,3 +42,44 @@ func (i deviceModelImpl) Call(callee interface{}, args cbty.CallArgs) (cbty.Valu
 	// TODO: implement
 	panic("not callable yet")
 }
+
+type deviceInstance struct {
+	device *device
+	block  *StmtBlockResult
+}
+
+type deviceInstanceModelImpl struct {
+	device *device
+}
+
+func deviceInstanceType(dev *device) cbty.Type {
+	return cbty.Model(deviceInstanceModelImpl{dev})
+}
+
+func deviceInstanceValue(ty cbty.Type, di *deviceInstance) cbty.Value {
+	return cbty.ModelVal(ty, di)
+}
+
+func (i deviceInstanceModelImpl) Name() string {
+	return "Device"
+}
+
+func (i deviceInstanceModelImpl) SuitableValue(raw interface{}) bool {
+	di, isInstance := raw.(*deviceInstance)
+	if !isInstance {
+		return false
+	}
+	return di.device == i.device
+}
+
+func (i deviceInstanceModelImpl) GetAttr(raw interface{}, name string) cbty.Value {
+	return cbty.NilValue
+}
+
+func (i deviceInstanceModelImpl) CallSignature() *cbty.CallSignature {
+	return nil
+}
+
+func (i deviceInstanceModelImpl) Call(callee interface{}, args cbty.CallArgs) (cbty.Value, source.Diags) {
+	panic("not callable") // should never get here because CallSignature returns nil
+}
