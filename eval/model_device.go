@@ -40,7 +40,11 @@ func (i deviceModelImpl) CallSignature() *cbty.CallSignature {
 }
 
 func (i deviceModelImpl) Call(callee interface{}, args cbty.CallArgs) (cbty.Value, source.Diags) {
-	// TODO: implement
+	//dev := callee.(*device)
+
+	// FIXME: need access to the eval context in here so we can
+	// evaluate our block.
+
 	panic("not callable yet")
 }
 
