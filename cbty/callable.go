@@ -45,6 +45,8 @@ type CallArgs struct {
 	PosVariadic   []Value
 	NamedVariadic map[string]Value
 
+	CallRange source.Range
+
 	// TargetName, if non-empty, is the declared name of a symbol that the
 	// call result will be written to. Always empty if the result will not
 	// be used to define a symbol
@@ -54,6 +56,10 @@ type CallArgs struct {
 	// includes circuit and device instances since they must be addressable
 	// within the assignments file of a project.
 	TargetName string
+
+	// Context is actually an *eval.Context, but isn't typed as such because
+	// that would create a circular dependency between our packages.
+	Context interface{}
 }
 
 // Same returns true if the receiver and the other given signature are

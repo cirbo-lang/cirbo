@@ -1,6 +1,8 @@
 package eval
 
 import (
+	"fmt"
+
 	"github.com/cirbo-lang/cirbo/cbty"
 	"github.com/cirbo-lang/cirbo/source"
 )
@@ -23,7 +25,7 @@ func deviceValue(dev *device) cbty.Value {
 }
 
 func (i deviceModelImpl) Name() string {
-	return "Device"
+	return fmt.Sprintf("Device(%q)", i.dev.name)
 }
 
 func (i deviceModelImpl) SuitableValue(raw interface{}) bool {
@@ -40,17 +42,54 @@ func (i deviceModelImpl) CallSignature() *cbty.CallSignature {
 }
 
 func (i deviceModelImpl) Call(callee interface{}, args cbty.CallArgs) (cbty.Value, source.Diags) {
-	//dev := callee.(*device)
+	dev := callee.(*device)
+	context := args.Context.(*Context)
 
-	// FIXME: need access to the eval context in here so we can
-	// evaluate our block.
+	if args.TargetName == "" {
+		return cbty.UnknownVal(dev.instTy), source.Diags{
+			{
+				Level:   source.Error,
+				Summary: "Anonymous device instance",
+				Detail:  "A device instance may be created only when assigning directly to a name, using an assignment statement.",
+				Ranges:  args.CallRange.List(),
+			},
+		}
+	}
 
-	panic("not callable yet")
+	initDefs := make(map[*Symbol]cbty.Value, len(dev.attrs))
+	for name, attr := range dev.attrs {
+		sym := attr.Symbol
+		val, defined := args.Explicit[name]
+		if defined {
+			initDefs[sym] = val
+		} else {
+			if attr.Default == cbty.NilValue {
+				// Should never happen, but we'll put something safe here
+				// anyway so that we won't crash later trying to eval this.
+				initDefs[sym] = cbty.PlaceholderVal
+				continue
+			}
+			initDefs[sym] = attr.Default
+		}
+	}
+
+	result, diags := dev.block.Execute(StmtBlockExecute{
+		Context: context,
+	}, initDefs)
+
+	inst := &deviceInstance{
+		name:    args.TargetName,
+		device:  dev,
+		content: result,
+	}
+
+	return deviceInstanceValue(dev.instTy, inst), diags
 }
 
 type deviceInstance struct {
-	device *device
-	block  *StmtBlockResult
+	name    string
+	device  *device
+	content *StmtBlockResult
 }
 
 type deviceInstanceModelImpl struct {
@@ -66,7 +105,7 @@ func deviceInstanceValue(ty cbty.Type, di *deviceInstance) cbty.Value {
 }
 
 func (i deviceInstanceModelImpl) Name() string {
-	return "Device"
+	return i.device.name
 }
 
 func (i deviceInstanceModelImpl) SuitableValue(raw interface{}) bool {

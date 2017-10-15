@@ -233,7 +233,9 @@ func (s *attrStmt) execute(exec *StmtBlockExecute, result *StmtBlockResult) sour
 		val = cbty.UnknownVal(ty)
 	}
 
-	exec.Context.DefineLiteral(s.sym, val)
+	if !exec.Context.Defined(s.sym) {
+		exec.Context.DefineLiteral(s.sym, val)
+	}
 
 	return diags
 }

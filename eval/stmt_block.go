@@ -153,7 +153,7 @@ type PackageRef struct {
 type StmtBlockAttr struct {
 	Symbol   *Symbol
 	Type     cbty.Type
-	Required bool
+	Default  cbty.Value
 	DefRange source.Range
 }
 
@@ -206,17 +206,17 @@ func (sb StmtBlock) Attributes(ctx *Context) (StmtBlockAttrs, source.Diags) {
 						Ranges:  attr.valueType.sourceRange().List(),
 					})
 					def.Type = cbty.PlaceholderVal.Type()
-					def.Required = true
+					def.Default = cbty.NilValue
 				} else {
 					def.Type = tyVal.UnwrapType()
-					def.Required = true
+					def.Default = cbty.NilValue
 				}
 			case attr.defValue != NilExpr:
 				val, exprDiags := attr.defValue.Value(ctx)
 				diags = append(diags, exprDiags...)
 
 				def.Type = val.Type()
-				def.Required = false
+				def.Default = val
 			default:
 				// should never happen
 				panic("attrStmt with neither value type nor default value")
@@ -254,10 +254,14 @@ func (sb StmtBlock) ImplicitExports() SymbolSet {
 	return ret
 }
 
-func (sb StmtBlock) Execute(exec StmtBlockExecute) (*StmtBlockResult, source.Diags) {
+func (sb StmtBlock) Execute(exec StmtBlockExecute, initDefs map[*Symbol]cbty.Value) (*StmtBlockResult, source.Diags) {
 	// Make a new child context to work in. (We get "exec" by value here, so
 	// we can mutate it without upsetting the caller.)
 	exec.Context = exec.Context.NewChild()
+
+	for sym, val := range initDefs {
+		exec.Context.DefineLiteral(sym, val)
+	}
 
 	result := StmtBlockResult{}
 	var diags source.Diags
@@ -314,7 +318,7 @@ func (a StmtBlockAttrs) CallSignature(posParams PosParameters, result cbty.Type)
 	for name, attr := range a {
 		sig.Parameters[name] = cbty.CallParameter{
 			Type:     attr.Type,
-			Required: attr.Required,
+			Required: attr.Default == cbty.NilValue,
 		}
 	}
 	for _, param := range posParams {

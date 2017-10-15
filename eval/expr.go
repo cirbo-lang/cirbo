@@ -257,7 +257,9 @@ func (e *callExpr) value(ctx *Context, targetSym *Symbol) (cbty.Value, source.Di
 	}
 
 	call := cbty.CallArgs{
-		Explicit: map[string]cbty.Value{},
+		Explicit:  map[string]cbty.Value{},
+		Context:   ctx,
+		CallRange: e.sourceRange(),
 	}
 
 	if targetSym != nil {

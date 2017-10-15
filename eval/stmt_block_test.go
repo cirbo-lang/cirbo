@@ -174,9 +174,9 @@ func TestStmtBlockAttributes(t *testing.T) {
 				},
 				Want: StmtBlockAttrs{
 					"foo": {
-						Symbol:   sym,
-						Type:     cbty.Length,
-						Required: true,
+						Symbol:  sym,
+						Type:    cbty.Length,
+						Default: cbty.NilValue,
 					},
 				},
 				Diags: 0,
@@ -191,9 +191,9 @@ func TestStmtBlockAttributes(t *testing.T) {
 				},
 				Want: StmtBlockAttrs{
 					"foo": {
-						Symbol:   sym,
-						Type:     cbty.TypeType,
-						Required: false,
+						Symbol:  sym,
+						Type:    cbty.TypeType,
+						Default: cbty.TypeTypeVal(cbty.Length),
 					},
 				},
 				Diags: 0,
@@ -210,14 +210,14 @@ func TestStmtBlockAttributes(t *testing.T) {
 				},
 				Want: StmtBlockAttrs{
 					"sym1": {
-						Symbol:   sym1,
-						Type:     cbty.TypeType,
-						Required: false,
+						Symbol:  sym1,
+						Type:    cbty.TypeType,
+						Default: cbty.TypeTypeVal(cbty.Length),
 					},
 					"sym2": {
-						Symbol:   sym2,
-						Type:     cbty.Length,
-						Required: true,
+						Symbol:  sym2,
+						Type:    cbty.Length,
+						Default: cbty.NilValue,
 					},
 				},
 				Diags: 0,
@@ -232,9 +232,9 @@ func TestStmtBlockAttributes(t *testing.T) {
 				},
 				Want: StmtBlockAttrs{
 					"foo": {
-						Symbol:   sym,
-						Type:     cbty.PlaceholderVal.Type(),
-						Required: true,
+						Symbol:  sym,
+						Type:    cbty.PlaceholderVal.Type(),
+						Default: cbty.NilValue,
 					},
 				},
 				Diags: 1, // Type expression evaluates to String, not Type

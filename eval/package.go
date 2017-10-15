@@ -38,7 +38,7 @@ func (p *Package) ExportedValue(otherPackages map[string]cbty.Value) (cbty.Value
 	result, diags := p.block.Execute(StmtBlockExecute{
 		Context:  GlobalContext(),
 		Packages: otherPackages,
-	})
+	}, nil)
 
 	if result.ExportValue != cbty.NilValue {
 		return result.ExportValue, diags
