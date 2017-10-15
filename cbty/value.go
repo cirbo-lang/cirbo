@@ -105,6 +105,18 @@ func (v Value) AsString() string {
 	return v.v.(string)
 }
 
+// AsQuantity returns the units.Quantity value of the receiver if it is known
+// and of a number type, or panics otherwise.
+func (v Value) AsQuantity() units.Quantity {
+	if v.IsUnknown() {
+		panic("AsQuantity on unknown value")
+	}
+	if !v.Type().IsNumber() {
+		panic("AsQuantity on non-number value")
+	}
+	return v.v.(units.Quantity)
+}
+
 // IsKnown returns true if the receiver is a known value.
 //
 // If false is returned, only the type is known.

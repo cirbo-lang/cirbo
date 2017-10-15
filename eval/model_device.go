@@ -3,6 +3,7 @@ package eval
 import (
 	"fmt"
 
+	"github.com/cirbo-lang/cirbo/cbo"
 	"github.com/cirbo-lang/cirbo/cbty"
 	"github.com/cirbo-lang/cirbo/source"
 )
@@ -15,6 +16,23 @@ type device struct {
 	instTy  cbty.Type
 }
 
+func (dev *device) AsPublic() *cbo.Device {
+	ret := &cbo.Device{}
+	ret.Name = dev.name
+	ret.Attrs = cbo.AttributesDef{}
+	for name, attr := range dev.attrs {
+		reqd := false
+		if attr.Default == cbty.NilValue {
+			reqd = true
+		}
+		ret.Attrs[name] = cbo.AttributeDef{
+			Type:     attr.Type,
+			Required: reqd,
+		}
+	}
+	return ret
+}
+
 type deviceModelImpl struct {
 	dev *device
 }
@@ -22,6 +40,14 @@ type deviceModelImpl struct {
 func deviceValue(dev *device) cbty.Value {
 	ty := cbty.Model(deviceModelImpl{dev})
 	return cbty.ModelVal(ty, dev)
+}
+
+func isDeviceType(ty cbty.Type) bool {
+	if impl := ty.ModelImpl(); impl != nil {
+		_, isDevice := impl.(deviceModelImpl)
+		return isDevice
+	}
+	return false
 }
 
 func (i deviceModelImpl) Name() string {
@@ -102,6 +128,14 @@ func deviceInstanceType(dev *device) cbty.Type {
 
 func deviceInstanceValue(ty cbty.Type, di *deviceInstance) cbty.Value {
 	return cbty.ModelVal(ty, di)
+}
+
+func isDeviceInstanceType(ty cbty.Type) bool {
+	if impl := ty.ModelImpl(); impl != nil {
+		_, isDeviceInst := impl.(deviceInstanceModelImpl)
+		return isDeviceInst
+	}
+	return false
 }
 
 func (i deviceInstanceModelImpl) Name() string {

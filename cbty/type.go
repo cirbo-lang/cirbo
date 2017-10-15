@@ -2,6 +2,8 @@ package cbty
 
 import (
 	"fmt"
+
+	"github.com/cirbo-lang/cirbo/units"
 )
 
 type Type struct {
@@ -138,6 +140,24 @@ func (t Type) ModelImpl() interface{} {
 		return nil
 	}
 	return m.pubImpl
+}
+
+// IsNumber returns true if the receiver is a number type. Number includes
+// both dimensionless numbers and dimensioned quantities.
+func (t Type) IsNumber() bool {
+	_, isNumber := t.impl.(numberImpl)
+	return isNumber
+}
+
+// NumberDimensionality returns the dimensionality of the receiving number
+// type, or panics if the receiver is not a number type.
+func (t Type) NumberDimensionality() units.Dimensionality {
+	impl, isNumber := t.impl.(numberImpl)
+	if !isNumber {
+		panic("IsNumber on non-number value")
+	}
+
+	return impl.dim
 }
 
 type typeImpl interface {

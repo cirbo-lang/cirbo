@@ -1,42 +1,32 @@
 package eval
 
 import (
+	"github.com/cirbo-lang/cirbo/cbo"
 	"github.com/cirbo-lang/cirbo/cbty"
 )
 
-// Unwrapped is the result type of Unwrap, which extracts a value of a native
-// Go type out of a cbty.Value for more convenient use in calling code.
+// Unwrapper is a type that can be used to "unwrap" cbty.Value instances to
+// more convenient native types, via the intermediate interface type cbo.Any.
 //
-// Unwrapped is really just a different name for the empty interface, but
-// Unwrap guarantees that the result will have one of the following dynamic
-// types, depending on the type of cbty.Value given.
+// An Unwrapper instance serves as a cache for unwrapped values, so that
+// unwrapping the same object twice can (in most cases, at least) produce
+// the same object.
 //
-//     any unknown value              nil
-//     cbty.String                    string
-//     cbty.Bool                      bool
-//     any number or quantity type    units.Quantity
-//     any generic object type        map[string]Unwrapped (recursive unwrap)
-//     any device type                *cbo.Device
-//     any device instance type       *cbo.DeviceInstance
-//     any circuit type               *cbo.Circuit
-//     any circuit instance type      *cbo.CircuitInstance
-//     any land type                  *cbo.Land
-//     pinout                         *cbo.Pinout
-//     board                          *cbo.Board
-//     cbty.TypeType                  cbty.Type
-//     any function type              func (args cbty.CallArgs) (Unwrapped, source.Diags)
-//
-// Callers making use of this type should use a type switch or type assertion
-// to select for their desired type(s) and handle gracefully any type that is
-// not expected, including types not included in the above list to allow for
-// future expansion of the above list.
-type Unwrapped interface {
+// The zero value of Unwrapper is an unwrapper ready to use, though most
+// callers will want to create a pointer to that zero value.
+type Unwrapper struct {
+	devices         map[*device]*cbo.Device
+	deviceInstances map[*deviceInstance]*cbo.DeviceInstance
 }
 
 // Unwrap obtains a native Go value corresponding to the given value within
-// Cirbo's type system. See the documentation of type Unwrapped for details
+// Cirbo's type system. See the documentation of type cbo.Any for details
 // on what can be returned by this function.
-func Unwrap(val cbty.Value) Unwrapped {
+//
+// This function is not concurrency-safe. If multiple goroutines are sharing
+// an Unwrapper then the caller must use a mutex or other similar locking
+// primitive to prevent concurrent calls to Unwrap.
+func (u *Unwrapper) Unwrap(val cbty.Value) cbo.Any {
 	if val == cbty.NilValue || val.IsUnknown() {
 		return nil
 	}
@@ -53,6 +43,54 @@ func Unwrap(val cbty.Value) Unwrapped {
 		return val.UnwrapType()
 	}
 
+	switch {
+	case ty.IsModel():
+		return u.unwrapModel(val.UnwrapModel())
+	case ty.IsNumber():
+		return val.AsQuantity()
+	}
+
 	// FIXME: should have a mapping for every possible cbty type
 	return nil
+}
+
+func (u *Unwrapper) unwrapModel(raw interface{}) cbo.Any {
+	switch tv := raw.(type) {
+	case *device:
+		if u.devices != nil && u.devices[tv] != nil {
+			return u.devices[tv]
+		}
+		ret := tv.AsPublic()
+		if u.devices == nil {
+			u.devices = map[*device]*cbo.Device{}
+		}
+		u.devices[tv] = ret
+		return ret
+	case *deviceInstance:
+		if u.deviceInstances != nil && u.deviceInstances[tv] != nil {
+			return u.deviceInstances[tv]
+		}
+		ret := &cbo.DeviceInstance{
+			Name:       tv.name,
+			Device:     u.unwrapModel(tv.device).(*cbo.Device),
+			Designator: tv.content.Designator,
+			Attrs:      map[string]cbo.Any{},
+		}
+		if ret.Designator == "" {
+			ret.Designator = "X"
+		}
+		for name, attr := range tv.device.attrs {
+			val := tv.content.Context.Value(attr.Symbol)
+			ret.Attrs[name] = u.Unwrap(val)
+		}
+		if u.deviceInstances == nil {
+			u.deviceInstances = map[*deviceInstance]*cbo.DeviceInstance{}
+		}
+		u.deviceInstances[tv] = ret
+		return ret
+	default:
+		// Should never happen, since we should exhaustively cover
+		// all of our model types in here.
+		return nil
+	}
 }
