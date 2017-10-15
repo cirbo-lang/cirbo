@@ -5,6 +5,7 @@ import (
 	"sort"
 
 	"github.com/cirbo-lang/cirbo/ast"
+	"github.com/cirbo-lang/cirbo/cbo"
 	"github.com/cirbo-lang/cirbo/cbty"
 	"github.com/cirbo-lang/cirbo/compiler"
 	"github.com/cirbo-lang/cirbo/eval"
@@ -22,7 +23,7 @@ import (
 // Cirbo will accumulate any diagnostics into a single diagnostic list, and
 // thus re-returning the same diagnostic would cause it to be duplicated in the
 // output.
-func (cb *Cirbo) LoadPackage(dir string) (cbty.Value, source.Diags) {
+func (cb *Cirbo) LoadPackage(dir string) (cbo.Any, source.Diags) {
 	fp := cb.proj.FilePathFromUI(dir)
 	if fp == projpath.NoPath {
 		return cbty.PlaceholderVal, source.Diags{
@@ -212,7 +213,7 @@ func (cb *Cirbo) LoadPackage(dir string) (cbty.Value, source.Diags) {
 	}
 
 	result := cb.pkgs.Get(fp).Value
-	return result, diags
+	return cb.unwr.Unwrap(result), diags
 }
 
 func (cb *Cirbo) compilePackage(pkgDir projpath.FilePath) (*eval.Package, source.Diags) {

@@ -1,6 +1,7 @@
 package cirbo
 
 import (
+	"github.com/cirbo-lang/cirbo/eval"
 	"github.com/cirbo-lang/cirbo/parser"
 	"github.com/cirbo-lang/cirbo/projpath"
 )
@@ -12,6 +13,7 @@ type Cirbo struct {
 	proj projpath.Project
 	pars *parser.Parser
 	pkgs pkgCache
+	unwr *eval.Unwrapper
 }
 
 type Config struct {
@@ -53,5 +55,6 @@ func New(config Config) *Cirbo {
 		}),
 		pars: parser.NewParser(),
 		pkgs: pkgCache{},
+		unwr: &eval.Unwrapper{},
 	}
 }
