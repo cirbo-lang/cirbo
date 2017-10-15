@@ -10,6 +10,7 @@ type device struct {
 	callSig *cbty.CallSignature
 	attrs   StmtBlockAttrs
 	block   StmtBlock
+	instTy  cbty.Type
 }
 
 type deviceModelImpl struct {

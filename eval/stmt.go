@@ -346,15 +346,16 @@ func (s *deviceStmt) execute(exec *StmtBlockExecute, result *StmtBlockResult) so
 	attrs, attrDiags := s.block.Attributes(exec.Context)
 	diags = append(diags, attrDiags...)
 
-	callSig, callSigDiags := attrs.CallSignature(s.params)
-	diags = append(diags, callSigDiags...)
-
 	dev := &device{
-		name:    s.sym.DeclaredName(),
-		callSig: callSig,
-		attrs:   attrs,
-		block:   s.block,
+		name:  s.sym.DeclaredName(),
+		attrs: attrs,
+		block: s.block,
 	}
+	dev.instTy = deviceInstanceType(dev)
+
+	callSig, callSigDiags := attrs.CallSignature(s.params, dev.instTy)
+	dev.callSig = callSig
+	diags = append(diags, callSigDiags...)
 
 	val := deviceValue(dev)
 	exec.Context.DefineLiteral(s.sym, val)

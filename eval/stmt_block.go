@@ -306,7 +306,25 @@ type StmtBlockResult struct {
 	ExportValue cbty.Value
 }
 
-func (a StmtBlockAttrs) CallSignature(posParams PosParameters) (*cbty.CallSignature, source.Diags) {
-	// TODO: Fit the posParams to the attributes to produce a CallSignature
-	panic("StmtBlockAtrs.CallSignature not yet implemented")
+func (a StmtBlockAttrs) CallSignature(posParams PosParameters, result cbty.Type) (*cbty.CallSignature, source.Diags) {
+	var diags source.Diags
+	sig := &cbty.CallSignature{}
+	sig.Parameters = map[string]cbty.CallParameter{}
+	sig.Result = result
+	for name, attr := range a {
+		sig.Parameters[name] = cbty.CallParameter{
+			Type:     attr.Type,
+			Required: attr.Required,
+		}
+	}
+	for _, param := range posParams {
+		if _, exists := a[param.Name]; !exists {
+			// Should never actually get here, because we should catch this
+			// during compilation of posParams. We'll ignore it so we can
+			// still produce a result, albeit an incomplete one.
+			continue
+		}
+		sig.Positional = append(sig.Positional, param.Name)
+	}
+	return sig, diags
 }
