@@ -240,7 +240,153 @@ func CallExpr(callee Expr, posArgs []Expr, namedArgs map[string]Expr, rng source
 }
 
 func (e *callExpr) value(ctx *Context, targetSym *Symbol) (cbty.Value, source.Diags) {
-	panic("callExpr.value not yet implemented")
+	callee, diags := e.callee.Value(ctx)
+	if diags.HasErrors() {
+		return cbty.PlaceholderVal, diags
+	}
+
+	sig := callee.Type().CallSignature()
+	if sig == nil {
+		diags = append(diags, source.Diag{
+			Level:   source.Error,
+			Summary: "Value is not callable",
+			Detail:  fmt.Sprintf("A value of type %s cannot be called.", callee.Type().Name()),
+			Ranges:  e.sourceRange().List(),
+		})
+		return cbty.PlaceholderVal, diags
+	}
+
+	call := cbty.CallArgs{
+		Explicit: map[string]cbty.Value{},
+	}
+
+	if targetSym != nil {
+		call.TargetName = targetSym.DeclaredName()
+	}
+
+	if len(e.posArgs) < len(sig.Positional) {
+		diags = append(diags, source.Diag{
+			Level:   source.Error,
+			Summary: "Insufficient positional arguments",
+			Detail:  fmt.Sprintf("This function requires %d positional arguments.", len(sig.Positional)),
+			Ranges:  e.sourceRange().List(),
+		})
+		return cbty.UnknownVal(sig.Result), diags
+	}
+	if len(e.posArgs) > len(sig.Positional) && !sig.AcceptsVariadicPositional {
+		extras := e.posArgs[len(sig.Positional):]
+		extrasRange := source.RangeBetween(extras[0].sourceRange(), extras[len(extras)-1].sourceRange())
+		diags = append(diags, source.Diag{
+			Level:   source.Error,
+			Summary: "Extraneous positional arguments",
+			Detail:  fmt.Sprintf("This function requires %d positional arguments.", len(sig.Positional)),
+			Ranges:  extrasRange.List(),
+		})
+		return cbty.UnknownVal(sig.Result), diags
+	}
+
+	for i, name := range sig.Positional {
+		argExpr := e.posArgs[i]
+		val, valDiags := argExpr.Value(ctx)
+		diags = append(diags, valDiags...)
+		call.Explicit[name] = val
+	}
+
+	if len(e.posArgs) > len(sig.Positional) {
+		extras := e.posArgs[len(sig.Positional):]
+		call.PosVariadic = make([]cbty.Value, len(extras))
+		for i, argExpr := range extras {
+			var valDiags source.Diags
+			call.PosVariadic[i], valDiags = argExpr.Value(ctx)
+			diags = append(diags, valDiags...)
+		}
+	}
+
+	if sig.AcceptsVariadicNamed {
+		call.NamedVariadic = make(map[string]cbty.Value)
+	}
+
+	for name, argExpr := range e.namedArgs {
+		_, isExplicit := sig.Parameters[name]
+		if isExplicit {
+			if _, defined := call.Explicit[name]; defined {
+				diags = append(diags, source.Diag{
+					Level:   source.Error,
+					Summary: "Duplicate argument definition",
+					Detail:  fmt.Sprintf("Argument %q has already been assigned a value within this call.", name),
+					Ranges:  argExpr.sourceRange().List(),
+				})
+				continue
+			}
+			val, valDiags := argExpr.Value(ctx)
+			diags = append(diags, valDiags...)
+			call.Explicit[name] = val
+		} else {
+			if call.NamedVariadic == nil {
+				diags = append(diags, source.Diag{
+					Level:   source.Error,
+					Summary: "Extraneous argument",
+					Detail:  fmt.Sprintf("This function does not expect an argument named %q.", name),
+					Ranges:  argExpr.sourceRange().List(),
+				})
+				continue
+			}
+			if _, defined := call.NamedVariadic[name]; defined {
+				diags = append(diags, source.Diag{
+					Level:   source.Error,
+					Summary: "Duplicate argument definition",
+					Detail:  fmt.Sprintf("Argument %q has already been assigned a value within this call.", name),
+					Ranges:  argExpr.sourceRange().List(),
+				})
+				continue
+			}
+			val, valDiags := argExpr.Value(ctx)
+			diags = append(diags, valDiags...)
+			call.NamedVariadic[name] = val
+		}
+	}
+
+	// If we encountered any errors during argument processing then we won't
+	// actually try the call, since we'll probably end up just passing the
+	// callee garbage that it won't be able to deal with.
+	if diags.HasErrors() {
+		return cbty.UnknownVal(sig.Result), diags
+	}
+
+	// Make sure we got all the arguments we needed and that they are of
+	// the required types.
+	for name, def := range sig.Parameters {
+		val, defined := call.Explicit[name]
+		if !defined {
+			if def.Required {
+				diags = append(diags, source.Diag{
+					Level:   source.Error,
+					Summary: "Missing required argument",
+					Detail:  fmt.Sprintf("This function requires an argument named %q.", name),
+					Ranges:  e.sourceRange().List(),
+				})
+			}
+			continue
+		}
+
+		if !val.Type().Same(def.Type) {
+			diags = append(diags, source.Diag{
+				Level:   source.Error,
+				Summary: "Incorrect argument type",
+				Detail:  fmt.Sprintf("Argument %q must be of type %s, not %s.", name, def.Type.Name(), val.Type().Name()),
+				Ranges:  e.sourceRange().List(),
+			})
+			continue
+		}
+	}
+
+	if diags.HasErrors() {
+		return cbty.UnknownVal(sig.Result), diags
+	}
+
+	result, callDiags := callee.Call(call)
+	diags = append(diags, callDiags...)
+	return result, diags
 }
 
 func (e *callExpr) eachChild(cb walkCb) {
